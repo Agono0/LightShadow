@@ -12,7 +12,9 @@ namespace LightShadow.UI
         [Header("Wiring")]
         public GameObject panel;
         public Button resumeButton;
+        public Button settingsButton;
         public Button quitButton;
+        public SettingsPanelController settings;
 
         public bool IsOpen { get; private set; }
 
@@ -21,6 +23,7 @@ namespace LightShadow.UI
             Instance = this;
             if (panel != null) panel.SetActive(false);
             if (resumeButton != null) resumeButton.onClick.AddListener(Close);
+            if (settingsButton != null) settingsButton.onClick.AddListener(OpenSettings);
             if (quitButton != null) quitButton.onClick.AddListener(QuitGame);
         }
 
@@ -33,11 +36,23 @@ namespace LightShadow.UI
         {
             if (!Input.GetKeyDown(KeyCode.Escape)) return;
 
+            // Settings sits above the pause card and consumes Esc first.
+            if (settings != null && settings.IsOpen)
+            {
+                settings.Hide();
+                return;
+            }
+
             // While a question is up, Esc does nothing - let the timer decide.
             Core.GameManager gm = Core.GameManager.Instance;
             if (!IsOpen && gm != null && gm.quizUI != null && gm.quizUI.IsOpen) return;
 
             Toggle();
+        }
+
+        void OpenSettings()
+        {
+            if (settings != null) settings.Show();
         }
 
         public void Toggle()

@@ -13,6 +13,10 @@ namespace LightShadow.Gameplay
         public LitZone[] wingZones;
         public AudioClip restoreClip;
 
+        [Header("Feedback")]
+        public Renderer indicator;
+        public Material restoredMaterial;
+
         [Header("Memory Flash")]
         [TextArea(1, 3)]
         public string memoryFlash = "She always said a library card is a key that never rusts.";
@@ -37,7 +41,10 @@ namespace LightShadow.Gameplay
                 }
             }
 
+            if (restoreClip == null) restoreClip = ProceduralSfx.Power;
             if (restoreClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(restoreClip);
+
+            if (indicator != null && restoredMaterial != null) indicator.sharedMaterial = restoredMaterial;
 
             if (GameManager.Instance != null) GameManager.Instance.OnFuseRestored(memoryFlash);
         }

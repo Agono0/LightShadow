@@ -100,7 +100,7 @@ namespace LightShadow.Gameplay
                 Vector3 result = new Vector3(bounds.min.x - margin, point.y, point.z);
                 if (dxRight < min) { min = dxRight; result = new Vector3(bounds.max.x + margin, point.y, point.z); }
                 if (dyBack < min) { min = dyBack; result = new Vector3(point.x, point.y, bounds.min.z - margin); }
-                if (dzFront < min) { result = new Vector3(point.x, point.y, bounds.max.z + margin); }
+                if (dzFront < min) { min = dzFront; result = new Vector3(point.x, point.y, bounds.max.z + margin); }
 
                 point = result;
             }

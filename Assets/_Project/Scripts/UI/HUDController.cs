@@ -36,6 +36,9 @@ namespace LightShadow.UI
             if (messageText != null) messageText.gameObject.SetActive(false);
             if (objectivesPanel != null) objectivesPanel.SetActive(false);
             SetFadeAlpha(0f);
+
+            Localization.LanguageChanged += ApplyLanguageUI;
+            ApplyLanguageUI();
         }
 
         void Start()
@@ -63,6 +66,8 @@ namespace LightShadow.UI
 
         void OnDestroy()
         {
+            Localization.LanguageChanged -= ApplyLanguageUI;
+
             if (Instance == this) Instance = null;
 
             GameManager gm = GameManager.Instance;
@@ -113,10 +118,36 @@ namespace LightShadow.UI
 
         // ---- Prompt and messages -----------------------------------------------
 
+        void ApplyLanguageUI()
+        {
+            bool arabic = Localization.Current == GameLanguage.Arabic;
+            Font font = Localization.CurrentFont;
+
+            if (promptText != null)
+            {
+                promptText.font = font;
+                promptText.alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft;
+            }
+
+            if (messageText != null)
+            {
+                messageText.font = font;
+                messageText.alignment = arabic ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
+            }
+
+            if (objectivesText != null)
+            {
+                objectivesText.font = font;
+                objectivesText.alignment = arabic ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
+            }
+        }
+
         public void SetPrompt(string text)
         {
             if (promptText == null) return;
-            string shown = text ?? "";
+            // Prompts arrive as the English source sentence; TrPresent maps and
+            // shapes them for the active language.
+            string shown = string.IsNullOrEmpty(text) ? "" : Localization.TrPresent(text);
             if (promptText.text == shown) return;
             promptText.text = shown;
         }
@@ -124,7 +155,8 @@ namespace LightShadow.UI
         public void ShowMessage(string text, float seconds = 4f)
         {
             if (messageText == null || string.IsNullOrEmpty(text)) return;
-            messageText.text = text;
+            messageText.text = Localization.TrPresent(text);
+            ApplyLanguageUI();
             messageText.gameObject.SetActive(true);
             messageTimer = seconds;
         }
@@ -145,22 +177,25 @@ namespace LightShadow.UI
             GameManager gm = GameManager.Instance;
             if (gm == null) return;
 
+            bool fusesDone = gm.FusesRestored >= GameManager.FuseTarget;
+            bool fragmentsDone = gm.FragmentsCollected >= GameManager.FragmentTarget;
+
             StringBuilder builder = new StringBuilder();
+            builder.AppendLine(Localization.Format(fusesDone
+                ? "Restore fuse boxes: {0}/{1}  (done)"
+                : "Restore fuse boxes: {0}/{1}", gm.FusesRestored, GameManager.FuseTarget));
 
-            builder.Append("Restore fuse boxes: ").Append(gm.FusesRestored).Append('/').Append(GameManager.FuseTarget);
-            if (gm.FusesRestored >= GameManager.FuseTarget) builder.Append("  (done)");
-            builder.AppendLine();
+            builder.AppendLine(Localization.Format(fragmentsDone
+                ? "Collect Knowledge Fragments: {0}/{1}  (done)"
+                : "Collect Knowledge Fragments: {0}/{1}", gm.FragmentsCollected, GameManager.FragmentTarget));
 
-            builder.Append("Collect Knowledge Fragments: ").Append(gm.FragmentsCollected).Append('/').Append(GameManager.FragmentTarget);
-            if (gm.FragmentsCollected >= GameManager.FragmentTarget) builder.Append("  (done)");
-            builder.AppendLine();
+            builder.AppendLine(Localization.Format(gm.CanPowerGate
+                ? "Power the main gate  (the crank is live)"
+                : "Power the main gate  (three fuse boxes first)"));
 
-            builder.Append("Power the main gate");
-            builder.Append(gm.CanPowerGate ? "  (the crank is live)" : "  (three fuse boxes first)");
-            builder.AppendLine();
-
-            builder.Append("Escape at dawn");
-            builder.Append(gm.GatePowered ? "  (go now)" : "");
+            builder.Append(gm.GatePowered
+                ? Localization.TrPresent("Escape at dawn  (go now)")
+                : Localization.TrPresent("Escape at dawn"));
 
             objectivesText.text = builder.ToString();
         }

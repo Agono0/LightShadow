@@ -43,6 +43,8 @@ namespace LightShadow.UI
                     optionTexts[i] = optionButtons[i].GetComponentInChildren<Text>();
                 }
             }
+
+            Localization.LanguageChanged += OnLanguageChanged;
         }
 
         void Update()
@@ -53,15 +55,59 @@ namespace LightShadow.UI
 
             if (timerText != null)
             {
-                timerText.text = Mathf.CeilToInt(Mathf.Max(0f, timeLeft)) + "s";
+                timerText.text = Localization.TimerLabel(timeLeft);
+                timerText.font = Localization.CurrentFont;
             }
 
-            if (Input.GetKeyDown(KeyCode.Alpha1)) Choose(0);
-            if (Input.GetKeyDown(KeyCode.Alpha2)) Choose(1);
-            if (Input.GetKeyDown(KeyCode.Alpha3)) Choose(2);
-            if (Input.GetKeyDown(KeyCode.Alpha4)) Choose(3);
+            if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1)) Choose(0);
+            if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2)) Choose(1);
+            if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3)) Choose(2);
+            if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4)) Choose(3);
 
             if (timeLeft <= 0f) Choose(-1);
+        }
+
+        // Re-render the open question when the player switches language in the
+        // pause menu while a board is still on screen.
+        void OnLanguageChanged()
+        {
+            if (IsOpen && current != null) RenderTexts();
+        }
+
+        // Draws header, question and options for the active language, including
+        // the Arabic font and right-aligned text.
+        void RenderTexts()
+        {
+            if (current == null) return;
+
+            bool arabic = Localization.Current == GameLanguage.Arabic;
+            Font font = Localization.CurrentFont;
+
+            if (headerText != null)
+            {
+                headerText.text = Localization.Category(current.category) + " - "
+                    + Localization.Difficulty(current.difficulty);
+                headerText.font = font;
+            }
+
+            if (questionText != null)
+            {
+                questionText.text = Localization.QuestionText(current);
+                questionText.font = font;
+                questionText.alignment = arabic ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
+            }
+
+            for (int i = 0; i < optionButtons.Length && i < 4; i++)
+            {
+                if (optionButtons[i] == null) continue;
+
+                if (optionTexts.Length > i && optionTexts[i] != null)
+                {
+                    optionTexts[i].text = Localization.OptionLabel(i, Localization.QuestionOption(current, i));
+                    optionTexts[i].font = font;
+                    optionTexts[i].alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft;
+                }
+            }
         }
 
         // Presented by QuizBoard, KnowledgeFragment, etc. Callback: (correct, chosenIndex)
@@ -83,21 +129,11 @@ namespace LightShadow.UI
             GameConfig config = GameManager.Instance != null ? GameManager.Instance.config : null;
             timeLeft = config != null ? config.questionTimer : 20f;
 
-            if (headerText != null)
-            {
-                headerText.text = question.category + " - " + question.difficulty;
-            }
-
-            if (questionText != null) questionText.text = question.question;
+            RenderTexts();
 
             for (int i = 0; i < optionButtons.Length && i < 4; i++)
             {
                 if (optionButtons[i] == null) continue;
-
-                if (optionTexts.Length > i && optionTexts[i] != null)
-                {
-                    optionTexts[i].text = (i + 1) + ". " + question.options[i];
-                }
 
                 optionButtons[i].onClick.RemoveAllListeners();
                 int index = i; // capture for the closure
@@ -126,9 +162,14 @@ namespace LightShadow.UI
             if (feedbackPanel != null) feedbackPanel.SetActive(true);
             if (feedbackText != null)
             {
-                string head = index < 0 ? "Out of time." : (correct ? "Correct." : "Not quite.");
-                feedbackText.text = head + "\nThe answer is: "
-                    + current.options[current.correctIndex] + "\n" + current.explanation;
+                string head = index < 0
+                    ? Localization.TrPresent("Out of time.")
+                    : (correct ? Localization.TrPresent("Correct.") : Localization.TrPresent("Not quite."));
+
+                feedbackText.text = head + "\n"
+                    + Localization.TrPresent("The answer is: ") + " " + Localization.QuestionOption(current, current.correctIndex)
+                    + "\n" + Localization.QuestionExplanation(current);
+                feedbackText.font = Localization.CurrentFont;
             }
 
             GameConfig config = GameManager.Instance != null ? GameManager.Instance.config : null;
@@ -156,6 +197,8 @@ namespace LightShadow.UI
 
         void OnDestroy()
         {
+            Localization.LanguageChanged -= OnLanguageChanged;
+
             if (answered) return;
             if (cursorWasLocked && !Application.isMobilePlatform)
             {

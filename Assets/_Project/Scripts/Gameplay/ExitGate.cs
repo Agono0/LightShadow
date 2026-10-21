@@ -40,6 +40,7 @@ namespace LightShadow.Gameplay
         {
             Powered = true;
 
+            if (powerClip == null) powerClip = ProceduralSfx.Power;
             if (powerClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(powerClip);
             if (dawnChaseRoot != null) dawnChaseRoot.SetActive(true);
             if (escapeZone != null) escapeZone.enabled = true;
@@ -51,7 +52,7 @@ namespace LightShadow.Gameplay
         System.Collections.IEnumerator TurnCrank()
         {
             Quaternion start = gateLeaf.localRotation;
-            Quaternion end = start * Quaternion.Euler(0f, 0f, 90f);
+            Quaternion end = start * Quaternion.Euler(0f, 90f, 0f);
             float t = 0f;
             while (t < 1f)
             {

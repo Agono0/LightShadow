@@ -41,7 +41,7 @@ namespace LightShadow.Player
         float WalkSpeed => config != null ? config.walkSpeed : 3f;
         float SprintSpeed => config != null ? config.sprintSpeed : 5f;
         float CrouchSpeed => config != null ? config.crouchSpeed : 1.5f;
-        float Sensitivity => config != null ? config.mouseSensitivity : 2f;
+        float Sensitivity => (config != null ? config.mouseSensitivity : 2f) * GameSettings.Sensitivity;
 
         void Awake()
         {

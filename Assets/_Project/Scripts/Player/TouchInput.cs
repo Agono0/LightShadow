@@ -19,13 +19,24 @@ namespace LightShadow.Player
 
         void Awake()
         {
+            ResolvePlayer();
+
+            // Touch controls only appear on devices that actually have a touchscreen.
+            if (mobileHudRoot != null) mobileHudRoot.SetActive(Application.isMobilePlatform);
+        }
+
+        void Start()
+        {
+            // GameManager may still be initialising during Awake.
+            ResolvePlayer();
+        }
+
+        void ResolvePlayer()
+        {
             if (player == null && Core.GameManager.Instance != null && Core.GameManager.Instance.player != null)
             {
                 player = Core.GameManager.Instance.player.GetComponent<PlayerController>();
             }
-
-            // Touch controls only appear on devices that actually have a touchscreen.
-            if (mobileHudRoot != null) mobileHudRoot.SetActive(Application.isMobilePlatform);
         }
 
         void Update()

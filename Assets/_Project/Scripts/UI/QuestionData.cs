@@ -21,6 +21,19 @@ namespace LightShadow.UI
         [TextArea(1, 3)] public string explanation;
         public string factSource = "NEEDS-FACT-CHECK";
 
+        [Header("Arabic")]
+        [TextArea(2, 4)] public string questionAr;
+        public string[] optionsAr = new string[4];
+        [TextArea(1, 3)] public string explanationAr;
+
+        public bool HasArabic =>
+            !string.IsNullOrWhiteSpace(questionAr) &&
+            optionsAr != null && optionsAr.Length == 4 &&
+            !string.IsNullOrWhiteSpace(optionsAr[0]) &&
+            !string.IsNullOrWhiteSpace(optionsAr[1]) &&
+            !string.IsNullOrWhiteSpace(optionsAr[2]) &&
+            !string.IsNullOrWhiteSpace(optionsAr[3]);
+
         public bool IsValid =>
             !string.IsNullOrWhiteSpace(question) &&
             options != null && options.Length == 4 &&
@@ -43,6 +56,16 @@ namespace LightShadow.UI
                 options = fixedOptions;
             }
             correctIndex = Mathf.Clamp(correctIndex, 0, 3);
+
+            if (optionsAr == null || optionsAr.Length != 4)
+            {
+                string[] fixedArabic = new string[4];
+                if (optionsAr != null)
+                {
+                    for (int i = 0; i < optionsAr.Length && i < 4; i++) fixedArabic[i] = optionsAr[i];
+                }
+                optionsAr = fixedArabic;
+            }
         }
     }
 }

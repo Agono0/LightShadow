@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_His_002
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: Which ancient civilization built the pyramids at Giza?
+  options:
+  - The Romans
+  - The Greeks
+  - The Ancient Egyptians
+  - The Persians
+  correctIndex: 2
+  category: 2
+  difficulty: 1
+  explanation: The Giza pyramids were built in ancient Egypt, roughly 4,500 years
+    ago.
+  factSource: NEEDS-FACT-CHECK

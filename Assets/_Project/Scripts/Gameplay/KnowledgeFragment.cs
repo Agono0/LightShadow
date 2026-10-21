@@ -23,7 +23,7 @@ namespace LightShadow.Gameplay
         bool collected;
         bool running;
 
-        public string Prompt => "Collect " + fragmentName;
+        public string Prompt => Localization.Format("Collect {0}", fragmentName);
         public bool CanInteract => !collected && !running;
 
         public void Interact(GameObject interactor)
@@ -39,10 +39,14 @@ namespace LightShadow.Gameplay
             Collider selfCollider = GetComponent<Collider>();
             if (selfCollider != null) selfCollider.enabled = false;
 
+            if (pickupClip == null) pickupClip = Core.ProceduralSfx.Pickup;
             if (pickupClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(pickupClip);
 
             GameManager gm = GameManager.Instance;
             if (gm != null) gm.ShowMessage(fragmentText, memorySeconds);
+
+            // The narrator reads the memory aloud when a voice is available.
+            StoryTeller.Speak(Localization.Tr(fragmentText));
 
             yield return new WaitForSeconds(memorySeconds);
 

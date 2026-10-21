@@ -41,6 +41,9 @@ namespace LightShadow.Enemy
         float hearTimer;
         bool aggressive;
 
+        public State CurrentState => state;
+        public bool IsAggressive => aggressive;
+
         // ---- Config shortcuts with safe fallbacks ----
         float PatrolSpeed => config != null ? config.enemyPatrolSpeed : 1.5f;
         float StalkSpeed => config != null ? config.enemyStalkSpeed : 2f;
@@ -79,12 +82,33 @@ namespace LightShadow.Enemy
                 if (meter == null) meter = player.GetComponentInChildren<BrightIdeaMeter>();
                 if (playerCamera == null) playerCamera = player.GetComponentInChildren<Camera>();
             }
-            if (sight != null && sight.target == null && playerCamera != null) sight.target = playerCamera;
+            if (sight != null && sight.target == null && playerCamera != null) sight.target = playerCamera.transform;
 
             if (breathingSource != null)
             {
                 breathingSource.loop = true;
                 breathingSource.playOnAwake = false;
+            }
+
+            // The prefab keeps the agent disabled so it cannot complain before the
+            // NavMesh is registered. The bootstrap runs first (execution order
+            // -1000), so by now the baked data is available.
+            if (agent != null && !agent.enabled) agent.enabled = true;
+
+            // If the bake is missing or the prefab was dropped off the mesh,
+            // snap onto the nearest walkable point before the state machine runs.
+            if (agent != null && !agent.isOnNavMesh)
+            {
+                if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 8f, NavMesh.AllAreas))
+                {
+                    agent.Warp(hit.position);
+                }
+                else
+                {
+                    Debug.LogWarning("LightShadow: the Shadow is not on a NavMesh; enemy behaviour disabled.");
+                    enabled = false;
+                    return;
+                }
             }
 
             EnterState(State.Patrol);

@@ -31,6 +31,8 @@ namespace LightShadow.Player
         void Awake()
         {
             if (config == null && GameManager.Instance != null) config = GameManager.Instance.config;
+            if (correctClip == null) correctClip = ProceduralSfx.Correct;
+            if (wrongClip == null) wrongClip = ProceduralSfx.Wrong;
             meter = config != null ? config.meterStart : 60f;
         }
 

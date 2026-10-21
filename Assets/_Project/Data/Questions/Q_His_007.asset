@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_His_007
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: Which wall divided the city of Berlin from 1961 to 1989?
+  options:
+  - The Great Wall
+  - The Berlin Wall
+  - Hadrian's Wall
+  - The Iron Curtain
+  correctIndex: 1
+  category: 2
+  difficulty: 1
+  explanation: The Berlin Wall split the city during the Cold War until it was opened
+    in November 1989.
+  factSource: NEEDS-FACT-CHECK

@@ -24,6 +24,7 @@ namespace LightShadow.Gameplay
                 if (flashlight != null) flashlight.AddBattery(fraction);
             }
 
+            if (pickupClip == null) pickupClip = Core.ProceduralSfx.Pickup;
             if (pickupClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(pickupClip);
             gameObject.SetActive(false);
         }

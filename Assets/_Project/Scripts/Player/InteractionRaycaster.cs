@@ -15,6 +15,9 @@ namespace LightShadow.Player
         public Camera rayCamera;
         public HUDController hud;
 
+        [Tooltip("Layers the interaction ray may hit. The player's own body is excluded.")]
+        public LayerMask interactMask = ~0;
+
         public static InteractionRaycaster Instance { get; private set; }
 
         IInteractable current;
@@ -62,8 +65,15 @@ namespace LightShadow.Player
 
             float range = config != null ? config.interactRange : 2.5f;
             Ray ray = new Ray(rayCamera.transform.position, rayCamera.transform.forward);
-            if (Physics.Raycast(ray, out RaycastHit hit, range, ~0, QueryTriggerInteraction.Ignore))
+            if (Physics.Raycast(ray, out RaycastHit hit, range, interactMask, QueryTriggerInteraction.Ignore))
             {
+                // Never let Nour's own capsule swallow the interaction ray.
+                if (GameManager.Instance != null && GameManager.Instance.player != null
+                    && hit.transform.IsChildOf(GameManager.Instance.player))
+                {
+                    return;
+                }
+
                 current = hit.collider.GetComponentInParent<IInteractable>();
             }
         }

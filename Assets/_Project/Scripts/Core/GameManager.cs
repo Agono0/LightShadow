@@ -3,6 +3,7 @@ using LightShadow.Enemy;
 using LightShadow.Player;
 using LightShadow.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace LightShadow.Core
 {
@@ -77,8 +78,16 @@ namespace LightShadow.Core
 
         void Start()
         {
+            // A previous run may have been paused or slowed when the scene ended.
+            Time.timeScale = 1f;
             if (database != null) database.ResetBag();
             if (hud != null) hud.RefreshObjectives();
+
+            // The narrator (Windows SAPI voice) opens the night once. Audio is
+            // quiet enough not to hide the Shadow's cues; the option is offable
+            // in Settings.
+            StoryTeller.Speak(Localization.Tr(
+                "The school remembers her mother. Nour must carry what is precious out before dawn."), true);
         }
 
         // ---- Small services other scripts call --------------------------------
@@ -140,7 +149,7 @@ namespace LightShadow.Core
             if (hud != null) hud.RefreshObjectives();
         }
 
-        // Escaping ends the run: fade to black, then the study recap.
+        // Escaping ends the run: fade to black, then 03_Ending shows the study recap.
         public void Escape()
         {
             if (escaped) return;
@@ -148,8 +157,25 @@ namespace LightShadow.Core
 
             if (enemy != null) enemy.enabled = false;
 
-            if (hud != null) hud.FadeToBlack(2f, ShowRecap);
-            else ShowRecap();
+            // The answer list must survive the scene change to 03_Ending.
+            RunResults.CopyFrom(answers);
+
+            if (hud != null) hud.FadeToBlack(2f, GoToEnding);
+            else GoToEnding();
+        }
+
+        void GoToEnding()
+        {
+            // If the ending scene is missing (for example a developer pressed Play
+            // directly in 02_School before running the scene builder), still show
+            // the recap instead of breaking the run.
+            if (Application.CanStreamedLevelBeLoaded(SceneNames.Ending))
+            {
+                SceneManager.LoadScene(SceneNames.Ending);
+                return;
+            }
+
+            ShowRecap();
         }
 
         void ShowRecap()
@@ -163,6 +189,7 @@ namespace LightShadow.Core
             if (respawning || escaped) return;
             respawning = true;
 
+            if (caughtClip == null) caughtClip = ProceduralSfx.Wrong;
             if (caughtClip != null && AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlaySfx(caughtClip);

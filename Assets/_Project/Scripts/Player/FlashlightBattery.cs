@@ -34,6 +34,7 @@ namespace LightShadow.Player
         void Awake()
         {
             if (config == null && GameManager.Instance != null) config = GameManager.Instance.config;
+            if (toggleClip == null) toggleClip = ProceduralSfx.Click;
             battery = 1f;
         }
 
@@ -41,6 +42,18 @@ namespace LightShadow.Player
         {
             ApplyState();
             OnBatteryChanged.Invoke(battery);
+        }
+
+        void OnDisable()
+        {
+            // Never leave a stale light level behind for the Shadow to read.
+            PlayerLightLevel = 0f;
+            if (spotLight != null) spotLight.enabled = false;
+        }
+
+        void OnDestroy()
+        {
+            PlayerLightLevel = 0f;
         }
 
         void Update()

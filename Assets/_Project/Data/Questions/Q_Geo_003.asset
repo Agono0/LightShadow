@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_Geo_003
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: Two cities share the same latitude, but city A sits high in the mountains
+    and city B is at sea level. Which one is normally cooler?
+  options:
+  - City A, because temperature drops with altitude
+  - City B, because sea air is cold
+  - They are always the same temperature
+  - City B, because it is closer to the water
+  correctIndex: 0
+  category: 3
+  difficulty: 2
+  explanation: Air cools by about 6.5 degrees Celsius for every kilometer you climb
+    in the lower atmosphere.
+  factSource: NEEDS-FACT-CHECK

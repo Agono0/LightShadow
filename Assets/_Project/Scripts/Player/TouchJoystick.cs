@@ -17,6 +17,16 @@ namespace LightShadow.Player
         void Awake()
         {
             if (background == null) background = GetComponent<RectTransform>();
+            ResolvePlayer();
+        }
+
+        void Start()
+        {
+            ResolvePlayer();
+        }
+
+        void ResolvePlayer()
+        {
             if (player == null && Core.GameManager.Instance != null && Core.GameManager.Instance.player != null)
             {
                 player = Core.GameManager.Instance.player.GetComponent<PlayerController>();

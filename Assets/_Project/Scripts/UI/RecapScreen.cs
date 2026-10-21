@@ -3,6 +3,7 @@ using System.Text;
 using LightShadow.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace LightShadow.UI
@@ -18,18 +19,41 @@ namespace LightShadow.UI
         public Text statsText;
         public Text recapText;
         public Button quitButton;
+        public Button menuButton;
 
         void Awake()
         {
             if (panel != null) panel.SetActive(false);
             if (quitButton != null) quitButton.onClick.AddListener(QuitGame);
+            if (menuButton != null) menuButton.onClick.AddListener(ReturnToMenu);
         }
 
         public void Show(List<GameManager.AnswerRecord> answers)
         {
-            if (titleText != null) titleText.text = "Study Recap";
-            if (statsText != null) statsText.text = BuildStats(answers);
-            if (recapText != null) recapText.text = BuildBody(answers);
+            Time.timeScale = 1f;
+
+            bool arabic = Localization.Current == GameLanguage.Arabic;
+            Font font = Localization.CurrentFont;
+
+            if (titleText != null)
+            {
+                titleText.text = Localization.TrPresent("Study Recap");
+                titleText.font = font;
+            }
+
+            if (statsText != null)
+            {
+                statsText.text = BuildStats(answers);
+                statsText.font = font;
+            }
+
+            if (recapText != null)
+            {
+                recapText.text = BuildBody(answers);
+                recapText.font = font;
+                recapText.alignment = arabic ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
+            }
+
             if (panel != null) panel.SetActive(true);
 
             Cursor.lockState = CursorLockMode.None;
@@ -43,7 +67,8 @@ namespace LightShadow.UI
 
         static string BuildStats(List<GameManager.AnswerRecord> answers)
         {
-            if (answers == null || answers.Count == 0) return "No questions were answered tonight.";
+            if (answers == null || answers.Count == 0)
+                return Localization.TrPresent("No questions were answered tonight.");
 
             int correct = 0;
             for (int i = 0; i < answers.Count; i++)
@@ -52,7 +77,7 @@ namespace LightShadow.UI
             }
 
             int percent = Mathf.RoundToInt(100f * correct / answers.Count);
-            return "Answered: " + answers.Count + "    Correct: " + correct + " (" + percent + "%)";
+            return Localization.Format("Answered: {0}    Correct: {1} ({2}%)", answers.Count, correct, percent);
         }
 
         static string BuildBody(List<GameManager.AnswerRecord> answers)
@@ -61,7 +86,7 @@ namespace LightShadow.UI
 
             if (answers == null || answers.Count == 0)
             {
-                builder.Append("Nothing was asked tonight.");
+                builder.Append(Localization.TrPresent("Nothing was asked tonight."));
             }
             else
             {
@@ -71,7 +96,7 @@ namespace LightShadow.UI
                     QuestionData question = record.question;
 
                     builder.Append(i + 1).Append(". ");
-                    if (question != null) builder.Append(question.question);
+                    if (question != null) builder.Append(Localization.QuestionText(question));
                     builder.AppendLine();
 
                     if (question != null)
@@ -81,12 +106,16 @@ namespace LightShadow.UI
                             && record.chosenIndex < question.options.Length;
 
                         builder.Append(hasAnswer
-                            ? "Your answer: " + question.options[record.chosenIndex]
-                            : "Your answer: none (out of time)");
+                            ? Localization.Format("Your answer: {0}", Localization.QuestionOption(question, record.chosenIndex))
+                            : Localization.TrPresent("Your answer: none (out of time)"));
                         builder.AppendLine();
 
-                        builder.Append("Correct answer: ").Append(question.options[question.correctIndex]).AppendLine();
-                        if (!string.IsNullOrEmpty(question.explanation)) builder.Append(question.explanation).AppendLine();
+                        builder.Append(Localization.Format("Correct answer: {0}",
+                            Localization.QuestionOption(question, question.correctIndex))).AppendLine();
+                        if (!string.IsNullOrEmpty(Localization.QuestionExplanation(question)))
+                        {
+                            builder.Append(Localization.QuestionExplanation(question)).AppendLine();
+                        }
                     }
 
                     builder.AppendLine();
@@ -94,17 +123,25 @@ namespace LightShadow.UI
             }
 
             builder.AppendLine();
-            builder.Append("\"Knowledge is the only light that follows a person into the dark.\"");
+            builder.Append(Localization.TrPresent(
+                "\"Knowledge is the only light that follows a person into the dark.\""));
             return builder.ToString();
         }
 
         void QuitGame()
         {
+            Time.timeScale = 1f;
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
             Application.Quit();
 #endif
+        }
+
+        void ReturnToMenu()
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneNames.MainMenu);
         }
     }
 }
