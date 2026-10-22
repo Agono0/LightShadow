@@ -14,6 +14,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using Scene = UnityEngine.SceneManagement.Scene;
@@ -41,6 +42,9 @@ namespace LightShadow.Tools
         const string MaterialsFolder = "Assets/_Project/Materials";
         const string PrefabsFolder = "Assets/_Project/Prefabs";
         const string ScenesFolder = "Assets/_Project/Scenes";
+        const string PostFolder = DataFolder + "/Post";
+        const string PostNightPath = PostFolder + "/Post_Night.asset";
+        const string PostDawnPath = PostFolder + "/Post_Dawn.asset";
         const string BootstrapPath = ScenesFolder + "/00_Bootstrap.unity";
         const string MainMenuPath = ScenesFolder + "/01_MainMenu.unity";
         const string SchoolPath = ScenesFolder + "/02_School.unity";
@@ -162,6 +166,7 @@ namespace LightShadow.Tools
             EnsureFolder(MaterialsFolder);
             EnsureFolder(PrefabsFolder);
             EnsureFolder(ScenesFolder);
+            EnsureFolder(PostFolder);
 
             GameConfig config = EnsureConfig();
 
@@ -174,12 +179,13 @@ namespace LightShadow.Tools
             }
 
             Palette palette = BuildPalette();
+            BuildPostProfiles();
             Prefabs prefabs = BuildPrefabs(config, palette);
 
             BuildBootstrapScene();
             BuildMainMenuScene();
             BuildSchoolScene(config, database, palette, prefabs);
-            BuildEndingScene();
+            BuildEndingScene(palette);
 
             ConfigureBuildSettings();
             AssetDatabase.SaveAssets();
@@ -381,6 +387,9 @@ namespace LightShadow.Tools
             public Material curtain;
             public Material books;
             public Material water;
+            public Material eye;
+            public Material sun;
+            public Material sky;
         }
 
         static Palette BuildPalette()
@@ -407,7 +416,10 @@ namespace LightShadow.Tools
                 stone = MakeLit("Mat_Stone", new Color(0.28f, 0.27f, 0.25f), 0.1f),
                 curtain = MakeLit("Mat_Curtain", new Color(0.28f, 0.05f, 0.05f), 0.1f),
                 books = MakeLit("Mat_Books", new Color(0.35f, 0.18f, 0.10f), 0.1f),
-                water = MakeLit("Mat_Water", new Color(0.08f, 0.18f, 0.25f), 0.85f, 0.1f)
+                water = MakeLit("Mat_Water", new Color(0.08f, 0.18f, 0.25f), 0.85f, 0.1f),
+                eye = MakeUnlit("Mat_Eye", new Color(1.65f, 0.16f, 0.10f)),
+                sun = MakeUnlit("Mat_Sun", new Color(1f, 0.80f, 0.48f) * 3.4f),
+                sky = MakeUnlit("Mat_Sky", new Color(0.15f, 0.13f, 0.18f))
             };
         }
 
@@ -457,6 +469,88 @@ namespace LightShadow.Tools
             material = new Material(shader) { name = name };
             AssetDatabase.CreateAsset(material, path);
             return material;
+        }
+
+        // ---------------------------------------------------- post-processing
+
+        // Global colour grade for the whole game. Volumes live in the scenes as
+        // assets so the look is data, not code; BrightnessController adds a
+        // higher-priority volume that only overrides post-exposure on top.
+        static void BuildPostProfiles()
+        {
+            BuildPostProfile(PostNightPath, false);
+            BuildPostProfile(PostDawnPath, true);
+        }
+
+        static VolumeProfile BuildPostProfile(string path, bool dawn)
+        {
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+            if (profile == null)
+            {
+                profile = ScriptableObject.CreateInstance<VolumeProfile>();
+                AssetDatabase.CreateAsset(profile, path);
+            }
+
+            // Rebuild the component list every run so repeated builds never stack
+            // duplicate Bloom/Vignette components in the same profile.
+            for (int i = profile.components.Count - 1; i >= 0; i--)
+            {
+                VolumeComponent existing = profile.components[i];
+                profile.components.RemoveAt(i);
+                if (existing != null) Object.DestroyImmediate(existing, true);
+            }
+
+            Bloom bloom = profile.Add<Bloom>(true);
+            bloom.intensity.Override(dawn ? 0.55f : 0.8f);
+            bloom.threshold.Override(dawn ? 1.1f : 0.85f);
+            bloom.scatter.Override(0.62f);
+            bloom.tint.Override(dawn ? new Color(1f, 0.86f, 0.68f) : new Color(0.72f, 0.79f, 1f));
+
+            Vignette vignette = profile.Add<Vignette>(true);
+            vignette.intensity.Override(dawn ? 0.16f : 0.34f);
+            vignette.smoothness.Override(0.55f);
+            vignette.rounded.Override(false);
+
+            FilmGrain grain = profile.Add<FilmGrain>(true);
+            grain.type.Override(FilmGrainLookup.Medium2);
+            grain.intensity.Override(dawn ? 0.1f : 0.24f);
+            grain.response.Override(0.8f);
+
+            ColorAdjustments color = profile.Add<ColorAdjustments>(true);
+            color.postExposure.Override(dawn ? 0.45f : 0.02f);
+            color.contrast.Override(dawn ? 4f : 8f);
+            color.saturation.Override(dawn ? 12f : -6f);
+            color.colorFilter.Override(dawn
+                ? new Color(1f, 0.95f, 0.88f)
+                : new Color(0.84f, 0.89f, 1f));
+
+            Tonemapping tonemapping = profile.Add<Tonemapping>(true);
+            tonemapping.mode.Override(TonemappingMode.ACES);
+
+            EditorUtility.SetDirty(profile);
+            return profile;
+        }
+
+        static Volume CreatePostVolume(Transform parent, string name, string profilePath)
+        {
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(profilePath);
+            if (profile == null) return null;
+
+            var go = new GameObject(name);
+            if (parent != null) go.transform.SetParent(parent, false);
+            Volume volume = go.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.priority = 1f;
+            volume.sharedProfile = profile;
+            return volume;
+        }
+
+        static void EnableCameraPostProcessing(Camera camera)
+        {
+            if (camera == null) return;
+            UniversalAdditionalCameraData data = camera.GetUniversalAdditionalCameraData();
+            if (data == null) return;
+            data.renderPostProcessing = true;
         }
 
         // ------------------------------------------------------------- helpers
@@ -569,6 +663,7 @@ namespace LightShadow.Tools
             camera.farClipPlane = 120f;
             camera.allowHDR = true;
             camera.allowMSAA = true;
+            EnableCameraPostProcessing(camera);
 
             go.AddComponent<AudioListener>();
             return camera;
@@ -584,7 +679,8 @@ namespace LightShadow.Tools
             light.type = LightType.Directional;
             light.color = new Color(0.55f, 0.66f, 0.92f);
             light.intensity = 0.11f;
-            light.shadows = LightShadows.None;
+            light.shadows = LightShadows.Soft;
+            light.shadowStrength = 0.6f;
             light.renderMode = LightRenderMode.ForcePixel;
             return light;
         }
@@ -606,7 +702,8 @@ namespace LightShadow.Tools
             return light;
         }
 
-        static GameObject AddLamp(Transform parent, Vector3 localPosition, Color color, float intensity, float range)
+        static GameObject AddLamp(Transform parent, Vector3 localPosition, Color color, float intensity, float range,
+            bool flicker = true)
         {
             var go = new GameObject("Lamp");
             go.transform.SetParent(parent, false);
@@ -616,7 +713,8 @@ namespace LightShadow.Tools
                 AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/Mat_Lamp.mat"), false);
             fixture.transform.localPosition = new Vector3(0f, 0.08f, 0f);
 
-            CreatePointLight(go.transform, "Light", new Vector3(0f, -0.15f, 0f), color, intensity, range);
+            Light light = CreatePointLight(go.transform, "Light", new Vector3(0f, -0.15f, 0f), color, intensity, range, true);
+            if (flicker && light != null) light.gameObject.AddComponent<LightFlicker>();
             return go;
         }
 
@@ -626,10 +724,11 @@ namespace LightShadow.Tools
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
             go.transform.localPosition = localPosition;
-            // TextMesh's readable face is +Z. Every caller supplies the rotation
-            // it wants for a -Z-facing front, so flip the mesh once here instead
-            // of mirroring text in every label.
-            go.transform.localRotation = localRotation * Quaternion.Euler(0f, 180f, 0f);
+            // TextMesh glyphs read correctly when the transform's +Z axis points
+            // AWAY from the camera (the readable face is the -forward side), so
+            // callers provide that rotation; never flip it here (a 180-degree
+            // y-flip of the caller's yaw renders the whole string mirrored).
+            go.transform.localRotation = localRotation;
 
             TextMesh text = go.AddComponent<TextMesh>();
             text.text = content;

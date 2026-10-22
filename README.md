@@ -1,6 +1,6 @@
 # LIGHT SHADOW
 
-> **Trapped in her dead mother's school on the night before demolition, a grieving student must recharge a knowledge-powered flashlight by answering real questions — because in LIGHT SHADOW, learning is the only light that follows a person into the dark.**
+> **Her mother's old school, the night before it falls - a determined student recharges a knowledge-powered flashlight by answering real questions, because in LIGHT SHADOW, learning is the only light that follows a person into the dark.**
 
 First-person educational horror for **Windows PC** and **Android 10+** — no combat, no gore.
 Made with Unity 6 (Universal Render Pipeline). Single player, 20–40 minutes per playthrough.
@@ -16,8 +16,13 @@ The full gameplay loop is implemented and playable from the generated scenes:
 - the Bright Idea Meter (correct +25, wrong/timeout −10, passive drain, beam range 4–12 m);
 - the Shadow's four-state behaviour (patrol → stalk → chase → repelled), NavMesh, line of sight and lit-room exclusion — plus a synthesised growl/stinger voice that follows its state;
 - three fuse boxes, six Knowledge Fragments, seven quiz boards, seven batteries and the powered gate;
-- lit-room checkpoints, bloodless caught/respawn, dawn chase, ending and study-recap screen;
-- a low-poly first-person hand with breathing, walk bob and crouch dip;
+- lit-room checkpoints, bloodless caught/respawn, a scripted catch sequence (freeze, lunge, camera
+  shake, whisper), dawn chase, ending and study-recap screen;
+- a low-poly first-person hand with breathing, walk bob and crouch dip, plus small ambient motion
+  on the pickups, lamps and the Shadow itself;
+- a three-dimensional dawn ending: the camera looks through the opened gate at a rising sun while the
+  recap fades in over the set;
+- story plaques in every room (the night's history is read in the world, not in a cutscene);
 - **60 seeded questions** across Science, Math, History, Geography, Language and Health;
 - English/Arabic interface (all UI, no localization packages) and a settings card
   (resolution, fullscreen, quality, v-sync, brightness, sensitivity, language, narrator);
@@ -50,8 +55,10 @@ Re-run **3. Build Scenes** after changing `SceneBuilder*.cs`, the level layout o
 
 The Settings card opens from the main menu and from the pause menu (Esc ▸ Settings):
 
-- **Resolution / Fullscreen / Quality / VSync** — applied live, saved to PlayerPrefs;
-- **Brightness** — URP post-exposure lift plus a small ambient-light lift, so the flashlight
+- **Resolution / Fullscreen / Quality / VSync** - applied live, saved to PlayerPrefs;
+- **Shadows / Anti-aliasing / Render scale** - applied to the active URP asset at runtime, so a
+  weaker machine can drop shadow distance, MSAA and resolution without leaving the game;
+- **Brightness** - URP post-exposure lift plus a small ambient-light lift, so the flashlight
   silhouette still reads even with post-processing off (mobile preset);
 - **Mouse sensitivity** — multiplies the configured mouse turn rate;
 - **Language** — English or Arabic. All menus, the HUD, the quiz overlay, prompts, messages,
@@ -138,7 +145,9 @@ the asset at runtime.
 
 ## Known limitations / next pass
 
-- Greybox geometry and unlit/dark rooms; the art and lighting-bake pass is still the Week 7 deliverable.
+- Greybox geometry remains, but the finishing pass added a global URP post stack (bloom, vignette,
+  colour grade, film grain), soft moon shadows, lamp flicker and a real 3D dawn ending; a baked
+  lighting pass is still the Week 7 deliverable.
 - Questions are AI-assisted drafts. A human must verify each `factSource` before release.
   Question text itself is English; the `questionAr`/`optionsAr`/`explanationAr` fields exist for
   the hand-translation pass.

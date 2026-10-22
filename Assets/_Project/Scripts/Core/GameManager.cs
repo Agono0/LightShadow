@@ -82,6 +82,11 @@ namespace LightShadow.Core
             Time.timeScale = 1f;
             if (database != null) database.ResetBag();
             if (hud != null) hud.RefreshObjectives();
+            Debug.Log("[LightShadow] The night begins: Nour entered the school.");
+
+            // Opening story beat: the stakes on the HUD while the narrator sets
+            // the tone over the speakers.
+            ShowMessage("The demolition crew comes at dawn. Restore the light. Carry her memories home.", 6f);
 
             // The narrator (Windows SAPI voice) opens the night once. Audio is
             // quiet enough not to hide the Shadow's cues; the option is offable
@@ -127,16 +132,33 @@ namespace LightShadow.Core
 
         // ---- Story beats -------------------------------------------------------
 
+        // One line after every fuse box so the night always knows what is next.
+        static readonly string[] FuseBeats =
+        {
+            "The library hums awake. Two fuse boxes are still dead.",
+            "The staff room remembers her red pen. One fuse box left.",
+            "The last fuse is alive. The gate crank is waiting.",
+        };
+
         public void OnFuseRestored(string memoryFlash)
         {
             FusesRestored++;
-            if (!string.IsNullOrEmpty(memoryFlash)) ShowMessage(memoryFlash, 4f);
+            if (!string.IsNullOrEmpty(memoryFlash))
+            {
+                ShowMessage(memoryFlash, 4f);
+                int beat = Mathf.Clamp(FusesRestored - 1, 0, FuseBeats.Length - 1);
+                if (hud != null) hud.QueueMessage(FuseBeats[beat], 4.5f);
+            }
             if (hud != null) hud.RefreshObjectives();
         }
 
         public void OnFragmentCollected()
         {
             FragmentsCollected++;
+            if (FragmentsCollected == FragmentTarget)
+            {
+                ShowMessage("Every fragment is found. The memory box is full of her voice.", 5f);
+            }
             if (hud != null) hud.RefreshObjectives();
         }
 
@@ -146,6 +168,8 @@ namespace LightShadow.Core
             // Doc 4.4: the Shadow follows Nour through the whole main hall at dawn.
             if (enemy != null) enemy.SetAggressive(true);
             ShowMessage("The gate is powered. Run.", 5f);
+            StoryTeller.Speak(Localization.Tr(
+                "The gate is powered. The Shadow is right behind you. Run for the dawn."), false);
             if (hud != null) hud.RefreshObjectives();
         }
 

@@ -342,13 +342,13 @@ namespace LightShadow.Tools
 
             SettingsPanelController controller = canvas.gameObject.AddComponent<SettingsPanelController>();
             controller.panel = dim.gameObject;
-            controller.rowLabels = new Text[8];
-            controller.rowValues = new Text[8];
-            controller.prevButtons = new Button[8];
-            controller.nextButtons = new Button[8];
+            controller.rowLabels = new Text[11];
+            controller.rowValues = new Text[11];
+            controller.prevButtons = new Button[11];
+            controller.nextButtons = new Button[11];
 
             RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1120f, 840f), PanelDark, false).rectTransform;
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1120f, 1080f), PanelDark, false).rectTransform;
 
             controller.title = MakeText(card, "Title", "SETTINGS", 44, Warm, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
@@ -356,13 +356,14 @@ namespace LightShadow.Tools
 
             string[] rowKeys =
             {
-                "Resolution", "Fullscreen", "Quality", "VSync",
-                "Brightness", "Mouse sensitivity", "Language", "Narrator voice"
+                "Resolution", "Fullscreen", "Quality", "VSync", "Shadows",
+                "Anti-aliasing", "Render scale", "Brightness", "Mouse sensitivity",
+                "Language", "Narrator voice"
             };
 
             for (int i = 0; i < rowKeys.Length; i++)
             {
-                float y = -136f - i * 70f;
+                float y = -120f - i * 64f;
 
                 controller.rowLabels[i] = MakeText(card, "RowLabel" + i, rowKeys[i], 22, Paper,
                     TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
@@ -425,7 +426,7 @@ namespace LightShadow.Tools
             Localize(title);
 
             Text subtitle = MakeText(root, "Subtitle",
-                "Trapped in her dead mother's school on the night before demolition,\na grieving student must recharge a knowledge-powered flashlight by answering real questions.",
+                "Her mother's old school, the night before it falls -\na determined student recharges a knowledge-powered flashlight by answering real questions.",
                 24, new Color(0.72f, 0.70f, 0.66f), TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0f, 175f), new Vector2(1100f, 90f), FontStyle.Italic);
@@ -529,15 +530,20 @@ namespace LightShadow.Tools
             Transform root = canvas.transform;
             EndingController ending = canvas.gameObject.AddComponent<EndingController>();
 
-            MakeFullScreen(root, "Background", new Color(0.060f, 0.052f, 0.045f, 1f), false);
+            // The dawn is a real 3D set now, so the UI only supplies a soft glow
+            // and a scrim that keeps the closing lines readable over the sunrise.
             MakeImage(root, "DawnGlow", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f), new Vector2(0f, 330f), new Vector2(1800f, 1000f), KnobSprite,
-                new Color(1f, 0.55f, 0.25f, 0.16f), false);
+                new Color(1f, 0.55f, 0.25f, 0.10f), false);
 
             var dawnRoot = new GameObject("Dawn", typeof(RectTransform), typeof(CanvasGroup));
             dawnRoot.transform.SetParent(root, false);
             RectTransform dawnRect = dawnRoot.GetComponent<RectTransform>();
             Stretch(dawnRect);
+
+            MakePanel(dawnRoot.transform, "DawnScrim", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(0f, 70f), new Vector2(1260f, 600f),
+                new Color(0.035f, 0.028f, 0.022f, 0.46f), false);
 
             Text dawnTitle = MakeText(dawnRoot.transform, "DawnTitle", "DAWN", 112, Warm, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),

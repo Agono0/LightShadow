@@ -87,7 +87,13 @@ namespace LightShadow.Tools
             camera.farClipPlane = 120f;
             camera.allowHDR = true;
             camera.allowMSAA = true;
+            EnableCameraPostProcessing(camera);
             cameraGo.AddComponent<AudioListener>();
+
+            // Catch feedback: a short decaying shake of the camera itself. The
+            // pivot still owns pitch, so the two never fight over rotation.
+            CameraShake shake = cameraGo.AddComponent<CameraShake>();
+            shake.shakeRoot = cameraGo.transform;
 
             var flashlightGo = new GameObject("Flashlight");
             flashlightGo.transform.SetParent(cameraGo.transform, false);
@@ -99,7 +105,7 @@ namespace LightShadow.Tools
             spot.range = 8f;
             spot.spotAngle = 58f;
             spot.innerSpotAngle = 34f;
-            spot.shadows = LightShadows.Hard;
+            spot.shadows = LightShadows.Soft;
             spot.shadowStrength = 0.75f;
             spot.shadowBias = 0.04f;
             spot.shadowNormalBias = 0.2f;
@@ -206,6 +212,20 @@ namespace LightShadow.Tools
             AddShadowShape(visual.transform, "ArmR", PrimitiveType.Capsule, new Vector3(0.3f, 1.12f, 0f),
                 new Vector3(0.1f, 0.42f, 0.1f), Quaternion.Euler(0f, 0f, -16f), palette.shadow);
 
+            // Two embers where the face should be. Unlit on purpose: the eyes stay
+            // visible when the body is a silhouette in the dark.
+            AddShadowShape(visual.transform, "EyeL", PrimitiveType.Sphere, new Vector3(-0.095f, 1.86f, 0.168f),
+                new Vector3(0.075f, 0.055f, 0.05f), Quaternion.identity, palette.eye);
+            AddShadowShape(visual.transform, "EyeR", PrimitiveType.Sphere, new Vector3(0.095f, 1.86f, 0.168f),
+                new Vector3(0.075f, 0.055f, 0.05f), Quaternion.identity, palette.eye);
+
+            // Hover, breathe, sway and lunge. Purely additive on top of the
+            // authored local transforms, so the prefab stays the source of truth.
+            ShadowMotion motion = root.AddComponent<ShadowMotion>();
+            motion.visual = visual.transform;
+            motion.leftArm = visual.transform.Find("ArmL");
+            motion.rightArm = visual.transform.Find("ArmR");
+
             var head = new GameObject("Head");
             head.transform.SetParent(root.transform, false);
             head.transform.localPosition = new Vector3(0f, 1.72f, 0f);
@@ -274,19 +294,29 @@ namespace LightShadow.Tools
             collider.size = new Vector3(0.42f, 0.62f, 0.42f);
             collider.center = new Vector3(0f, 0.31f, 0f);
 
+            // All visible parts live under "Visual" so PickupMotion can bob and
+            // spin them without moving the collider the interaction ray targets.
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(root.transform, false);
+
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             body.name = "Cell";
-            body.transform.SetParent(root.transform, false);
+            body.transform.SetParent(visual.transform, false);
             body.transform.localPosition = new Vector3(0f, 0.3f, 0f);
             body.transform.localScale = new Vector3(0.13f, 0.16f, 0.13f);
             Object.DestroyImmediate(body.GetComponent<Collider>());
             body.GetComponent<Renderer>().sharedMaterial = palette.battery;
 
-            Box(root.transform, "Band", new Vector3(0f, 0.4f, 0f), new Vector3(0.16f, 0.05f, 0.16f),
+            Box(visual.transform, "Band", new Vector3(0f, 0.4f, 0f), new Vector3(0.16f, 0.05f, 0.16f),
                 palette.metal, false, InteractableLayer);
 
-            CreatePointLight(root.transform, "Glow", new Vector3(0f, 0.55f, 0f),
+            CreatePointLight(visual.transform, "Glow", new Vector3(0f, 0.55f, 0f),
                 new Color(1f, 0.72f, 0.28f), 0.8f, 3f);
+
+            PickupMotion motion = root.AddComponent<PickupMotion>();
+            motion.visual = visual.transform;
+            motion.bobHeight = 0.055f;
+            motion.spinSpeed = 28f;
 
             root.AddComponent<BatteryPickup>();
             return SavePrefab(root, PrefabsFolder + "/Interactables", "BatteryPickup");
@@ -355,19 +385,27 @@ namespace LightShadow.Tools
             collider.size = new Vector3(0.55f, 0.6f, 0.55f);
             collider.center = new Vector3(0f, 0.3f, 0f);
 
-            Box(root.transform, "Paper", new Vector3(0f, 0.4f, 0f), new Vector3(0.24f, 0.02f, 0.42f),
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(root.transform, false);
+
+            Box(visual.transform, "Paper", new Vector3(0f, 0.4f, 0f), new Vector3(0.24f, 0.02f, 0.42f),
                 palette.paper, false).transform.localRotation = Quaternion.Euler(8f, 24f, 10f);
 
             GameObject glow = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             glow.name = "Glow";
-            glow.transform.SetParent(root.transform, false);
+            glow.transform.SetParent(visual.transform, false);
             glow.transform.localPosition = new Vector3(0f, 0.42f, 0f);
             glow.transform.localScale = Vector3.one * 0.1f;
             Object.DestroyImmediate(glow.GetComponent<Collider>());
             glow.GetComponent<Renderer>().sharedMaterial = palette.lamp;
 
-            CreatePointLight(root.transform, "GlowLight", new Vector3(0f, 0.55f, 0f),
+            CreatePointLight(visual.transform, "GlowLight", new Vector3(0f, 0.55f, 0f),
                 new Color(1f, 0.85f, 0.6f), 1.1f, 3.2f);
+
+            PickupMotion motion = root.AddComponent<PickupMotion>();
+            motion.visual = visual.transform;
+            motion.bobHeight = 0.05f;
+            motion.spinSpeed = 22f;
 
             root.AddComponent<KnowledgeFragment>();
             return SavePrefab(root, PrefabsFolder + "/Interactables", "KnowledgeFragment");

@@ -40,6 +40,7 @@ namespace LightShadow.Tools
             ApplyAtmosphere(new Color(0.01f, 0.01f, 0.02f), Color.black, 0.02f);
 
             CreateCamera("BootstrapCamera", new Vector3(0f, 0f, -10f), Quaternion.identity, Color.black);
+            CreatePostVolume(null, "GlobalVolume", PostNightPath);
             Canvas canvas = SceneBuilderUI.BuildBootstrapUI();
 
             var bootstrap = new GameObject("Bootstrap");
@@ -57,6 +58,7 @@ namespace LightShadow.Tools
 
             CreateCamera("MenuCamera", new Vector3(0f, 0f, -10f), Quaternion.identity,
                 new Color(0.012f, 0.014f, 0.019f));
+            CreatePostVolume(null, "GlobalVolume", PostNightPath);
             EnsureEventSystem();
             SceneBuilderUI.BuildMainMenuUI();
 
@@ -65,17 +67,138 @@ namespace LightShadow.Tools
 
         // ============================================================== ending
 
-        static void BuildEndingScene()
+        static void BuildEndingScene(Palette palette)
         {
             Scene scene = NewScene();
-            ApplyAtmosphere(new Color(0.05f, 0.045f, 0.04f), new Color(0.08f, 0.06f, 0.045f), 0.01f);
+            ApplyAtmosphere(new Color(0.075f, 0.065f, 0.070f), new Color(0.16f, 0.12f, 0.10f), 0.010f);
 
-            CreateCamera("EndingCamera", new Vector3(0f, 0f, -10f), Quaternion.identity,
-                new Color(0.07f, 0.055f, 0.045f));
+            // A real set instead of a painted backdrop: the camera stands on the
+            // pavement outside the gate and the dawn happens in three dimensions
+            // while EndingController drives the sun and the light.
+            var set = Group("DawnSet", null);
+            Transform t = set.transform;
+
+            Box(t, "Ground", new Vector3(0f, -0.1f, 10f), new Vector3(90f, 0.2f, 90f), palette.stone);
+            Box(t, "Path", new Vector3(0f, 0.02f, 9f), new Vector3(6f, 0.04f, 16f), palette.floor, false);
+
+            // ---- school silhouette ------------------------------------------
+            Box(t, "School", new Vector3(0f, 3.8f, 20f), new Vector3(44f, 7.6f, 4f), palette.wall);
+            Box(t, "SchoolRoof", new Vector3(0f, 7.75f, 20f), new Vector3(45f, 0.35f, 4.6f), palette.ceiling, false);
+            Box(t, "SchoolSkirt", new Vector3(0f, 0.25f, 17.9f), new Vector3(44f, 0.5f, 0.3f), palette.ceiling, false);
+
+            for (int i = 0; i < 9; i++)
+            {
+                for (int row = 0; row < 2; row++)
+                {
+                    float x = -18f + i * 4.5f;
+                    float y = row == 0 ? 5.1f : 2.4f;
+                    bool lit = (i * 3 + row) % 5 == 0;
+                    Box(t, "Window_" + row + "_" + i, new Vector3(x, y, 17.92f), new Vector3(1.6f, 1.15f, 0.06f),
+                        lit ? palette.lamp : palette.ceiling, false);
+                }
+            }
+
+            CreateWorldText(t, "SchoolSign", "AL-NOOR SECONDARY SCHOOL", new Vector3(0f, 6.55f, 17.9f),
+                Quaternion.identity, 0.045f, 64, new Color(0.86f, 0.78f, 0.60f));
+
+            // ---- boundary wall and the open gate ----------------------------
+            Box(t, "BoundaryL", new Vector3(-15f, 1.3f, 4f), new Vector3(18f, 2.6f, 0.4f), palette.wall);
+            Box(t, "BoundaryR", new Vector3(15f, 1.3f, 4f), new Vector3(18f, 2.6f, 0.4f), palette.wall);
+            Box(t, "PillarL", new Vector3(-6f, 1.9f, 4f), new Vector3(0.9f, 3.8f, 0.9f), palette.gate);
+            Box(t, "PillarR", new Vector3(6f, 1.9f, 4f), new Vector3(0.9f, 3.8f, 0.9f), palette.gate);
+            Box(t, "GateLintel", new Vector3(0f, 3.75f, 4f), new Vector3(12.6f, 0.35f, 0.7f), palette.gate, false);
+
+            AddGateLeaf(t, "GateLeafL", -5.7f, 58f, 1f, palette);
+            AddGateLeaf(t, "GateLeafR", 5.7f, -58f, -1f, palette);
+
+            AddLamp(t, new Vector3(-6f, 4.05f, 4f), new Color(1f, 0.74f, 0.42f), 2.2f, 12f, false);
+            AddLamp(t, new Vector3(6f, 4.05f, 4f), new Color(1f, 0.74f, 0.42f), 2.2f, 12f, false);
+
+            // ---- the pavement outside the gate ------------------------------
+            for (int i = 0; i < 2; i++)
+            {
+                float x = i == 0 ? -5.2f : 5.2f;
+                float z = -2.5f;
+                Box(t, "LampPost_" + i, new Vector3(x, 1.7f, z), new Vector3(0.12f, 3.4f, 0.12f), palette.metal, false);
+                AddLamp(t, new Vector3(x, 3.4f, z), new Color(1f, 0.70f, 0.38f), 1.5f, 10f, false);
+            }
+
+            Box(t, "Pavement", new Vector3(0f, 0.03f, -6f), new Vector3(18f, 0.06f, 12f), palette.floor, false);
+            Box(t, "KerbL", new Vector3(-9f, 0.09f, -6f), new Vector3(0.3f, 0.18f, 12f), palette.stone, false);
+            Box(t, "KerbR", new Vector3(9f, 0.09f, -6f), new Vector3(0.3f, 0.18f, 12f), palette.stone, false);
+
+            // ---- sky, hills, sun --------------------------------------------
+            GameObject sky = Box(t, "Sky", new Vector3(0f, 14f, 40f), new Vector3(140f, 56f, 0.4f), palette.sky, false);
+
+            Box(t, "HillFar", new Vector3(-16f, 2.2f, 34f), new Vector3(70f, 4.4f, 6f), palette.ceiling, false);
+            Box(t, "HillNear", new Vector3(18f, 1.4f, 31f), new Vector3(54f, 2.8f, 5f), palette.ceiling, false);
+
+            GameObject sun = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sun.name = "Sun";
+            sun.transform.SetParent(t, false);
+            sun.transform.localPosition = new Vector3(-21f, 1.6f, 28f);
+            sun.transform.localScale = new Vector3(5.2f, 5.2f, 5.2f);
+            Object.DestroyImmediate(sun.GetComponent<Collider>());
+            sun.GetComponent<Renderer>().sharedMaterial = palette.sun;
+
+            Light dawnLight = CreateDawnLight(t);
+
+            // ---- camera and UI ----------------------------------------------
+            Camera camera = CreateCamera("EndingCamera", new Vector3(0f, 1.65f, -7f), Quaternion.identity,
+                new Color(0.05f, 0.05f, 0.08f));
+            camera.fieldOfView = 55f;
+
+            CreatePostVolume(null, "DawnVolume", PostDawnPath);
             EnsureEventSystem();
-            SceneBuilderUI.BuildEndingUI();
+            EndingController ending = SceneBuilderUI.BuildEndingUI();
+
+            ending.sun = sun.transform;
+            ending.sunRenderer = sun.GetComponent<Renderer>();
+            ending.skyRenderer = sky.GetComponent<Renderer>();
+            ending.dawnLight = dawnLight;
+            ending.endingCamera = camera;
 
             SaveScene(scene, EndingPath);
+        }
+
+        // One leaf of the gate, hinged at the pillar and swung towards the road.
+        // Built from bars instead of a slab so the school stays visible through it.
+        static void AddGateLeaf(Transform parent, string name, float hingeX, float yaw, float direction, Palette palette)
+        {
+            const float length = 5.6f;
+
+            var hinge = new GameObject(name);
+            hinge.transform.SetParent(parent, false);
+            hinge.transform.localPosition = new Vector3(hingeX, 0f, 4f);
+            hinge.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
+
+            for (int i = 0; i < 7; i++)
+            {
+                float x = direction * (0.45f + i * (length - 0.9f) / 6f);
+                Box(hinge.transform, "Bar_" + i, new Vector3(x, 1.2f, 0f), new Vector3(0.07f, 2.2f, 0.07f),
+                    palette.gate, false);
+            }
+
+            Box(hinge.transform, "RailTop", new Vector3(direction * length * 0.5f, 2.16f, 0f),
+                new Vector3(length, 0.1f, 0.12f), palette.gate, false);
+            Box(hinge.transform, "RailBottom", new Vector3(direction * length * 0.5f, 0.34f, 0f),
+                new Vector3(length, 0.1f, 0.12f), palette.gate, false);
+        }
+
+        static Light CreateDawnLight(Transform parent)
+        {
+            var go = new GameObject("DawnLight");
+            go.transform.SetParent(parent, false);
+            go.transform.rotation = Quaternion.Euler(14f, 148f, 0f);
+
+            Light light = go.AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.color = new Color(1f, 0.72f, 0.44f);
+            light.intensity = 0f;
+            light.shadows = LightShadows.Soft;
+            light.shadowStrength = 0.55f;
+            light.renderMode = LightRenderMode.ForcePixel;
+            return light;
         }
 
         // ============================================================== school
@@ -111,6 +234,7 @@ namespace LightShadow.Tools
             BuildMainHall(level.transform, zones, prefabs, palette, database);
             BuildEntrance(level.transform, prefabs, palette, database);
             BuildGate(level.transform, zones, prefabs, palette, database);
+            BuildStoryPlaques(level.transform);
 
             BakeNavMesh(surface);
 
@@ -176,6 +300,7 @@ namespace LightShadow.Tools
 
             // The brightness option acts through URP post-exposure and ambient lift.
             systems.AddComponent<BrightnessController>();
+            CreatePostVolume(systems.transform, "GlobalVolume", PostNightPath);
 
             checkpoints.defaultSpawn = spawn.transform;
 
@@ -303,15 +428,19 @@ namespace LightShadow.Tools
             AddLamp(lights.transform, new Vector3(-3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 2.8f, 10f);
             AddLamp(lights.transform, new Vector3(3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 2.8f, 10f);
             CreatePointLight(lights.transform, "GateGlow", new Vector3(0f, 2.6f, -33.5f),
-                new Color(1f, 0.72f, 0.42f), 1.2f, 7f);
+                new Color(1f, 0.72f, 0.42f), 1.6f, 8f);
 
             // A pair of weak blue emergency lights keep the corridor navigable.
-            AddLamp(lights.transform, new Vector3(0f, 2.9f, -20f), new Color(0.38f, 0.48f, 0.70f), 0.42f, 7f);
-            AddLamp(lights.transform, new Vector3(0f, 2.9f, 20f), new Color(0.38f, 0.48f, 0.70f), 0.42f, 7f);
+            AddLamp(lights.transform, new Vector3(0f, 2.9f, -20f), new Color(0.38f, 0.48f, 0.70f), 0.65f, 8f);
+            AddLamp(lights.transform, new Vector3(0f, 2.9f, 20f), new Color(0.38f, 0.48f, 0.70f), 0.65f, 8f);
 
             // Garden moonlight.
             CreatePointLight(lights.transform, "GardenMoon", new Vector3(12f, 5f, 11f),
-                new Color(0.52f, 0.64f, 0.90f), 0.8f, 24f);
+                new Color(0.52f, 0.64f, 0.90f), 1.0f, 26f);
+
+            // A soft fill on every wing doorway so the signs read from the hall.
+            CreatePointLight(lights.transform, "DoorwayFill", new Vector3(0f, 2.9f, -15f),
+                new Color(0.42f, 0.5f, 0.68f), 0.55f, 7f);
 
             // ---- fuse-controlled light groups ---------------------------------
             set.libraryLights = Group("LibraryLights", parent);
@@ -336,16 +465,22 @@ namespace LightShadow.Tools
             AddLamp(set.mainHallLights.transform, new Vector3(-16f, 2.8f, 23f), new Color(1f, 0.84f, 0.58f), 2.2f, 10f);
             set.staffLights = set.mainHallLights;
 
-            // Dawn chase: corridor lights come on with the gate.
+            // Dawn chase: corridor lights come on with the gate. They must not
+            // flicker - DawnRiser owns their intensity while they fade up.
             set.dawnLights = Group("DawnChase", parent);
             for (int i = 0; i < 7; i++)
             {
                 float z = -24f + i * 8f;
-                AddLamp(set.dawnLights.transform, new Vector3(0f, 2.8f, z), new Color(1f, 0.64f, 0.34f), 1.6f, 11f);
+                AddLamp(set.dawnLights.transform, new Vector3(0f, 2.8f, z), new Color(1f, 0.64f, 0.34f), 1.6f, 11f, false);
             }
 
-            Box(set.dawnLights.transform, "DawnPlane", new Vector3(0f, 3f, -36f), new Vector3(22f, 8f, 0.2f),
-                palette.dawn, false).transform.localRotation = Quaternion.identity;
+            GameObject dawnPlane = Box(set.dawnLights.transform, "DawnPlane", new Vector3(0f, 3f, -36f),
+                new Vector3(22f, 8f, 0.2f), palette.dawn, false);
+            dawnPlane.transform.localRotation = Quaternion.identity;
+
+            DawnRiser dawnRiser = set.dawnLights.AddComponent<DawnRiser>();
+            dawnRiser.glow = dawnPlane.GetComponent<Renderer>();
+            dawnRiser.duration = 2.6f;
 
             set.libraryLights.SetActive(false);
             set.physicsLights.SetActive(false);
@@ -615,6 +750,55 @@ namespace LightShadow.Tools
             // The console gets a little glow so it is findable in the dark.
             Box(gate.transform, "ConsoleGlow", new Vector3(2.75f, 1.6f, 0.53f), new Vector3(0.4f, 0.06f, 0.04f),
                 palette.lamp, false);
+        }
+
+        // ------------------------------------------------------ story plaques
+
+        // The rest of the story is written on the school itself: small quotes in
+        // her mother's voice, one per room, in the same text style as the wing
+        // labels. TextMesh glyphs read from the side the forward (+Z) axis
+        // points AWAY from, so each text faces into the room it decorates.
+        static void BuildStoryPlaques(Transform parent)
+        {
+            CreateWorldText(parent, "Story_Classroom",
+                "In her classroom the chalk still smelled of jasmine.",
+                new Vector3(-15.4f, 1.55f, 4.12f), Quaternion.Euler(0f, 180f, 0f), 0.035f, 48,
+                new Color(0.80f, 0.74f, 0.60f));
+
+            CreateWorldText(parent, "Story_Physics",
+                "\"Light travels in straight lines - so do stories.\"",
+                new Vector3(15.4f, 1.55f, -21.76f), Quaternion.Euler(0f, 180f, 0f), 0.035f, 48,
+                new Color(0.80f, 0.74f, 0.60f));
+
+            CreateWorldText(parent, "Story_Garden",
+                "She kept the photograph of this bench, and the jasmine she picked beside it.",
+                new Vector3(15.4f, 1.55f, 18.12f), Quaternion.identity, 0.035f, 48,
+                new Color(0.80f, 0.74f, 0.60f));
+
+            CreateWorldText(parent, "Story_Staff",
+                "An encouraging note in red pen: \"You see more than you think.\"",
+                new Vector3(-11.4f, 1.55f, 20.12f), Quaternion.Euler(0f, 180f, 0f), 0.035f, 48,
+                new Color(0.80f, 0.74f, 0.60f));
+
+            CreateWorldText(parent, "Story_Library",
+                "She always said a library card is a key that never rusts.",
+                new Vector3(-21.8f, 1.9f, -12.3f), Quaternion.Euler(0f, -90f, 0f), 0.035f, 48,
+                new Color(0.80f, 0.74f, 0.60f));
+
+            CreateWorldText(parent, "Story_Programme",
+                "Her name is on the programme, third from the bottom, in small neat print.",
+                new Vector3(0f, 1.15f, 40.54f), Quaternion.identity, 0.035f, 48,
+                new Color(0.80f, 0.74f, 0.60f));
+
+            CreateWorldText(parent, "Story_Keep",
+                "\"Keep the light on for the ones who come after.\"",
+                new Vector3(0f, 2.85f, 40.54f), Quaternion.identity, 0.04f, 48,
+                new Color(0.83f, 0.77f, 0.62f));
+
+            CreateWorldText(parent, "Story_HallHum",
+                "The whole hall hummed when her students read aloud.",
+                new Vector3(13.8f, 2.2f, 34f), Quaternion.Euler(0f, 90f, 0f), 0.035f, 48,
+                new Color(0.80f, 0.74f, 0.60f));
         }
 
         // ------------------------------------------------------------ furniture

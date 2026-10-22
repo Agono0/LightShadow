@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using LightShadow.Core;
 using LightShadow.Player;
@@ -28,6 +29,16 @@ namespace LightShadow.UI
         Coroutine fadeRoutine;
         float messageTimer;
         bool objectivesShown;
+
+        // Story beats queue behind whatever is on screen, so a memory flash and
+        // its follow-up line both play without overwriting each other.
+        struct QueuedMessage
+        {
+            public string text;
+            public float seconds;
+        }
+
+        readonly Queue<QueuedMessage> messageQueue = new Queue<QueuedMessage>();
 
         void Awake()
         {
@@ -95,7 +106,18 @@ namespace LightShadow.UI
             if (messageTimer > 0f)
             {
                 messageTimer -= Time.deltaTime;
-                if (messageTimer <= 0f && messageText != null) messageText.gameObject.SetActive(false);
+                if (messageTimer <= 0f)
+                {
+                    if (messageQueue.Count > 0)
+                    {
+                        QueuedMessage next = messageQueue.Dequeue();
+                        ShowMessage(next.text, next.seconds);
+                    }
+                    else if (messageText != null)
+                    {
+                        messageText.gameObject.SetActive(false);
+                    }
+                }
             }
         }
 
@@ -155,10 +177,21 @@ namespace LightShadow.UI
         public void ShowMessage(string text, float seconds = 4f)
         {
             if (messageText == null || string.IsNullOrEmpty(text)) return;
+            // An urgent message takes over: clear any stale queued beats.
+            messageQueue.Clear();
             messageText.text = Localization.TrPresent(text);
             ApplyLanguageUI();
             messageText.gameObject.SetActive(true);
             messageTimer = seconds;
+        }
+
+        // Story beats: shown after the current message finishes instead of
+        // replacing it.
+        public void QueueMessage(string text, float seconds = 4f)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            if (messageTimer <= 0f) ShowMessage(text, seconds);
+            else messageQueue.Enqueue(new QueuedMessage { text = text, seconds = seconds });
         }
 
         // ---- Objectives list (Tab / touch button) --------------------------------

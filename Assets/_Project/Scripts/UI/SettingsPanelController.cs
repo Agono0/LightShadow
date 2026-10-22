@@ -12,18 +12,21 @@ namespace LightShadow.UI
         public const int FullscreenRow = 1;
         public const int QualityRow = 2;
         public const int VSyncRow = 3;
-        public const int BrightnessRow = 4;
-        public const int SensitivityRow = 5;
-        public const int LanguageRow = 6;
-        public const int NarratorRow = 7;
+        public const int ShadowsRow = 4;
+        public const int MsaaRow = 5;
+        public const int RenderScaleRow = 6;
+        public const int BrightnessRow = 7;
+        public const int SensitivityRow = 8;
+        public const int LanguageRow = 9;
+        public const int NarratorRow = 10;
 
         [Header("Wiring")]
         public GameObject panel;
         public Text title;
-        public Text[] rowLabels = new Text[8];
-        public Text[] rowValues = new Text[8];
-        public Button[] prevButtons = new Button[8];
-        public Button[] nextButtons = new Button[8];
+        public Text[] rowLabels = new Text[11];
+        public Text[] rowValues = new Text[11];
+        public Button[] prevButtons = new Button[11];
+        public Button[] nextButtons = new Button[11];
         public Button resetButton;
         public Button closeButton;
         public Text resetLabel;
@@ -33,8 +36,9 @@ namespace LightShadow.UI
 
         static readonly string[] RowKeys =
         {
-            "Resolution", "Fullscreen", "Quality", "VSync",
-            "Brightness", "Mouse sensitivity", "Language", "Narrator voice"
+            "Resolution", "Fullscreen", "Quality", "VSync", "Shadows",
+            "Anti-aliasing", "Render scale", "Brightness", "Mouse sensitivity",
+            "Language", "Narrator voice"
         };
 
         void Awake()
@@ -87,6 +91,9 @@ namespace LightShadow.UI
                 case FullscreenRow: GameSettings.ToggleFullscreen(); break;
                 case QualityRow: GameSettings.SetQualityLevel(GameSettings.QualityLevel - 1); break;
                 case VSyncRow: GameSettings.ToggleVSync(); break;
+                case ShadowsRow: GameSettings.SetShadows(GameSettings.ShadowsIndex - 1); break;
+                case MsaaRow: GameSettings.SetMsaa(GameSettings.MsaaIndex - 1); break;
+                case RenderScaleRow: GameSettings.SetRenderScale(GameSettings.RenderScaleIndex - 1); break;
                 case BrightnessRow: GameSettings.SetBrightness(GameSettings.Brightness - 0.1f); break;
                 case SensitivityRow: GameSettings.SetSensitivity(GameSettings.Sensitivity - 0.1f); break;
                 case LanguageRow: GameSettings.ToggleLanguage(); break;
@@ -102,6 +109,9 @@ namespace LightShadow.UI
                 case FullscreenRow: GameSettings.ToggleFullscreen(); break;
                 case QualityRow: GameSettings.SetQualityLevel(GameSettings.QualityLevel + 1); break;
                 case VSyncRow: GameSettings.ToggleVSync(); break;
+                case ShadowsRow: GameSettings.SetShadows(GameSettings.ShadowsIndex + 1); break;
+                case MsaaRow: GameSettings.SetMsaa(GameSettings.MsaaIndex + 1); break;
+                case RenderScaleRow: GameSettings.SetRenderScale(GameSettings.RenderScaleIndex + 1); break;
                 case BrightnessRow: GameSettings.SetBrightness(GameSettings.Brightness + 0.1f); break;
                 case SensitivityRow: GameSettings.SetSensitivity(GameSettings.Sensitivity + 0.1f); break;
                 case LanguageRow: GameSettings.ToggleLanguage(); break;
@@ -171,6 +181,9 @@ namespace LightShadow.UI
                 case QualityRow: return Localization.Present(Localization.QualityName(GameSettings.QualityLevel));
                 case VSyncRow:
                     return GameSettings.VSync ? Localization.TrPresent("On") : Localization.TrPresent("Off");
+                case ShadowsRow: return Localization.Present(GameSettings.ShadowsLabel());
+                case MsaaRow: return Localization.Present(GameSettings.MsaaLabel());
+                case RenderScaleRow: return Localization.Present(GameSettings.RenderScaleLabel());
                 case BrightnessRow: return Localization.Present(GameSettings.BrightnessLabel());
                 case SensitivityRow: return Localization.Present(GameSettings.SensitivityLabel());
                 case LanguageRow: return Localization.LanguageName(Localization.Current);

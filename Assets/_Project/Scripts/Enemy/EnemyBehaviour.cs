@@ -33,13 +33,17 @@ namespace LightShadow.Enemy
         public AudioSource breathingSource;
         public AudioSource oneShotSource;
         public AudioClip whisperClip;
+        public ShadowMotion shadowMotion;
+        public CameraShake cameraShake;
 
         State state = State.Patrol;
         int waypointIndex;
         float sightLostTimer;
         float repelCooldownTimer;
         float hearTimer;
+        float catchCooldownTimer;
         bool aggressive;
+        bool catching;
 
         public State CurrentState => state;
         public bool IsAggressive => aggressive;
@@ -82,6 +86,8 @@ namespace LightShadow.Enemy
                 if (meter == null) meter = player.GetComponentInChildren<BrightIdeaMeter>();
                 if (playerCamera == null) playerCamera = player.GetComponentInChildren<Camera>();
             }
+            if (shadowMotion == null) shadowMotion = GetComponent<ShadowMotion>();
+            if (cameraShake == null && playerCamera != null) cameraShake = playerCamera.GetComponent<CameraShake>();
             if (sight != null && sight.target == null && playerCamera != null) sight.target = playerCamera.transform;
 
             if (breathingSource != null)
@@ -117,9 +123,11 @@ namespace LightShadow.Enemy
         void Update()
         {
             if (player == null || agent == null || !agent.isOnNavMesh) return;
+            if (catching) return;
 
             float dt = Time.deltaTime;
             if (repelCooldownTimer > 0f) repelCooldownTimer -= dt;
+            if (catchCooldownTimer > 0f) catchCooldownTimer -= dt;
 
             Vector3 playerPosition = player.position;
             float distance = Vector3.Distance(transform.position, playerPosition);
@@ -135,10 +143,10 @@ namespace LightShadow.Enemy
 
             // Caught: close enough while unlit. The GameManager handles the fade,
             // the meter penalty and the checkpoint return (Doc 4.3).
-            if (state != State.Repelled && distance <= CatchDistance && !LitZone.PlayerInLitZone)
+            if (state != State.Repelled && catchCooldownTimer <= 0f
+                && distance <= CatchDistance && !LitZone.PlayerInLitZone)
             {
-                if (GameManager.Instance != null) GameManager.Instance.CaughtPlayer();
-                ResetToPatrol();
+                StartCoroutine(CatchSequence());
                 return;
             }
 
@@ -296,9 +304,43 @@ namespace LightShadow.Enemy
         // Called by the GameManager after a catch, and used internally on exit.
         public void ResetToPatrol()
         {
+            catching = false;
+            catchCooldownTimer = 1.5f;
             hearTimer = 0f;
             sightLostTimer = 0f;
             EnterState(State.Patrol);
+        }
+
+        // The catch is a short piece of choreography: stop, face Nour, lunge, a
+        // camera shake and a whisper, and only then hand over to the fade. The
+        // state machine stays frozen (catching) until the checkpoint wakes her.
+        System.Collections.IEnumerator CatchSequence()
+        {
+            catching = true;
+            hearTimer = 0f;
+            sightLostTimer = 0f;
+
+            if (agent != null && agent.isOnNavMesh)
+            {
+                agent.isStopped = true;
+                agent.ResetPath();
+            }
+
+            Vector3 direction = player.position - transform.position;
+            direction.y = 0f;
+            if (direction.sqrMagnitude > 0.01f) transform.rotation = Quaternion.LookRotation(direction);
+
+            if (shadowMotion != null) shadowMotion.Lunge(0.55f, 0.32f);
+            if (cameraShake != null) cameraShake.Shake(0.4f, 0.085f);
+
+            AudioSource burstSource = oneShotSource != null ? oneShotSource : breathingSource;
+            if (burstSource != null && whisperClip != null) burstSource.PlayOneShot(whisperClip);
+
+            SetBreathing(true);
+            yield return new WaitForSeconds(0.38f);
+
+            if (GameManager.Instance != null) GameManager.Instance.CaughtPlayer();
+            else ResetToPatrol();
         }
 
         // Doc Act III: when the gate is powered, dawn lights the corridors and

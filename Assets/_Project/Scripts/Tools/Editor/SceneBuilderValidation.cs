@@ -11,6 +11,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
@@ -146,6 +147,13 @@ namespace LightShadow.Tools
                 else report.AppendLine("NavMesh data: " + AssetDatabase.GetAssetPath(surface.navMeshData));
             }
 
+            Volume volume = Object.FindAnyObjectByType<Volume>();
+            if (volume == null) problems.Add("School: no global post-processing volume.");
+            else if (volume.sharedProfile == null) problems.Add("School: post-processing volume has no profile.");
+
+            DawnRiser riser = Object.FindAnyObjectByType<DawnRiser>(FindObjectsInactive.Include);
+            if (riser == null) problems.Add("School: dawn chase has no DawnRiser.");
+
             NavMeshTriangulation triangulation = NavMesh.CalculateTriangulation();
             int vertices = triangulation.vertices != null ? triangulation.vertices.Length : 0;
             report.AppendLine("NavMesh vertices: " + vertices);
@@ -184,9 +192,41 @@ namespace LightShadow.Tools
             if (ending == null) problems.Add("Ending: no EndingController.");
             if (recap == null) problems.Add("Ending: no RecapScreen.");
             else if (recap.recapText == null || recap.quitButton == null) problems.Add("Ending: recap is not wired.");
+            if (ending != null)
+            {
+                if (ending.sun == null) problems.Add("Ending: the sun is not wired.");
+                if (ending.skyRenderer == null) problems.Add("Ending: the sky is not wired.");
+                if (ending.dawnLight == null) problems.Add("Ending: the dawn light is not wired.");
+                if (ending.endingCamera == null) problems.Add("Ending: the ending camera is not wired.");
+                if (ending.dawnGroup == null) problems.Add("Ending: the dawn group is not wired.");
+            }
+
+            if (Object.FindAnyObjectByType<Volume>() == null) problems.Add("Ending: no global post-processing volume.");
 
             EditorSceneManager.OpenScene(BootstrapPath, OpenSceneMode.Single);
             if (Object.FindAnyObjectByType<BootstrapLoader>() == null) problems.Add("Bootstrap: no BootstrapLoader.");
+
+            // The Arabic translation table is a plain dictionary, so a duplicate
+            // English key throws during static initialization and takes every
+            // script that touches Localization down with it (shipped release bug
+            // class). Detect it at build time instead.
+            var duplicateKeys = new List<string>();
+            string localizationSource = System.IO.File.ReadAllText(
+                "Assets/_Project/Scripts/Core/Localization.cs");
+            var keyMatches = System.Text.RegularExpressions.Regex.Matches(
+                localizationSource, "\\{\\s*\"(?:[^\"\\\\]|\\\\.)*\",");
+            var seenKeys = new HashSet<string>();
+            foreach (System.Text.RegularExpressions.Match match in keyMatches)
+            {
+                string key = match.Value.Substring(match.Value.IndexOf('"') + 1,
+                    match.Value.LastIndexOf('"') - match.Value.IndexOf('"') - 1);
+                if (!seenKeys.Add(key)) duplicateKeys.Add(key);
+            }
+
+            report.AppendLine("Localization keys: " + seenKeys.Count
+                + " unique / " + keyMatches.Count + " entries");
+            if (duplicateKeys.Count > 0)
+                problems.Add("Localization.cs has duplicate English keys: " + string.Join(", ", duplicateKeys));
 
             report.AppendLine();
             if (problems.Count == 0)

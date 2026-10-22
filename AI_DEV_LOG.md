@@ -78,7 +78,26 @@ The game itself contains **no AI features** — this log is about the developmen
 - Teach-back check: pending — will walk a teammate through how the language swap re-renders
   open UI via `Localization.LanguageChanged` before the next merge.
 - Test result: batch compile clean; `LightShadow ▸ 5. Validate Content` returns `RESULT: PASS`;
-  Windows rebuild succeeded (Builds/Windows — 21 Oct, 13:19).
+  Windows rebuild succeeded (Builds/Windows - 21 Oct, 13:19).
+
+### 2026-10-21 - Finishing pass 2: graphics, motion, catch, story plaques and the dawn ending - Abdelrhman Mohamed
+- Tool used: opencode (DeepSeek V4.1 Flash Free) coding agent
+- What AI provided: the graphics settings row set (shadow distance, MSAA, render scale) applied to
+  the URP asset, the URP/quality upgrade (4096 shadow maps, 4x MSAA, 8 additional lights), a global
+  post-processing stack with `Post_Night`/`Post_Dawn` profiles, the `ShadowMotion`, `PickupMotion`,
+  `CameraShake`, `DawnRiser` and `LightFlicker` components, the enemy catch/lunge/reset sequence,
+  in-world story plaques for every room, the reworked narrator voice selection with SAPI pauses and
+  a PowerShell `System.Speech` fallback, and the rebuilt 3D dawn ending driven by `EndingController`.
+- What I changed myself: reviewed each builder diff before rebuilding, kept the dawn lamps exclusive
+  to `DawnRiser` (no `LightFlicker` on the same lights), removed the opaque ending background so the
+  3D set is visible behind a translucent scrim, and kept the world plaques as TextMesh instead of
+  adding a cutscene system.
+- Teach-back check: pending - walk a teammate through how `BuildPostProfile` rebuilds profiles
+  idempotently, and how the catch coroutine hands control back via `ResetToPatrol`.
+- Test result: batch compile clean; **3. Build Scenes** rebuilt all four scenes and the prefabs;
+  **5. Validate Content** returns `RESULT: PASS` (3 fuse boxes, 6 fragments, 7 batteries, 7 boards,
+  5 lit zones, 1 gate, 60 questions, 976 NavMesh vertices, 0 missing scripts); Windows build
+  succeeded (`Builds/Windows/LightShadow.exe`, 125.3 MB, 21 Oct 15:58).
 
 ---
 

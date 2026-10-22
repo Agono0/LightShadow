@@ -24,6 +24,18 @@ namespace LightShadow.Core
         public static float Sensitivity { get; private set; } = 1f;
         public static bool NarratorEnabled { get; private set; } = true;
 
+        // Fine graphics controls on top of the quality level, applied to the
+        // active URP asset at runtime: shadows, anti-aliasing, render scale.
+        static readonly float[] RenderScales = { 0.5f, 0.75f, 1f, 1.25f, 1.5f };
+        static readonly int[] MsaaSamples = { 0, 2, 4, 8 };
+        static readonly float[] ShadowDistances = { 0f, 40f, 80f };
+
+        public static int ShadowsIndex { get; private set; } = 2;      // 0 off · 1 medium · 2 high
+        public static int MsaaIndex { get; private set; } = 2;         // index into MsaaSamples (4x)
+        public static int RenderScaleIndex { get; private set; } = 2;  // index into RenderScales (native)
+
+        public static float RenderScale => RenderScales[Mathf.Clamp(RenderScaleIndex, 0, RenderScales.Length - 1)];
+
         public static IReadOnlyList<Resolution> Resolutions
         {
             get
@@ -58,6 +70,9 @@ namespace LightShadow.Core
             Brightness = Mathf.Clamp01(PlayerPrefs.GetFloat("LS_Brightness", 0.5f));
             Sensitivity = Mathf.Clamp(PlayerPrefs.GetFloat("LS_Sensitivity", 1f), 0.4f, 2.5f);
             NarratorEnabled = PlayerPrefs.GetInt("LS_Narrator", 1) == 1;
+            ShadowsIndex = Mathf.Clamp(PlayerPrefs.GetInt("LS_Shadows", 2), 0, ShadowDistances.Length - 1);
+            MsaaIndex = Mathf.Clamp(PlayerPrefs.GetInt("LS_MSAA", 2), 0, MsaaSamples.Length - 1);
+            RenderScaleIndex = Mathf.Clamp(PlayerPrefs.GetInt("LS_RenderScale", 2), 0, RenderScales.Length - 1);
         }
 
         static void BuildResolutionList()
@@ -103,6 +118,9 @@ namespace LightShadow.Core
             PlayerPrefs.SetFloat("LS_Brightness", Brightness);
             PlayerPrefs.SetFloat("LS_Sensitivity", Sensitivity);
             PlayerPrefs.SetInt("LS_Narrator", NarratorEnabled ? 1 : 0);
+            PlayerPrefs.SetInt("LS_Shadows", ShadowsIndex);
+            PlayerPrefs.SetInt("LS_MSAA", MsaaIndex);
+            PlayerPrefs.SetInt("LS_RenderScale", RenderScaleIndex);
             PlayerPrefs.Save();
         }
 
@@ -112,6 +130,7 @@ namespace LightShadow.Core
             ApplyQuality();
             ApplyResolution();
             ApplyVSync();
+            ApplyGraphics();
             Changed?.Invoke();
         }
 
@@ -192,6 +211,33 @@ namespace LightShadow.Core
             Changed?.Invoke();
         }
 
+        public static void SetShadows(int index)
+        {
+            EnsureLoaded();
+            ShadowsIndex = (index % ShadowDistances.Length + ShadowDistances.Length) % ShadowDistances.Length;
+            ApplyGraphics();
+            Save();
+            Changed?.Invoke();
+        }
+
+        public static void SetMsaa(int index)
+        {
+            EnsureLoaded();
+            MsaaIndex = (index % MsaaSamples.Length + MsaaSamples.Length) % MsaaSamples.Length;
+            ApplyGraphics();
+            Save();
+            Changed?.Invoke();
+        }
+
+        public static void SetRenderScale(int index)
+        {
+            EnsureLoaded();
+            RenderScaleIndex = (index % RenderScales.Length + RenderScales.Length) % RenderScales.Length;
+            ApplyGraphics();
+            Save();
+            Changed?.Invoke();
+        }
+
         public static void ResetGraphics()
         {
             EnsureLoaded();
@@ -201,9 +247,13 @@ namespace LightShadow.Core
             VSync = true;
             Brightness = 0.5f;
             Sensitivity = 1f;
+            ShadowsIndex = ShadowDistances.Length - 1;
+            MsaaIndex = 2;
+            RenderScaleIndex = 2;
             ApplyQuality();
             ApplyResolution();
             ApplyVSync();
+            ApplyGraphics();
             Save();
             Changed?.Invoke();
         }
@@ -221,6 +271,29 @@ namespace LightShadow.Core
         {
             if (QualitySettings.names.Length == 0) return;
             QualitySettings.SetQualityLevel(Mathf.Clamp(QualityLevel, 0, QualitySettings.names.Length - 1), true);
+            // The active URP asset changes with the quality level, so the fine
+            // graphics controls are re-asserted on whatever asset is live now.
+            ApplyGraphics();
+        }
+
+        // Pushes the fine graphics controls to the active URP render pipeline
+        // asset. Values are session-wide (they act on the shared asset) and are
+        // re-applied whenever a quality switch or a settings change happens.
+        static void ApplyGraphics()
+        {
+            if (Graphics == null) return;
+            Graphics.shadowDistance = ShadowDistances[Mathf.Clamp(ShadowsIndex, 0, ShadowDistances.Length - 1)];
+            Graphics.msaaSampleCount = MsaaSamples[Mathf.Clamp(MsaaIndex, 0, MsaaSamples.Length - 1)];
+            Graphics.renderScale = RenderScales[Mathf.Clamp(RenderScaleIndex, 0, RenderScales.Length - 1)];
+        }
+
+        static UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset Graphics
+        {
+            get
+            {
+                return UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline
+                    as UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset;
+            }
         }
 
         static void ApplyVSync()
@@ -242,6 +315,29 @@ namespace LightShadow.Core
         public static string BrightnessLabel()
         {
             return Mathf.RoundToInt(Brightness * 100f) + "%";
+        }
+
+        public static string ShadowsLabel()
+        {
+            switch (ShadowsIndex)
+            {
+                case 0: return "Off";
+                case 1: return "Medium";
+                default: return "High";
+            }
+        }
+
+        public static string MsaaLabel()
+        {
+            int count = MsaaSamples[Mathf.Clamp(MsaaIndex, 0, MsaaSamples.Length - 1)];
+            return count <= 0 ? "Off" : count + "x";
+        }
+
+        public static string RenderScaleLabel()
+        {
+            float scale = RenderScales[Mathf.Clamp(RenderScaleIndex, 0, RenderScales.Length - 1)];
+            if (Mathf.Approximately(scale, 1f)) return "Native";
+            return Mathf.RoundToInt(scale * 100f) + "%";
         }
     }
 }
