@@ -99,6 +99,28 @@ The game itself contains **no AI features** — this log is about the developmen
   5 lit zones, 1 gate, 60 questions, 976 NavMesh vertices, 0 missing scripts); Windows build
   succeeded (`Builds/Windows/LightShadow.exe`, 125.3 MB, 21 Oct 15:58).
 
+### 2026-10-23 — Finishing pass 3: console validation, play-mode smoke test and the first Android APK — Abdelrhman Mohamed
+- Tool used: opencode (GLM 5.3 Flash) driving the Unity editor over MCP
+- What AI provided: an editor-side validation replay (same `ValidateScenes` walk as the menu item,
+  but reported to the console instead of a modal dialog), a play-mode smoke test (boot → main menu →
+  `Play()` → school), and the Windows + Android build runs. No gameplay code changed.
+- What I changed myself: decided a conventional lightmap bake is still impossible - the fuse-card
+  room lights start inactive and are switched/intensity-animated at runtime and URP treats
+  non-directional mixed lights as realtime, so the bake is deferred to the art pass; reverted the
+  two editor-serialization artifacts this session produced (a `_Color` sync on `Mat_Eye` and boot
+  scene text/image normalisations) instead of committing them; added no scripts and no assets.
+- Teach-back check: pending — walk a teammate through what the validation pass counts and where
+  each number comes from before the alpha freeze.
+- Test result: `ValidateScenes` returns `RESULT: PASS` (3 fuse boxes, 6 fragments, 7 batteries,
+  7 boards, 5 lit zones, 1 gate, 60/60 questions linked, NavMesh 976 vertices, player spawn on the
+  NavMesh, 0 missing scripts, 127 localization keys). Play-mode smoke test: bootstrap menu shows
+  the title, subtitle and four buttons; `Play()` loads `02_School`; player at the lit entrance
+  `(0.0, 0.0, -29.5)` with HUD active; corridorS render as intended; **zero console errors** across
+  the run. Windows build succeeded (125.3 MB, `Builds/Windows/LightShadow.exe`, scene data rebuilt;
+  the `.exe` launcher itself is reused byte-identical by Unity's incremental pipeline). Android
+  build succeeded for the first time in this environment (`Builds/Android/LightShadow.apk`,
+  45.7 MB, IL2CPP / ARM64 / API 29).
+
 ---
 
 ## Deviations from the project document (tracked here on purpose)

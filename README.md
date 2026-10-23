@@ -11,6 +11,12 @@ Design document: [`LightShadow_Project_Document.md`](LightShadow_Project_Documen
 
 The full gameplay loop is implemented and playable from the generated scenes:
 
+- ✅ **Finishing pass 3 (23 Oct 2026)** — content validation `RESULT: PASS`, a play-mode smoke test
+  (boot → menu → school, zero console errors), a fresh Windows build
+  (`Builds/Windows/LightShadow.exe`, 125.3 MB) and the **first Android APK**
+  (`Builds/Android/LightShadow.apk`, 45.7 MB, IL2CPP / ARM64 / API 29). See `AI_DEV_LOG.md`.
+
+
 - first-person walk / sprint / crouch, keyboard + mouse and a touch layer;
 - the hand-crank flashlight with battery drain, battery pickups and flashlight repulsion;
 - the Bright Idea Meter (correct +25, wrong/timeout −10, passive drain, beam range 4–12 m);
@@ -72,10 +78,11 @@ The Settings card opens from the main menu and from the pause menu (Esc ▸ Sett
 ## Build
 
 - **Windows** — **LightShadow ▸ 4. Build Windows Player**, or File ▸ Build Profiles ▸ Windows.
-  Output: `Builds/Windows/LightShadow.exe` (already produced and smoke-tested).
+  Output: `Builds/Windows/LightShadow.exe` (rebuilt 23 Oct 2026, smoke-tested).
 - **Android** — install the Android module (SDK & NDK Tools, OpenJDK), then
   **LightShadow ▸ 6. Build Android APK**. The project is already set to IL2CPP / ARM64 /
   API 29 / landscape, ASTC. If the module is missing the menu item says so instead of failing.
+  Output: `Builds/Android/LightShadow.apk` (45.7 MB, produced 23 Oct 2026).
 
 Command-line equivalents (used by the automated verification):
 
@@ -151,8 +158,9 @@ the asset at runtime.
 - Questions are AI-assisted drafts. A human must verify each `factSource` before release.
   Question text itself is English; the `questionAr`/`optionsAr`/`explanationAr` fields exist for
   the hand-translation pass.
-- Android has not been run on a physical test device in this environment; the Windows build was
-  smoke-tested. The touch UI is present and hides itself on desktop.
+- Android builds successfully (`Builds/Android/LightShadow.apk`, 23 Oct 2026) but has not been run
+  on a physical test device in this environment; the Windows build was smoke-tested in the editor.
+  The touch UI is present and hides itself on desktop.
 - No cutscenes, voice acting audio files, multiple save slots or localization packages, by design
   (doc §2.4 cut list). Interface localization (EN/AR) and the SAPI narrator are code-side only.
 - Checkpoints are per-session; there is no disk save yet. The game is 20–40 minutes, so this is
