@@ -257,7 +257,7 @@ namespace LightShadow.Systems
                 case ShotGate:
                 {
                     // The gate framed from outside while the fade runs.
-                    ExitGate gate = FindFirstObjectByType<ExitGate>();
+                    ExitGate gate = Object.FindFirstObjectByType<ExitGate>();
                     Vector3 gateCenter = gate != null ? gate.transform.position : head + gameplayCamera.forward * 6f;
                     camTransform.position = gateCenter + Vector3.back * 4.2f + Vector3.up * 1.8f;
                     camTransform.LookAt(gateCenter + Vector3.up * 0.9f);

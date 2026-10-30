@@ -187,6 +187,15 @@ namespace LightShadow.Tools
             BuildSchoolScene(config, database, palette, prefabs);
             BuildEndingScene(palette);
 
+            // Premium pass: re-apply the visual art swap + probes after every rebuild so a
+            // rebuilt scene never ships as greybox. Graceful no-op when ArtImporter has not
+            // run yet (no Mat_Art_* assets); run ArtImporter.ImportAllBatch once first.
+            ApplyArtPass();
+            ApplyLighting();
+
+            // Premium pass: quality-tier URP asset variants (idempotent each run).
+            ConfigureQualityForBuild();
+
             ConfigureBuildSettings();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

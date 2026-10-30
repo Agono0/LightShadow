@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using LightShadow.Core;
+using LightShadow.Story;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -11,6 +12,10 @@ namespace LightShadow.UI
     // Doc 4.4/5: the "study recap" shown at dawn. Every question Nour met during
     // the night, her answer, the correct answer, and why - a study sheet built
     // from the night itself. Ends on the game's closing line.
+    //
+    // Premium pass (additive): the recap gains the ending name (D13, set by
+    // EndingController via SetEnding) and a REPLAY button back to the main
+    // menu through the LoadingScreen. The original recap behaviour is intact.
     public class RecapScreen : MonoBehaviour
     {
         [Header("Wiring")]
@@ -21,11 +26,24 @@ namespace LightShadow.UI
         public Button quitButton;
         public Button menuButton;
 
+        [Header("Story pass (built by SceneBuilderStory)")]
+        public Text endingText;
+        public Button replayButton;
+
+        string endingId = "";
+
         void Awake()
         {
             if (panel != null) panel.SetActive(false);
             if (quitButton != null) quitButton.onClick.AddListener(QuitGame);
             if (menuButton != null) menuButton.onClick.AddListener(ReturnToMenu);
+            if (replayButton != null) replayButton.onClick.AddListener(ReplayTheNight);
+        }
+
+        // EndingController calls this before Show(). Empty string hides the row.
+        public void SetEnding(string id)
+        {
+            endingId = id ?? "";
         }
 
         public void Show(List<GameManager.AnswerRecord> answers)
@@ -39,6 +57,19 @@ namespace LightShadow.UI
             {
                 titleText.text = Localization.TrPresent("Study Recap");
                 titleText.font = font;
+            }
+
+            if (endingText != null)
+            {
+                bool hasEnding = !string.IsNullOrEmpty(endingId);
+                endingText.gameObject.SetActive(hasEnding);
+                if (hasEnding)
+                {
+                    endingText.text = Localization.TrPresent("ENDING") + " - "
+                        + StoryStrings.Tr(EndingDisplayName());
+                    endingText.font = font;
+                    endingText.alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft;
+                }
             }
 
             if (statsText != null)
@@ -62,6 +93,17 @@ namespace LightShadow.UI
             if (EventSystem.current != null && quitButton != null)
             {
                 EventSystem.current.SetSelectedGameObject(quitButton.gameObject);
+            }
+        }
+
+        string EndingDisplayName()
+        {
+            switch (endingId)
+            {
+                case "FullRecovery": return "Full Recovery";
+                case "HollowEscape": return "Hollow Escape";
+                case "Dawnless": return "Dawnless";
+                default: return "Partial Memory";
             }
         }
 
@@ -142,6 +184,14 @@ namespace LightShadow.UI
         {
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneNames.MainMenu);
+        }
+
+        // Story pass: replay intent - back to the main menu through the loading
+        // screen; from there CONTINUE / NEW GAME pick up the run.
+        void ReplayTheNight()
+        {
+            Time.timeScale = 1f;
+            LoadingScreen.Transition(SceneNames.MainMenu);
         }
     }
 }

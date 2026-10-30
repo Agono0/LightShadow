@@ -98,7 +98,7 @@ namespace LightShadow.Player
                 }
 
                 // ---- Crouch toggle on stick click (same as the touch button).
-                if (pad.leftStickPress.wasPressedThisFrame) player.ToggleCrouch();
+                if (pad.leftStickButton.wasPressedThisFrame) player.ToggleCrouch();
             }
 
             // ---- Interact (A/cross): same call the touch Interact button makes.

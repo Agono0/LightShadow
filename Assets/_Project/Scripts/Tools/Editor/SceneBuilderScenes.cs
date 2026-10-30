@@ -321,6 +321,9 @@ namespace LightShadow.Tools
             // Give the starting checkpoint a spawn even before a LitZone fires.
             Empty(environment.transform, "PlayerStartMarker", new Vector3(0f, 0f, -29.5f), Quaternion.identity);
 
+            // Premium pass: dormant Cinemachine rigs for the scripted catch/dawn/gate shots.
+            BuildCinematicRigs();
+
             SaveScene(scene, SchoolPath);
         }
 

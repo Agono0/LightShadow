@@ -1,7 +1,6 @@
 using LightShadow.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace LightShadow.UI
@@ -9,6 +8,11 @@ namespace LightShadow.UI
     // 01_MainMenu: title, the way into the school, a short controls card, and quit.
     // The menu is deliberately quiet - one warm light, no music - so the first
     // step into the dark school does the work.
+    //
+    // Premium pass (additive): when saves exist, ENTER THE SCHOOL opens the save
+    // slot panel (D12) instead of starting blind; with no saves it starts a new
+    // night straight away. Scene changes run through LoadingScreen. A SAVES
+    // button (wired by SceneBuilderStory, optional) opens the panel directly.
     public class MainMenuController : MonoBehaviour
     {
         [Header("Wiring")]
@@ -20,6 +24,10 @@ namespace LightShadow.UI
         public GameObject howToPanel;
         public SettingsPanelController settings;
 
+        [Header("Story pass (built by SceneBuilderStory)")]
+        public SaveSlotUI saveSlots;
+        public Button savesButton;
+
         void Awake()
         {
             if (playButton != null) playButton.onClick.AddListener(Play);
@@ -27,6 +35,7 @@ namespace LightShadow.UI
             if (settingsButton != null) settingsButton.onClick.AddListener(OpenSettings);
             if (closeHowToButton != null) closeHowToButton.onClick.AddListener(ToggleHowTo);
             if (quitButton != null) quitButton.onClick.AddListener(QuitGame);
+            if (savesButton != null) savesButton.onClick.AddListener(OpenSaves);
             if (howToPanel != null) howToPanel.SetActive(false);
         }
 
@@ -44,6 +53,7 @@ namespace LightShadow.UI
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
             {
                 if (settings != null && settings.IsOpen) return;
+                if (saveSlots != null && saveSlots.IsOpen) return;
                 if (howToPanel != null && howToPanel.activeSelf) howToPanel.SetActive(false);
                 else Play();
                 return;
@@ -53,6 +63,7 @@ namespace LightShadow.UI
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 if (settings != null && settings.IsOpen) settings.Hide();
+                else if (saveSlots != null && saveSlots.IsOpen) saveSlots.Hide();
                 else if (howToPanel != null && howToPanel.activeSelf) howToPanel.SetActive(false);
             }
         }
@@ -60,14 +71,36 @@ namespace LightShadow.UI
         public void OpenSettings()
         {
             if (howToPanel != null) howToPanel.SetActive(false);
+            if (saveSlots != null) saveSlots.Hide();
             if (settings != null) settings.Show();
+        }
+
+        public void OpenSaves()
+        {
+            if (howToPanel != null) howToPanel.SetActive(false);
+            if (settings != null) settings.Hide();
+            if (saveSlots != null) saveSlots.Show();
         }
 
         public void Play()
         {
+            // With saves on disk the player chooses a slot first (D12); with a
+            // clean slate the night starts immediately.
+            if (saveSlots != null && SaveSystem.NewestSlot() >= 0)
+            {
+                OpenSaves();
+                return;
+            }
+
+            StartNewNight();
+        }
+
+        // Shared by PLAY (no saves) and the slot panel's NEW GAME / LOAD.
+        public void StartNewNight()
+        {
             Time.timeScale = 1f;
             RunResults.Reset();
-            SceneManager.LoadScene(SceneNames.School);
+            LoadingScreen.Transition(SceneNames.School);
         }
 
         public void ToggleHowTo()
