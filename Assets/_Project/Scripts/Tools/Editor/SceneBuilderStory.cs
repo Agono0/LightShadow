@@ -850,15 +850,17 @@ namespace LightShadow.Tools
             string[] pageBKeys =
             {
                 "Text speed", "Subtitle size", "Colourblind palette", "Auto-advance",
-                "Skip hold time", "Quality tier",
+                "Skip hold time",
                 "Master volume", "Music volume", "Ambience volume", "SFX volume", "UI volume",
             };
 
             for (int i = 0; i < pageBKeys.Length; i++)
             {
                 int rowIndex = SettingsPanelController.TextSpeedRow + i;
-                bool leftColumn = rowIndex <= SettingsPanelController.QualityTierRow;
-                int columnRow = leftColumn ? i : i - 6;
+                // The quality-tier row moved to page A (graphics refactor), so
+                // page B is a balanced 5 + 5 grid of accessibility and volume.
+                bool leftColumn = i < 5;
+                int columnRow = leftColumn ? i : i - 5;
                 float x = leftColumn ? 48f : 580f;
                 float valueX = leftColumn ? 285f : 817f;
                 float prevX = leftColumn ? 412f : 944f;

@@ -170,6 +170,10 @@ namespace LightShadow.Tools
 
             GameConfig config = EnsureConfig();
 
+            // The modern UI theme sprites must exist before any canvas is
+            // built; generation is deterministic and idempotent.
+            UiThemeTool.Generate();
+
             // The school cannot be answered without questions.
             string questionSummary = QuestionGenerator.GenerateQuestionsSilent();
             QuestionDatabase database = AssetDatabase.LoadAssetAtPath<QuestionDatabase>(DatabasePath);

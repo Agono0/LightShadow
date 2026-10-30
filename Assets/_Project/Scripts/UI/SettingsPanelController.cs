@@ -7,19 +7,26 @@ using UnityEngine.UI;
 namespace LightShadow.UI
 {
     // Shared settings card used by both the main menu and the pause menu.
-    // Graphics options are applied live and persisted by GameSettings.
     //
-    // Premium pass (additive): rows 11-21 add accessibility (text speed,
-    // subtitle size, colourblind palette, auto-advance, skip hold, quality
-    // tier) and the five volume sliders (D15 code-level mixer). The extra rows
-    // live on a second page behind the MORE OPTIONS toggle; SceneBuilderStory
-    // builds the row visuals and resizes the wiring arrays. Scenes that have
-    // not been rebuilt keep the original 11 rows and behave exactly as before.
+    // Graphics refactor (post-premium pass): GameSettings is the single writer
+    // of graphics state, and every graphics row below reads back the LIVE
+    // applied value (Screen / QualitySettings / the active URP asset) instead
+    // of a saved intention — the card can no longer drift from reality. The
+    // old Mobile/PC "Quality" row and the page-B "Quality tier" row are merged
+    // into one Quality row (Auto → Low → Medium → High → Ultra), and the
+    // Shadows / Anti-aliasing / Render-scale rows are explicit overrides that
+    // default to following the tier (Reset returns them to the tier).
+    //
+    // Rows 12-21 (page B, behind MORE OPTIONS) keep the story pass's
+    // accessibility rows and the five volume sliders (D15 code mixer). Scenes
+    // that have not been rebuilt keep the original row wiring and behave as
+    // before, minus the graphics rows that now show live values.
     public class SettingsPanelController : MonoBehaviour
     {
+        // ---- Page A: graphics + interface --------------------------------
         public const int ResolutionRow = 0;
         public const int FullscreenRow = 1;
-        public const int QualityRow = 2;
+        public const int QualityRow = 2;      // quality tier: Auto/Low/Medium/High/Ultra
         public const int VSyncRow = 3;
         public const int ShadowsRow = 4;
         public const int MsaaRow = 5;
@@ -28,21 +35,21 @@ namespace LightShadow.UI
         public const int SensitivityRow = 8;
         public const int LanguageRow = 9;
         public const int NarratorRow = 10;
+        public const int FpsCounterRow = 11;
 
-        // Story-pass rows (page B).
-        public const int TextSpeedRow = 11;
-        public const int SubtitleSizeRow = 12;
-        public const int ColorblindRow = 13;
-        public const int AutoAdvanceRow = 14;
-        public const int SkipHoldRow = 15;
-        public const int QualityTierRow = 16;
+        // ---- Page B: accessibility + audio (story pass) -------------------
+        public const int TextSpeedRow = 12;
+        public const int SubtitleSizeRow = 13;
+        public const int ColorblindRow = 14;
+        public const int AutoAdvanceRow = 15;
+        public const int SkipHoldRow = 16;
         public const int VolumeMasterRow = 17;
         public const int VolumeMusicRow = 18;
         public const int VolumeAmbienceRow = 19;
         public const int VolumeSfxRow = 20;
         public const int VolumeUiRow = 21;
 
-        public const int PageARows = 11;
+        public const int PageARows = 12;
         public const int TotalRows = 22;
 
         [Header("Wiring")]
@@ -70,10 +77,10 @@ namespace LightShadow.UI
         {
             "Resolution", "Fullscreen", "Quality", "VSync", "Shadows",
             "Anti-aliasing", "Render scale", "Brightness", "Mouse sensitivity",
-            "Language", "Narrator voice",
+            "Language", "Narrator voice", "FPS counter",
             // Page B (story pass; hidden unless SceneBuilderStory built them).
             "Text speed", "Subtitle size", "Colourblind palette", "Auto-advance",
-            "Skip hold time", "Quality tier",
+            "Skip hold time",
             "Master volume", "Music volume", "Ambience volume", "SFX volume", "UI volume",
         };
 
@@ -183,15 +190,16 @@ namespace LightShadow.UI
             {
                 case ResolutionRow: GameSettings.SetResolutionIndex(GameSettings.ResolutionIndex - 1); break;
                 case FullscreenRow: GameSettings.ToggleFullscreen(); break;
-                case QualityRow: GameSettings.SetQualityLevel(GameSettings.QualityLevel - 1); break;
+                case QualityRow: GameSettings.SetTier(PreviousTier()); break;
                 case VSyncRow: GameSettings.ToggleVSync(); break;
-                case ShadowsRow: GameSettings.SetShadows(GameSettings.ShadowsIndex - 1); break;
-                case MsaaRow: GameSettings.SetMsaa(GameSettings.MsaaIndex - 1); break;
-                case RenderScaleRow: GameSettings.SetRenderScale(GameSettings.RenderScaleIndex - 1); break;
+                case ShadowsRow: GameSettings.SetShadows(PreviousIndex(GameSettings.ShadowsIndex, 4)); break;
+                case MsaaRow: GameSettings.SetMsaa(PreviousIndex(GameSettings.MsaaIndex, 3)); break;
+                case RenderScaleRow: GameSettings.SetRenderScale(PreviousIndex(GameSettings.RenderScaleIndex, 6)); break;
                 case BrightnessRow: GameSettings.SetBrightness(GameSettings.Brightness - 0.1f); break;
                 case SensitivityRow: GameSettings.SetSensitivity(GameSettings.Sensitivity - 0.1f); break;
                 case LanguageRow: GameSettings.ToggleLanguage(); break;
                 case NarratorRow: GameSettings.ToggleNarrator(); break;
+                case FpsCounterRow: GameSettings.ToggleFps(); break;
 
                 // ---- story pass (page B) ----
                 case TextSpeedRow: AccessibilityStore.SetTextSpeed(AccessibilityStore.TextSpeed - 1); break;
@@ -199,7 +207,6 @@ namespace LightShadow.UI
                 case ColorblindRow: AccessibilityStore.SetColorblindMode(AccessibilityStore.ColorblindMode - 1); break;
                 case AutoAdvanceRow: AccessibilityStore.ToggleAutoAdvance(); break;
                 case SkipHoldRow: AccessibilityStore.SetSkipHold(AccessibilityStore.SkipHoldIndex - 1); break;
-                case QualityTierRow: AccessibilityStore.SetQualityTier(AccessibilityStore.QualityTier - 1); break;
                 case VolumeMasterRow: VolumeCategories.SetLevel(VolumeCategories.Category.Master, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Master)) - 1); break;
                 case VolumeMusicRow: VolumeCategories.SetLevel(VolumeCategories.Category.Music, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Music)) - 1); break;
                 case VolumeAmbienceRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ambience, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ambience)) - 1); break;
@@ -214,15 +221,16 @@ namespace LightShadow.UI
             {
                 case ResolutionRow: GameSettings.SetResolutionIndex(GameSettings.ResolutionIndex + 1); break;
                 case FullscreenRow: GameSettings.ToggleFullscreen(); break;
-                case QualityRow: GameSettings.SetQualityLevel(GameSettings.QualityLevel + 1); break;
+                case QualityRow: GameSettings.SetTier(NextTier()); break;
                 case VSyncRow: GameSettings.ToggleVSync(); break;
-                case ShadowsRow: GameSettings.SetShadows(GameSettings.ShadowsIndex + 1); break;
-                case MsaaRow: GameSettings.SetMsaa(GameSettings.MsaaIndex + 1); break;
-                case RenderScaleRow: GameSettings.SetRenderScale(GameSettings.RenderScaleIndex + 1); break;
+                case ShadowsRow: GameSettings.SetShadows(NextIndex(GameSettings.ShadowsIndex, 4)); break;
+                case MsaaRow: GameSettings.SetMsaa(NextIndex(GameSettings.MsaaIndex, 3)); break;
+                case RenderScaleRow: GameSettings.SetRenderScale(NextIndex(GameSettings.RenderScaleIndex, 6)); break;
                 case BrightnessRow: GameSettings.SetBrightness(GameSettings.Brightness + 0.1f); break;
                 case SensitivityRow: GameSettings.SetSensitivity(GameSettings.Sensitivity + 0.1f); break;
                 case LanguageRow: GameSettings.ToggleLanguage(); break;
                 case NarratorRow: GameSettings.ToggleNarrator(); break;
+                case FpsCounterRow: GameSettings.ToggleFps(); break;
 
                 // ---- story pass (page B) ----
                 case TextSpeedRow: AccessibilityStore.SetTextSpeed(AccessibilityStore.TextSpeed + 1); break;
@@ -230,13 +238,36 @@ namespace LightShadow.UI
                 case ColorblindRow: AccessibilityStore.SetColorblindMode(AccessibilityStore.ColorblindMode + 1); break;
                 case AutoAdvanceRow: AccessibilityStore.ToggleAutoAdvance(); break;
                 case SkipHoldRow: AccessibilityStore.SetSkipHold(AccessibilityStore.SkipHoldIndex + 1); break;
-                case QualityTierRow: AccessibilityStore.SetQualityTier(AccessibilityStore.QualityTier + 1); break;
                 case VolumeMasterRow: VolumeCategories.SetLevel(VolumeCategories.Category.Master, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Master)) + 1); break;
                 case VolumeMusicRow: VolumeCategories.SetLevel(VolumeCategories.Category.Music, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Music)) + 1); break;
                 case VolumeAmbienceRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ambience, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ambience)) + 1); break;
                 case VolumeSfxRow: VolumeCategories.SetLevel(VolumeCategories.Category.Sfx, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Sfx)) + 1); break;
                 case VolumeUiRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ui, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ui)) + 1); break;
             }
+        }
+
+        // Tier cycle: Auto(-1) → Low(0) → Medium(1) → High(2) → Ultra(3) → Auto.
+        static int PreviousTier()
+        {
+            int tier = PlayerPrefs.GetInt("ls_qualityTier", -1);
+            return tier - 1;
+        }
+
+        static int NextTier()
+        {
+            int tier = PlayerPrefs.GetInt("ls_qualityTier", -1);
+            return tier + 1;
+        }
+
+        // Fine overrides cycle -1 (follow tier) → 0 → … → max-1 → -1.
+        static int PreviousIndex(int current, int count)
+        {
+            return current <= -1 ? count - 1 : current - 1;
+        }
+
+        static int NextIndex(int current, int count)
+        {
+            return current >= count - 1 ? -1 : current + 1;
         }
 
         public void Refresh()
@@ -295,13 +326,12 @@ namespace LightShadow.UI
         {
             switch (row)
             {
+                // Live values: every graphics label reads what is applied now.
                 case ResolutionRow: return Localization.Present(GameSettings.ResolutionLabel());
-                case FullscreenRow:
-                    return GameSettings.Fullscreen ? Localization.TrPresent("Fullscreen") : Localization.TrPresent("Windowed");
-                case QualityRow: return Localization.Present(Localization.QualityName(GameSettings.QualityLevel));
-                case VSyncRow:
-                    return GameSettings.VSync ? Localization.TrPresent("On") : Localization.TrPresent("Off");
-                case ShadowsRow: return Localization.Present(GameSettings.ShadowsLabel());
+                case FullscreenRow: return Localization.Present(GameSettings.FullscreenLabel());
+                case QualityRow: return Localization.Present(GameSettings.TierLabel());
+                case VSyncRow: return Localization.Present(GameSettings.VSyncLabel());
+                case ShadowsRow: return Localization.Present(ShadowsValueLabel());
                 case MsaaRow: return Localization.Present(GameSettings.MsaaLabel());
                 case RenderScaleRow: return Localization.Present(GameSettings.RenderScaleLabel());
                 case BrightnessRow: return Localization.Present(GameSettings.BrightnessLabel());
@@ -309,6 +339,8 @@ namespace LightShadow.UI
                 case LanguageRow: return Localization.LanguageName(Localization.Current);
                 case NarratorRow:
                     return GameSettings.NarratorEnabled ? Localization.TrPresent("On") : Localization.TrPresent("Off");
+                case FpsCounterRow:
+                    return GameSettings.ShowFps ? Localization.TrPresent("On") : Localization.TrPresent("Off");
 
                 // ---- story pass (page B) ----
                 case TextSpeedRow: return AccessibilitySpeedLabel();
@@ -317,7 +349,6 @@ namespace LightShadow.UI
                 case AutoAdvanceRow:
                     return AccessibilityStore.AutoAdvance ? Localization.TrPresent("On") : Localization.TrPresent("Off");
                 case SkipHoldRow: return Localization.TimerLabel(AccessibilityStore.SkipHoldSeconds);
-                case QualityTierRow: return QualityTierLabel();
                 case VolumeMasterRow: return VolumeSliderLabel(VolumeCategories.Category.Master);
                 case VolumeMusicRow: return VolumeSliderLabel(VolumeCategories.Category.Music);
                 case VolumeAmbienceRow: return VolumeSliderLabel(VolumeCategories.Category.Ambience);
@@ -325,6 +356,14 @@ namespace LightShadow.UI
                 case VolumeUiRow: return VolumeSliderLabel(VolumeCategories.Category.Ui);
                 default: return "";
             }
+        }
+
+        // The shadows row shows the live distance plus what it follows
+        // ("40 m · tier" when the player has not overridden it).
+        static string ShadowsValueLabel()
+        {
+            string live = GameSettings.ShadowsLabel();
+            return GameSettings.ShadowsIndex >= 0 ? live : live + " · tier";
         }
 
         static string AccessibilitySpeedLabel()
@@ -355,21 +394,6 @@ namespace LightShadow.UI
                 case 1: return StoryStrings.Tr("Blue-Orange");
                 case 2: return StoryStrings.Tr("High contrast");
                 default: return StoryStrings.Tr("Standard");
-            }
-        }
-
-        static string QualityTierLabel()
-        {
-            // PlayerPrefs-only by design (no compile dependency on the
-            // Engineering PerformanceManager): -1 = auto, 0..3 = Low..Ultra.
-            int tier = AccessibilityStore.QualityTier;
-            switch (tier)
-            {
-                case 0: return StoryStrings.Tr("Low");
-                case 1: return StoryStrings.Tr("Medium");
-                case 2: return StoryStrings.Tr("High");
-                case 3: return StoryStrings.Tr("Ultra");
-                default: return StoryStrings.Tr("Auto");
             }
         }
 

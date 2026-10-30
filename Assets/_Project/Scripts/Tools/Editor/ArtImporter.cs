@@ -132,6 +132,7 @@ namespace LightShadow.Tools
             int surfaces = BuildSurfaceMaterials();
             int specials = BuildSpecialMaterials();
             string prefabs = BuildSpecialPrefabs();
+            string dedupe = DedupeThirdPartyMaterials();
             string post = UpdatePostVolumes();
 
             AssetDatabase.SaveAssets();
@@ -143,8 +144,109 @@ namespace LightShadow.Tools
                 + "\nSurface materials ensured: " + surfaces
                 + "\nSpecial materials ensured: " + specials
                 + "\n" + prefabs
+                + "\n" + dedupe
                 + "\n" + post;
         }
+
+        // -------------------------------------------------- material dedupe --
+        // Kenney packs carry one flat material per model file, so a furnished
+        // school ended up with several hundred near-identical materials — each
+        // one a separate SRP-Batcher SetPass and a real frame-time cost (the
+        // ART pass flagged this as a follow-up). This builds a small set of
+        // shared materials keyed by (shader, colour, metallic, smoothness,
+        // texture); the scene-side sweep in SceneBuilderArt then swaps every
+        // renderer still using a ThirdParty material onto its shared twin, so
+        // the shipped scenes render with a handful of materials instead of
+        // hundreds. Idempotent: shared materials never live under ThirdParty.
+        static string DedupeThirdPartyMaterials()
+        {
+            var packMaterials = new List<Material>();
+            foreach (string guid in AssetDatabase.FindAssets("t:Material", new[] { "Assets/ThirdParty" }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (material == null) continue;
+                packMaterials.Add(material);
+            }
+
+            if (packMaterials.Count == 0) return "Material dedupe: no pack materials found";
+
+            string sharedFolder = MaterialsFolder + "/Shared";
+            EnsureFolder(sharedFolder);
+
+            var sharedByKey = new Dictionary<string, Material>();
+            int duplicates = 0;
+
+            foreach (Material material in packMaterials)
+            {
+                string key = MaterialKey(material);
+                Material shared;
+                if (!sharedByKey.TryGetValue(key, out shared))
+                {
+                    string hash = Mathf.Abs(StableHash(key)).ToString("X8");
+                    string sharedPath = sharedFolder + "/Mat_Shared_" + hash + ".mat";
+                    shared = AssetDatabase.LoadAssetAtPath<Material>(sharedPath);
+                    if (shared == null)
+                    {
+                        shared = new Material(material.shader);
+                        shared.color = material.color;
+                        shared.SetFloat("_Metallic", material.GetFloat("_Metallic"));
+                        shared.SetFloat("_Smoothness", material.GetFloat("_Smoothness"));
+                        if (material.mainTexture != null) shared.mainTexture = material.mainTexture;
+                        AssetDatabase.CreateAsset(shared, sharedPath);
+                    }
+                    sharedByKey[key] = shared;
+                }
+
+                if (shared != material) duplicates++;
+            }
+
+            sharedLookup = sharedByKey;
+            return "Material dedupe: " + packMaterials.Count + " pack materials → "
+                + sharedByKey.Count + " shared (" + duplicates + " duplicates)";
+        }
+
+        // Key that decides "these two materials render identically". Rounded to
+        // 1/255 per channel — flat Kenney colours land on the same key.
+        static string MaterialKey(Material material)
+        {
+            Color color = material.color;
+            string textureId = material.mainTexture != null
+                ? AssetDatabase.GetAssetPath(material.mainTexture)
+                : "none";
+            return material.shader.name
+                + "|" + Mathf.RoundToInt(Mathf.Clamp01(color.r) * 255f)
+                + "," + Mathf.RoundToInt(Mathf.Clamp01(color.g) * 255f)
+                + "," + Mathf.RoundToInt(Mathf.Clamp01(color.b) * 255f)
+                + "," + Mathf.RoundToInt(color.a * 255f)
+                + "|" + material.GetFloat("_Metallic").ToString("0.00")
+                + "|" + material.GetFloat("_Smoothness").ToString("0.00")
+                + "|" + textureId;
+        }
+
+        // Deterministic hash (string.GetHashCode differs across .NET targets).
+        static int StableHash(string text)
+        {
+            unchecked
+            {
+                int hash = 17;
+                foreach (char character in text) hash = hash * 31 + character;
+                return hash;
+            }
+        }
+
+        /// <summary>Scene-side dedupe: returns the shared twin for a pack
+        /// material, or null when the material is not from ThirdParty (or the
+        /// dedupe pass has not run). Callers must not mutate the result.</summary>
+        public static Material SharedReplacementFor(Material material)
+        {
+            if (material == null || sharedLookup == null) return null;
+            Material shared;
+            if (!sharedLookup.TryGetValue(MaterialKey(material), out shared)) return null;
+            return shared != material ? shared : null;
+        }
+
+        static Dictionary<string, Material> sharedLookup;
 
         // ---------------------------------------------------------- textures
         static int ImportTextures()

@@ -178,6 +178,11 @@ namespace LightShadow.Tools
                 ProcessTransform(root.transform);
             }
 
+            // Material dedupe sweep: every renderer still pointing at a pack
+            // material moves onto its shared twin (fewer SetPass calls, one
+            // pass over all renderers, idempotent by construction).
+            RemapThirdPartyMaterials(scene);
+
             if (scenePath == SchoolPath)
             {
                 AddDustMotes();
@@ -185,6 +190,35 @@ namespace LightShadow.Tools
 
             SaveScene(scene, scenePath);
             Debug.Log("[LightShadow] Art pass applied to " + sceneName);
+        }
+
+        // Material dedupe sweep (see ArtImporter.DedupeThirdPartyMaterials):
+        // every renderer whose sharedMaterials point into Assets/ThirdParty is
+        // re-pointed at the shared twin. Runs after the swap table so it also
+        // covers the ArtModel_ children the table just created.
+        static void RemapThirdPartyMaterials(Scene scene)
+        {
+            int remapped = 0;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+                {
+                    Material[] materials = renderer.sharedMaterials;
+                    bool changed = false;
+                    for (int i = 0; i < materials.Length; i++)
+                    {
+                        Material replacement = ArtImporter.SharedReplacementFor(materials[i]);
+                        if (replacement == null) continue;
+                        materials[i] = replacement;
+                        changed = true;
+                    }
+                    if (!changed) continue;
+                    renderer.sharedMaterials = materials;
+                    EditorUtility.SetDirty(renderer);
+                    remapped++;
+                }
+            }
+            Debug.Log("[LightShadow] Material dedupe: remapped " + remapped + " renderers in " + scene.path);
         }
 
         // -------------------------------------------------------- the table

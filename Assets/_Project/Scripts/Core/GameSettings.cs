@@ -4,12 +4,33 @@ using UnityEngine;
 
 namespace LightShadow.Core
 {
-    // One persistent place for every option the player can change. Values are
-    // stored in PlayerPrefs so they survive a restart, and Changed is raised after
-    // each edit so live UI (brightness, mouse sensitivity) can react immediately.
+    // One persistent place for every option the player can change, and the ONE
+    // writer of graphics state (refactored after the premium pass: previously
+    // GameSettings and PerformanceManager both wrote the live URP asset, so the
+    // settings card could show requested values that the tier system had
+    // overwritten — the "fighting" bug).
+    //
+    // Ownership now:
+    //   PerformanceManager  → tier AUTO-DETECTION, frame-rate policy (120 FPS
+    //                         targeting / Android refresh clamp), dynamic
+    //                         resolution, boot summary log. It no longer writes
+    //                         URP asset values.
+    //   GameSettings        → every user-facing graphics value. The quality
+    //                         TIER (Auto/Low/Medium/High/Ultra) sets the base
+    //                         render scale / MSAA / shadow distance; the Shadows,
+    //                         Anti-aliasing and Render-scale rows are explicit
+    //                         overrides (-1 = follow the tier). After every
+    //                         change the card reads back the LIVE pipeline
+    //                         asset / Screen state, so displayed values are
+    //                         always what is actually applied.
+    //
+    // Values are stored in PlayerPrefs so they survive a restart, and Changed
+    // is raised after each edit so live UI (brightness, sensitivity, FPS
+    // counter) can react immediately.
     public static class GameSettings
     {
         public const string LanguageKey = "LS_Language";
+        public const string ShowFpsKey = "LS_ShowFps";
 
         public static event Action Changed;
 
@@ -18,23 +39,40 @@ namespace LightShadow.Core
 
         public static int ResolutionIndex { get; private set; }
         public static bool Fullscreen { get; private set; }
-        public static int QualityLevel { get; private set; }
         public static bool VSync { get; private set; }
         public static float Brightness { get; private set; } = 0.5f;
         public static float Sensitivity { get; private set; } = 1f;
         public static bool NarratorEnabled { get; private set; } = true;
+        public static bool ShowFps { get; private set; } = true;
 
-        // Fine graphics controls on top of the quality level, applied to the
-        // active URP asset at runtime: shadows, anti-aliasing, render scale.
-        static readonly float[] RenderScales = { 0.5f, 0.75f, 1f, 1.25f, 1.5f };
-        static readonly int[] MsaaSamples = { 0, 2, 4, 8 };
-        static readonly float[] ShadowDistances = { 0f, 40f, 80f };
+        // Quality tier: -1 = auto-detect, 0..3 = Low/Medium/High/Ultra. Stored
+        // under the same "ls_qualityTier" key the tier row and
+        // PerformanceManager already used, so player choices survive the
+        // refactor. AppliedTier is what the detector resolved (0..3).
+        public const int TierAuto = -1;
+        public static int TierIndex { get; private set; } = TierAuto;
+        public static int AppliedTier { get; private set; }
 
-        public static int ShadowsIndex { get; private set; } = 2;      // 0 off · 1 medium · 2 high
-        public static int MsaaIndex { get; private set; } = 2;         // index into MsaaSamples (4x)
-        public static int RenderScaleIndex { get; private set; } = 2;  // index into RenderScales (native)
+        // Fine graphics overrides. -1 means "follow the tier"; otherwise an
+        // index into the option tables below.
+        public static int ShadowsIndex { get; private set; } = -1;     // 0 off · 1 medium · 2 high · -1 tier
+        public static int MsaaIndex { get; private set; } = -1;        // index into MsaaSamples · -1 tier
+        public static int RenderScaleIndex { get; private set; } = -1; // index into RenderScales · -1 tier
 
-        public static float RenderScale => RenderScales[Mathf.Clamp(RenderScaleIndex, 0, RenderScales.Length - 1)];
+        static readonly float[] RenderScales = { 0.5f, 0.65f, 0.75f, 0.9f, 1f, 1.25f };
+        static readonly int[] MsaaSamples = { 0, 2, 4 };
+        static readonly float[] ShadowDistances = { 0f, 20f, 40f, 60f };
+
+        // Tier base values (match PerformanceManager's published tier table).
+        //        shadows  msaa  renderScale
+        // Low        0      0       0.65
+        // Medium    20      0       0.75
+        // High      40      2       0.90
+        // Ultra     60      2       1.00
+        static readonly float[] TierShadows = { 0f, 20f, 40f, 60f };
+        static readonly int[] TierMsaa = { 0, 0, 2, 2 };
+        static readonly float[] TierRenderScale = { 0.65f, 0.75f, 0.9f, 1f };
+        static readonly string[] TierNames = { "Low", "Medium", "High", "Ultra" };
 
         public static IReadOnlyList<Resolution> Resolutions
         {
@@ -64,15 +102,17 @@ namespace LightShadow.Core
             ResolutionIndex = Mathf.Clamp(PlayerPrefs.GetInt("LS_Resolution", DefaultResolutionIndex()), 0,
                 Mathf.Max(0, resolutions.Count - 1));
             Fullscreen = PlayerPrefs.GetInt("LS_Fullscreen", Screen.fullScreen ? 1 : 0) == 1;
-            QualityLevel = Mathf.Clamp(PlayerPrefs.GetInt("LS_Quality", QualitySettings.GetQualityLevel()), 0,
-                Mathf.Max(0, QualitySettings.names.Length - 1));
-            VSync = PlayerPrefs.GetInt("LS_VSync", QualitySettings.vSyncCount > 0 ? 1 : 0) == 1;
+            VSync = PlayerPrefs.GetInt("LS_VSync", 0) == 1; // 120 FPS targeting wants vSync off by default
             Brightness = Mathf.Clamp01(PlayerPrefs.GetFloat("LS_Brightness", 0.5f));
             Sensitivity = Mathf.Clamp(PlayerPrefs.GetFloat("LS_Sensitivity", 1f), 0.4f, 2.5f);
             NarratorEnabled = PlayerPrefs.GetInt("LS_Narrator", 1) == 1;
-            ShadowsIndex = Mathf.Clamp(PlayerPrefs.GetInt("LS_Shadows", 2), 0, ShadowDistances.Length - 1);
-            MsaaIndex = Mathf.Clamp(PlayerPrefs.GetInt("LS_MSAA", 2), 0, MsaaSamples.Length - 1);
-            RenderScaleIndex = Mathf.Clamp(PlayerPrefs.GetInt("LS_RenderScale", 2), 0, RenderScales.Length - 1);
+            ShowFps = PlayerPrefs.GetInt(ShowFpsKey, 1) == 1;
+            TierIndex = PlayerPrefs.GetInt("ls_qualityTier", TierAuto);
+            // Missing fine-control prefs (fresh install) follow the tier; the
+            // legacy literal defaults (2/2/2) are not assumed any more.
+            ShadowsIndex = PlayerPrefs.GetInt("LS_Shadows", -1);
+            MsaaIndex = PlayerPrefs.GetInt("LS_MSAA", -1);
+            RenderScaleIndex = PlayerPrefs.GetInt("LS_RenderScale", -1);
         }
 
         static void BuildResolutionList()
@@ -113,26 +153,130 @@ namespace LightShadow.Core
         {
             PlayerPrefs.SetInt("LS_Resolution", ResolutionIndex);
             PlayerPrefs.SetInt("LS_Fullscreen", Fullscreen ? 1 : 0);
-            PlayerPrefs.SetInt("LS_Quality", QualityLevel);
             PlayerPrefs.SetInt("LS_VSync", VSync ? 1 : 0);
             PlayerPrefs.SetFloat("LS_Brightness", Brightness);
             PlayerPrefs.SetFloat("LS_Sensitivity", Sensitivity);
             PlayerPrefs.SetInt("LS_Narrator", NarratorEnabled ? 1 : 0);
+            PlayerPrefs.SetInt(ShowFpsKey, ShowFps ? 1 : 0);
+            PlayerPrefs.SetInt("ls_qualityTier", TierIndex);
             PlayerPrefs.SetInt("LS_Shadows", ShadowsIndex);
             PlayerPrefs.SetInt("LS_MSAA", MsaaIndex);
             PlayerPrefs.SetInt("LS_RenderScale", RenderScaleIndex);
             PlayerPrefs.Save();
         }
 
+        // ------------------------------------------------------------- apply
+
         public static void LoadAndApply()
         {
             EnsureLoaded();
-            ApplyQuality();
-            ApplyResolution();
-            ApplyVSync();
-            ApplyGraphics();
+            ApplyAll();
             Changed?.Invoke();
         }
+
+        /// <summary>One deterministic application path: tier → quality level →
+        /// fine graphics → vSync/frame policy → resolution. Everything the
+        /// settings card can change funnels through here.</summary>
+        static void ApplyAll()
+        {
+            ResolveTier();
+            ApplyQualityLevel();
+            ApplyGraphics();
+            ApplyFramePolicy();
+            ApplyResolution();
+        }
+
+        static void ResolveTier()
+        {
+            if (TierIndex < 0 || TierIndex > 3)
+            {
+                AppliedTier = (int)Systems.PerformanceManager.AutoDetectTier();
+            }
+            else
+            {
+                AppliedTier = TierIndex;
+            }
+        }
+
+        // The Mobile/PC quality levels differ by renderer (SSAO) — the tier
+        // picks the level: Low/Medium run the Mobile renderer, High/Ultra PC.
+        // Only switch when the level actually differs: SetQualityLevel with
+        // applyAll:true forces a render-pipeline recreation even for the same
+        // level, and a recreation after the first frame re-runs URP's blitter
+        // init, which throws "Blitter is already initialized" once and then
+        // every frame thereafter (pipeline never caches) - the low-FPS bug.
+        static void ApplyQualityLevel()
+        {
+            if (QualitySettings.names.Length == 0) return;
+            int level = AppliedTier <= 1
+                ? IndexOfQualityLevel("Mobile")
+                : IndexOfQualityLevel("PC");
+            if (level >= 0 && level != QualitySettings.GetQualityLevel())
+            {
+                QualitySettings.SetQualityLevel(level, true);
+            }
+        }
+
+        static int IndexOfQualityLevel(string name)
+        {
+            for (int i = 0; i < QualitySettings.names.Length; i++)
+            {
+                if (string.Equals(QualitySettings.names[i], name, StringComparison.OrdinalIgnoreCase)) return i;
+            }
+            return -1;
+        }
+
+        // Pushes the effective fine graphics values to the active URP asset.
+        // An override (-1 aside) wins; otherwise the tier base applies. These
+        // are the values the settings card reads back, so the menu can never
+        // drift from reality.
+        static void ApplyGraphics()
+        {
+            var graphics = Graphics;
+            if (graphics == null) return;
+
+            float shadows = ShadowsIndex >= 0
+                ? ShadowDistances[Mathf.Clamp(ShadowsIndex, 0, ShadowDistances.Length - 1)]
+                : TierShadows[AppliedTier];
+            int msaa = MsaaIndex >= 0
+                ? MsaaSamples[Mathf.Clamp(MsaaIndex, 0, MsaaSamples.Length - 1)]
+                : TierMsaa[AppliedTier];
+            float scale = RenderScaleIndex >= 0
+                ? RenderScales[Mathf.Clamp(RenderScaleIndex, 0, RenderScales.Length - 1)]
+                : TierRenderScale[AppliedTier];
+
+            graphics.shadowDistance = shadows;
+            graphics.msaaSampleCount = msaa;
+            graphics.renderScale = scale;
+        }
+
+        // Frame-rate policy (decision D8): vSync on → the driver caps us and
+        // the engine target is cleared; vSync off → Windows targets 120 FPS and
+        // Android requests the display's refresh rate (clamped 60-120).
+        static void ApplyFramePolicy()
+        {
+            QualitySettings.vSyncCount = VSync ? 1 : 0;
+            if (VSync)
+            {
+                Application.targetFrameRate = -1;
+            }
+            else
+            {
+                Systems.PerformanceManager.ApplyFrameRatePolicy();
+            }
+            Systems.PerformanceManager.ApplyDynamicResolution();
+        }
+
+        static void ApplyResolution()
+        {
+            if (resolutions.Count == 0) return;
+            Resolution resolution = resolutions[Mathf.Clamp(ResolutionIndex, 0, resolutions.Count - 1)];
+            if (resolution.width <= 0 || resolution.height <= 0) return;
+            Screen.SetResolution(resolution.width, resolution.height,
+                Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed);
+        }
+
+        // ------------------------------------------------------------- setters
 
         public static void SetResolutionIndex(int index)
         {
@@ -153,13 +297,12 @@ namespace LightShadow.Core
             Changed?.Invoke();
         }
 
-        public static void SetQualityLevel(int level)
+        public static void SetTier(int tier)
         {
             EnsureLoaded();
-            if (QualitySettings.names.Length == 0) return;
-            QualityLevel = (level % QualitySettings.names.Length + QualitySettings.names.Length) % QualitySettings.names.Length;
-            ApplyQuality();
-            ApplyVSync();
+            // Cycle Auto → Low → Medium → High → Ultra → Auto.
+            TierIndex = tier < -1 ? 3 : (tier > 3 ? -1 : tier);
+            ApplyAll();
             Save();
             Changed?.Invoke();
         }
@@ -168,7 +311,7 @@ namespace LightShadow.Core
         {
             EnsureLoaded();
             VSync = !VSync;
-            ApplyVSync();
+            ApplyFramePolicy();
             Save();
             Changed?.Invoke();
         }
@@ -211,10 +354,19 @@ namespace LightShadow.Core
             Changed?.Invoke();
         }
 
+        public static void ToggleFps()
+        {
+            EnsureLoaded();
+            ShowFps = !ShowFps;
+            Save();
+            Changed?.Invoke();
+        }
+
         public static void SetShadows(int index)
         {
             EnsureLoaded();
-            ShadowsIndex = (index % ShadowDistances.Length + ShadowDistances.Length) % ShadowDistances.Length;
+            // -1 = follow the tier; anything out of range snaps back to it too.
+            ShadowsIndex = index < 0 || index >= ShadowDistances.Length ? -1 : index;
             ApplyGraphics();
             Save();
             Changed?.Invoke();
@@ -223,7 +375,7 @@ namespace LightShadow.Core
         public static void SetMsaa(int index)
         {
             EnsureLoaded();
-            MsaaIndex = (index % MsaaSamples.Length + MsaaSamples.Length) % MsaaSamples.Length;
+            MsaaIndex = index < 0 || index >= MsaaSamples.Length ? -1 : index;
             ApplyGraphics();
             Save();
             Changed?.Invoke();
@@ -232,7 +384,7 @@ namespace LightShadow.Core
         public static void SetRenderScale(int index)
         {
             EnsureLoaded();
-            RenderScaleIndex = (index % RenderScales.Length + RenderScales.Length) % RenderScales.Length;
+            RenderScaleIndex = index < 0 || index >= RenderScales.Length ? -1 : index;
             ApplyGraphics();
             Save();
             Changed?.Invoke();
@@ -243,49 +395,21 @@ namespace LightShadow.Core
             EnsureLoaded();
             ResolutionIndex = DefaultResolutionIndex();
             Fullscreen = false;
-            QualityLevel = Mathf.Max(0, QualitySettings.names.Length - 1);
-            VSync = true;
+            VSync = false;
             Brightness = 0.5f;
             Sensitivity = 1f;
-            ShadowsIndex = ShadowDistances.Length - 1;
-            MsaaIndex = 2;
-            RenderScaleIndex = 2;
-            ApplyQuality();
-            ApplyResolution();
-            ApplyVSync();
-            ApplyGraphics();
+            TierIndex = TierAuto;
+            ShadowsIndex = -1;
+            MsaaIndex = -1;
+            RenderScaleIndex = -1;
+            ApplyAll();
             Save();
             Changed?.Invoke();
         }
 
-        static void ApplyResolution()
-        {
-            if (resolutions.Count == 0) return;
-            Resolution resolution = resolutions[Mathf.Clamp(ResolutionIndex, 0, resolutions.Count - 1)];
-            if (resolution.width <= 0 || resolution.height <= 0) return;
-            Screen.SetResolution(resolution.width, resolution.height,
-                Fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed);
-        }
-
-        static void ApplyQuality()
-        {
-            if (QualitySettings.names.Length == 0) return;
-            QualitySettings.SetQualityLevel(Mathf.Clamp(QualityLevel, 0, QualitySettings.names.Length - 1), true);
-            // The active URP asset changes with the quality level, so the fine
-            // graphics controls are re-asserted on whatever asset is live now.
-            ApplyGraphics();
-        }
-
-        // Pushes the fine graphics controls to the active URP render pipeline
-        // asset. Values are session-wide (they act on the shared asset) and are
-        // re-applied whenever a quality switch or a settings change happens.
-        static void ApplyGraphics()
-        {
-            if (Graphics == null) return;
-            Graphics.shadowDistance = ShadowDistances[Mathf.Clamp(ShadowsIndex, 0, ShadowDistances.Length - 1)];
-            Graphics.msaaSampleCount = MsaaSamples[Mathf.Clamp(MsaaIndex, 0, MsaaSamples.Length - 1)];
-            Graphics.renderScale = RenderScales[Mathf.Clamp(RenderScaleIndex, 0, RenderScales.Length - 1)];
-        }
+        // -------------------------------------------------------------- labels
+        // Every label reads the LIVE state (Screen / QualitySettings / the
+        // active URP asset), so the card always shows what is really applied.
 
         static UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset Graphics
         {
@@ -296,15 +420,56 @@ namespace LightShadow.Core
             }
         }
 
-        static void ApplyVSync()
-        {
-            QualitySettings.vSyncCount = VSync ? 1 : 0;
-        }
-
         public static string ResolutionLabel()
         {
-            Resolution resolution = CurrentResolution;
-            return resolution.width + " × " + resolution.height;
+            Resolution resolution = Screen.currentResolution;
+            if (resolution.width <= 0) resolution = CurrentResolution;
+            int hz = Mathf.RoundToInt((float)resolution.refreshRateRatio.value);
+            return hz > 0
+                ? resolution.width + " × " + resolution.height + " @ " + hz
+                : resolution.width + " × " + resolution.height;
+        }
+
+        public static string FullscreenLabel()
+        {
+            return Screen.fullScreenMode == FullScreenMode.ExclusiveFullScreen ||
+                   Screen.fullScreenMode == FullScreenMode.FullScreenWindow
+                ? "Fullscreen"
+                : "Windowed";
+        }
+
+        public static string TierLabel()
+        {
+            string name = TierNames[Mathf.Clamp(AppliedTier, 0, TierNames.Length - 1)];
+            return TierIndex < 0 ? name + " (auto)" : name;
+        }
+
+        public static string ShadowsLabel()
+        {
+            var graphics = Graphics;
+            float distance = graphics != null ? graphics.shadowDistance : TierShadows[AppliedTier];
+            if (distance <= 0.1f) return "Off";
+            return Mathf.RoundToInt(distance) + " m";
+        }
+
+        public static string MsaaLabel()
+        {
+            var graphics = Graphics;
+            int count = graphics != null ? graphics.msaaSampleCount : TierMsaa[AppliedTier];
+            return count <= 1 ? "Off" : count + "x";
+        }
+
+        public static string RenderScaleLabel()
+        {
+            var graphics = Graphics;
+            float scale = graphics != null ? graphics.renderScale : TierRenderScale[AppliedTier];
+            if (Mathf.Approximately(scale, 1f)) return "Native";
+            return Mathf.RoundToInt(scale * 100f) + "%";
+        }
+
+        public static string VSyncLabel()
+        {
+            return QualitySettings.vSyncCount > 0 ? "On" : "Off";
         }
 
         public static string SensitivityLabel()
@@ -315,29 +480,6 @@ namespace LightShadow.Core
         public static string BrightnessLabel()
         {
             return Mathf.RoundToInt(Brightness * 100f) + "%";
-        }
-
-        public static string ShadowsLabel()
-        {
-            switch (ShadowsIndex)
-            {
-                case 0: return "Off";
-                case 1: return "Medium";
-                default: return "High";
-            }
-        }
-
-        public static string MsaaLabel()
-        {
-            int count = MsaaSamples[Mathf.Clamp(MsaaIndex, 0, MsaaSamples.Length - 1)];
-            return count <= 0 ? "Off" : count + "x";
-        }
-
-        public static string RenderScaleLabel()
-        {
-            float scale = RenderScales[Mathf.Clamp(RenderScaleIndex, 0, RenderScales.Length - 1)];
-            if (Mathf.Approximately(scale, 1f)) return "Native";
-            return Mathf.RoundToInt(scale * 100f) + "%";
         }
     }
 }
