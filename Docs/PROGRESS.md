@@ -16,11 +16,13 @@ See also: `Docs/ROADMAP.md` (plan), `Docs/DECISIONS.md` (why), `Docs/CHANGELOG.m
       `Docs/ASSET_LICENSES.md`, `Docs/PERFORMANCE.md`, root `AGENTS.md`.
 - [ ] Baseline `ValidateBatch` PASS re-verified (in flight).
 - [ ] Commit Phase 0.
-- [ ] Launch Sub-Agent 1 (ART), Sub-Agent 2 (ENGINEERING), Sub-Agent 3 (NARRATIVE) in parallel.
+- [x] Launched Sub-Agent 1 (ART), Sub-Agent 2 (ENGINEERING), Sub-Agent 3 (NARRATIVE) in parallel.
       Agent contract: write files only — **no Unity runs, no git**, disjoint file ownership
       (ART: Models/Textures/Materials/ThirdParty/SceneBuilderArt; ENG: Scripts Core/Player/Enemy/
-      Gameplay, ProjectSettings, Packages/manifest, SceneBuilderSystems; NARRATIVE: Scripts UI/
-      Story, Docs/Story, SceneBuilderStory, Audio docs). All Unity + git work happens here after.
+      Gameplay + Systems, Packages/manifest, SceneBuilderSystems; NARRATIVE: Scripts UI/Story/Audio,
+      Docs/Story, SceneBuilderStory). All Unity + git work happens here after.
+      Contracts pinned in briefs: GameEvents (10 events), SaveSystem (3 slots, storyJson blob),
+      PlayerController.ExternalInputLocked static. Reports land in Docs/AGENT_REPORT_*.md.
 
 ## Resume notes for the next session
 
