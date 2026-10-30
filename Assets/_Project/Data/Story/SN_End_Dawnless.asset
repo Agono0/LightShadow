@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_End_Dawnless
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_End_Dawnless
+  act: 0
+  trigger: 0
+  triggerOrdinal: 0
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 3
+  text: 'The corridor ends at the gate and the gate does not open fast enough. The
+    crews'' vans turn the corner. The sky does its morning work.
+
+
+    The Shadow
+    reaches her not as a hand but as a hush: names gone quiet, a night folded up
+    like a finished exam.
+
+
+    She wakes on the pavement with the box still shut,
+    and the school - patient, gentle, terrible - keeps her mother''s memory the way
+    a library keeps a book nobody borrowed.
+
+
+    Dawn comes. It simply comes without
+    her.'
+  localizationKeys:
+  - DAWNLESS
+  - The night ran out. The school keeps what she could not carry.
+  choices: []
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 1
+  endingId: Dawnless
+  onEnterEventHint: 

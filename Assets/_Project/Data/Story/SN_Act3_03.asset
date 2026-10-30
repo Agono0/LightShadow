@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act3_03
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act3_03
+  act: 0
+  trigger: 3
+  triggerOrdinal: 6
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 2
+  text: 'Between me and the gate it has stopped pretending to be smoke. It is the
+    school''s whole forgetting, standing up: blank posters, erased names, a poem
+    with its middle rubbed out.'
+  localizationKeys: []
+  choices:
+  - text: Say her name back to it. "Her name was-"
+    setFlags: []
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0.3
+    calm: 0
+    nextNodeId: SN_Act3_03_forgave
+    nextIfCalmNegative: SN_Act3_03_shaken
+    isTimed: 1
+    timeSeconds: 10
+    timeoutNextId: SN_Act3_03_pass
+  - text: Erase it first. Swing the beam like an answer.
+    setFlags:
+    - erased_first
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.4
+    trust: -0.2
+    calm: 0
+    nextNodeId: SN_Act3_03_bold
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Walk past. It cannot enter the lit corridor.
+    setFlags:
+    - walked_past
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0
+    calm: 0.1
+    nextNodeId: SN_Act3_03_pass
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

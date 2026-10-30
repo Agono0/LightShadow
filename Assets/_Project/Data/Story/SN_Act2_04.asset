@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act2_04
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act2_04
+  act: 0
+  trigger: 3
+  triggerOrdinal: 5
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 2
+  text: 'It stands in the assembly hall aisle with a roll call in its mouth. Names,
+    most of them worn past reading. One it has kept too well: mine.'
+  localizationKeys: []
+  choices:
+  - text: Answer it. "That one's mine. You can't have it."
+    setFlags: []
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.4
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act2_04_stand
+    nextIfCalmNegative: SN_Act2_04_shaken
+    isTimed: 1
+    timeSeconds: 10
+    timeoutNextId: SN_Act2_04_pass
+  - text: 'Recite her lesson line: "Light travels in straight lines."'
+    setFlags:
+    - recited_lesson
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0.2
+    calm: 0.3
+    nextNodeId: SN_Act2_04_line
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Hide behind the folded chairs. Let it pass.
+    setFlags:
+    - hid_passed
+    requiredFlags: []
+    blockedFlags: []
+    boldness: -0.2
+    trust: 0
+    calm: 0.1
+    nextNodeId: SN_Act2_04_pass
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

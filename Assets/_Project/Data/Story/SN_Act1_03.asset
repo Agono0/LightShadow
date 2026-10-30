@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act1_03
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act1_03
+  act: 0
+  trigger: 2
+  triggerOrdinal: 1
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 1
+  text: First the wiring, then the reading. One room at a time - that is how you
+    eat a school.
+  localizationKeys: []
+  choices:
+  - text: Stay in the light while it hums.
+    setFlags: []
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0
+    calm: 0.1
+    nextNodeId: SN_Act1_03a
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Step back into the corridor. Look at the dark properly.
+    setFlags:
+    - looked_back
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.2
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act1_03b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Turn the flashlight off. Just to hear what the dark says.
+    setFlags: []
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.3
+    trust: 0
+    calm: -0.1
+    nextNodeId: SN_Act1_03b
+    nextIfCalmNegative: 
+    isTimed: 1
+    timeSeconds: 8
+    timeoutNextId: SN_Act1_03a
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

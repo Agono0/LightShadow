@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act1_01
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act1_01
+  act: 0
+  trigger: 1
+  triggerOrdinal: 0
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 0
+  text: The gate slams behind me. Of course it does. Schools only open all the way
+    for the last time.
+  localizationKeys: []
+  choices:
+  - text: 'Steady. Count the windows that still hold light: three.'
+    setFlags:
+    - mood_steady
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0
+    calm: 0.2
+    nextNodeId: SN_Act1_01b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Walk like I'm only late for her class.
+    setFlags:
+    - mood_role
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.1
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act1_01b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Say sorry to the dark. Quietly, so it knows my hands are empty.
+    setFlags:
+    - mood_apology
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0.2
+    calm: 0
+    nextNodeId: SN_Act1_01b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

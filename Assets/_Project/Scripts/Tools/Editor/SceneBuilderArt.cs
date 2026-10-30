@@ -170,6 +170,9 @@ namespace LightShadow.Tools
             Scene scene = EditorSceneManager.GetActiveScene();
             string sceneName = scenePath.Substring(scenePath.LastIndexOf('/') + 1);
 
+            // Exponential scene fog (night palette; dawn palette for the ending).
+            ArtImporter.ApplySceneFog(sceneName.StartsWith("03_Ending"));
+
             foreach (GameObject root in scene.GetRootGameObjects())
             {
                 ProcessTransform(root.transform);

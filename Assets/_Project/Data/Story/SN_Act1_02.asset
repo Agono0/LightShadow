@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act1_02
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act1_02
+  act: 0
+  trigger: 0
+  triggerOrdinal: 0
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 0
+  text: 'On her desk: the empty memory box, and one card in her handwriting. "Put
+    me back together."'
+  localizationKeys: []
+  choices:
+  - text: Slide the card into my pocket. Evidence first.
+    setFlags:
+    - card_pocket
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.1
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act1_02b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Read it aloud. Like she's listening.
+    setFlags:
+    - card_read_aloud
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0.3
+    calm: 0.1
+    nextNodeId: SN_Act1_02b
+    nextIfCalmNegative: 
+    isTimed: 1
+    timeSeconds: 7
+    timeoutNextId: SN_Act1_02t
+  - text: Leave it on the desk. I'll take it when the box is full.
+    setFlags:
+    - card_left
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act1_02b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

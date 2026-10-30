@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a51d5eb7a5c9923408d7722fa177ee3f, type: 3}
+  m_Name: SO_StoryConfig
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryConfig
+  nodes:
+  - {fileID: 11400000, guid: 145518ef3318ec54a801868ee35bae49, type: 2}
+  - {fileID: 11400000, guid: 43b4df7ec4c5571418aaf043793ab1c2, type: 2}
+  - {fileID: 11400000, guid: 8044b1afcc781ff439ba2168bd87d75b, type: 2}
+  - {fileID: 11400000, guid: dc81558aa07b165429a052d7444151b2, type: 2}
+  - {fileID: 11400000, guid: b8c2267637814e04b8b123df0dfa7704, type: 2}
+  - {fileID: 11400000, guid: e034b460f4459994e931e120497e560f, type: 2}
+  - {fileID: 11400000, guid: e8e390d73da80454b9601cf18f3a0d62, type: 2}
+  - {fileID: 11400000, guid: 000c3da1ec0c7494e9052494e0fad3dc, type: 2}
+  - {fileID: 11400000, guid: 69356b882e22f3543ab1c73f4ea20136, type: 2}
+  - {fileID: 11400000, guid: 0429a279257755f4786e23a3f3736f73, type: 2}
+  - {fileID: 11400000, guid: efa2c00834927a8409a4ae777cb25cc1, type: 2}
+  - {fileID: 11400000, guid: 4eac91ba6bda7a945a60fc736cbfe6f4, type: 2}
+  - {fileID: 11400000, guid: b775a01c18919a24cbfdc70636f55c96, type: 2}
+  - {fileID: 11400000, guid: 6ea16e5c77698654c8b1ca38bbc863d0, type: 2}
+  - {fileID: 11400000, guid: b35a3c998f6ba4e438972334be1a99de, type: 2}
+  - {fileID: 11400000, guid: bf75b86b7a5917842b7feb901321311e, type: 2}
+  - {fileID: 11400000, guid: ef8b8f1fd2c14624b84a6d42f4bcabc6, type: 2}
+  - {fileID: 11400000, guid: 912832591879a644b8256d7a213b664c, type: 2}
+  - {fileID: 11400000, guid: 054b1760f545bb84ebc16ea459ee2650, type: 2}
+  - {fileID: 11400000, guid: 8fb3df9d841faf44ea3ffbdfae8628ab, type: 2}
+  - {fileID: 11400000, guid: 6242f03ba4680674680233336bb11510, type: 2}
+  - {fileID: 11400000, guid: 04e4bacfb6f689e45963e425e978297f, type: 2}
+  - {fileID: 11400000, guid: 32421e8bebafe4c4686e5d02b3e86349, type: 2}
+  - {fileID: 11400000, guid: a1974290a21382d478e0db2129a0555b, type: 2}
+  - {fileID: 11400000, guid: bb53b3bbc7852824ebeaf6c2f500c509, type: 2}
+  - {fileID: 11400000, guid: 59e3979cd7b2c9849b695fde92143511, type: 2}
+  - {fileID: 11400000, guid: 2011b8033970948428980a7113a5f34d, type: 2}
+  - {fileID: 11400000, guid: 0517ddcd49c669e40b06deb01c6e1e79, type: 2}
+  - {fileID: 11400000, guid: d16bc0892234518419c45e6e394cc2fd, type: 2}
+  - {fileID: 11400000, guid: a17266418276abe4e93ab108de4d274a, type: 2}
+  - {fileID: 11400000, guid: 6235655221aab6442b3796d101f3c020, type: 2}
+  - {fileID: 11400000, guid: f5e737e41a8d3e04c85a6ba3b184bc0d, type: 2}
+  - {fileID: 11400000, guid: 21a2ec4ebf495b1469492eb1c27c1587, type: 2}
+  - {fileID: 11400000, guid: 07a87ac39282fe648a937782bd5cb0cd, type: 2}
+  - {fileID: 11400000, guid: 3c556fdfaeb2413458171e26e99b2a8c, type: 2}
+  - {fileID: 11400000, guid: cec5a32896fc1324b98c270a9c90f0ad, type: 2}
+  - {fileID: 11400000, guid: dea0c1af3e403424b9792b813456104c, type: 2}
+  - {fileID: 11400000, guid: c4e5f336c6e1a1c43836475895f1f34c, type: 2}
+  - {fileID: 11400000, guid: 721f32326a56da949b757dfcc6bfb22a, type: 2}
+  - {fileID: 11400000, guid: bdc97d3dec754f34dae30d031cdcccd6, type: 2}
+  - {fileID: 11400000, guid: 791e7881a2e4fdc47b93c0947ecd8c6b, type: 2}
+  - {fileID: 11400000, guid: 66ddfc983edf3744e812c0fdf73056b5, type: 2}
+  - {fileID: 11400000, guid: c8947d010f0769d4c92290bbe08867e2, type: 2}
+  - {fileID: 11400000, guid: 45b35cff44c1b534ba7bf4bfda62d3f1, type: 2}
+  actStartNodeId: SN_Act1_01
+  endingDawnlessId: Dawnless
+  endingFullRecoveryId: FullRecovery
+  endingPartialMemoryId: PartialMemory
+  endingHollowEscapeId: HollowEscape
+  confrontedFlag: confronted_shadow
+  fullRecoveryAccuracy: 0.75
+  partialMemoryFragments: 4
+  partialMemoryAccuracy: 0.5
+  dawnlessCatchLimit: 2
+  triggerDelaySeconds: 1.2
+  chainGapSeconds: 0.35
+  timeoutCalmPenalty: 0.1

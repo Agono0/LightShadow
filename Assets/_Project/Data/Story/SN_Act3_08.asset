@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act3_08
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act3_08
+  act: 0
+  trigger: 0
+  triggerOrdinal: 0
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 0
+  text: 'The crank is cold and eager. Before I turn it: one promise, out loud, because
+    the school is listening, and schools keep records.'
+  localizationKeys: []
+  choices:
+  - text: I'll keep the light on. For the ones who come after.
+    setFlags:
+    - promised_light
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0.2
+    calm: 0
+    nextNodeId: SN_Act3_09
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: I'll come back with a key, not a fence to climb.
+    setFlags:
+    - promised_return
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.1
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act3_09
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Say nothing. Some things should stay in the building.
+    setFlags:
+    - promised_silence
+    requiredFlags:
+    - left_all
+    blockedFlags: []
+    boldness: 0
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act3_09
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

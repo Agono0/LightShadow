@@ -69,7 +69,7 @@ namespace LightShadow.Tools
             StoryConfig config = AssetDatabase.LoadAssetAtPath<StoryConfig>(StoryConfigPath);
             if (config == null)
             {
-                config = CreateInstance<StoryConfig>();
+                config = ScriptableObject.CreateInstance<StoryConfig>();
                 AssetDatabase.CreateAsset(config, StoryConfigPath);
             }
 
@@ -90,7 +90,7 @@ namespace LightShadow.Tools
             StoryNode node = AssetDatabase.LoadAssetAtPath<StoryNode>(path);
             if (node == null)
             {
-                node = CreateInstance<StoryNode>();
+                node = ScriptableObject.CreateInstance<StoryNode>();
                 AssetDatabase.CreateAsset(node, path);
             }
 

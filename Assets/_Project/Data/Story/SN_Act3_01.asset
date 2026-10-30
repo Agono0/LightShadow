@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act3_01
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act3_01
+  act: 0
+  trigger: 2
+  triggerOrdinal: 3
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 0
+  text: 'Fuse three. The staff room lights up row by row, and there is her mug beside
+    the sink, and a note she left a colleague: "Back Thursday - the kettle forgives
+    you."'
+  localizationKeys: []
+  choices:
+  - text: Pour the cold tea out first. Then take the mug.
+    setFlags:
+    - poured_tea
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0.2
+    calm: 0.2
+    nextNodeId: SN_Act3_01b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Take the mug. The tea can be tomorrow's problem.
+    setFlags:
+    - took_mug
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.1
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act3_01b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Leave everything. The room remembers her better with it here.
+    setFlags:
+    - left_all
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0.2
+    calm: 0
+    nextNodeId: SN_Act3_01b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

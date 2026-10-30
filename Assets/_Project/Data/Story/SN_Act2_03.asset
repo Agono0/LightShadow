@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act2_03
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act2_03
+  act: 0
+  trigger: 3
+  triggerOrdinal: 4
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 0
+  text: 'Pinned inside the optics cabinet, in her lesson-plan voice: "Light travels
+    in straight lines - so do stories."'
+  localizationKeys: []
+  choices:
+  - text: Read it aloud, exactly as written. Precision is a kind of prayer.
+    setFlags:
+    - optics_aloud
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0.1
+    calm: 0.3
+    nextNodeId: SN_Act2_03b
+    nextIfCalmNegative: 
+    isTimed: 1
+    timeSeconds: 8
+    timeoutNextId: SN_Act2_03b
+  - text: Copy it onto my hand. Ink is portable.
+    setFlags:
+    - optics_copied
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.1
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act2_03b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

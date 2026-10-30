@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act2_02
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act2_02
+  act: 0
+  trigger: 3
+  triggerOrdinal: 3
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 0
+  text: The garden bench. A jasmine pressed flat in her book of poems, and a photograph
+    of this exact bench, her hand caught in the corner of the frame.
+  localizationKeys: []
+  choices:
+  - text: Sit for one minute. The Shadow slows near light; grief slows near benches.
+    setFlags:
+    - sat_bench
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0
+    calm: 0.4
+    nextNodeId: SN_Act2_02b
+    nextIfCalmNegative: 
+    isTimed: 1
+    timeSeconds: 9
+    timeoutNextId: SN_Act2_02t
+  - text: Take the photograph. Leave the jasmine where it grew.
+    setFlags:
+    - left_jasmine
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0.3
+    calm: 0
+    nextNodeId: SN_Act2_02b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  - text: Both in the box. This bench will not exist by Friday.
+    setFlags:
+    - took_all
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0.1
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act2_02b
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

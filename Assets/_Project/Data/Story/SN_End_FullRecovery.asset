@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_End_FullRecovery
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_End_FullRecovery
+  act: 0
+  trigger: 0
+  triggerOrdinal: 0
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 3
+  text: 'The gate closes behind her. The sky over the school turns from black to
+    grey to a thin, clean gold.
+
+
+    On the pavement she opens the box: bookmark,
+    paper, jasmine, note, programme, mug. Six small true things. She reads the lesson
+    plans to the last page - the one line she has been climbing toward all night.
+
+
+    At
+    a first-floor window the Shadow stands like a student kept after class, and watches
+    the light walk away without her.
+
+
+    Knowledge is the only light that follows
+    a person into the dark. Tonight it followed Nour all the way out.'
+  localizationKeys:
+  - FULL RECOVERY
+  - Six pieces, every answer held. The box is full, and the morning lets her carry
+    it.
+  choices: []
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 1
+  endingId: FullRecovery
+  onEnterEventHint: 

@@ -278,17 +278,16 @@ namespace LightShadow.Tools
 
                     // Static props only: no blend shapes, no animation, and
                     // never importer-generated colliders (physics is owned by
-                    // the SceneBuilder boxes and must stay untouched).
+                    // the SceneBuilder boxes and must stay untouched). Unity 6
+                    // removed generateColliders/generateLightmapUVs from the
+                    // importer, so neither is set here.
                     importer.importBlendShapes = false;
                     importer.importAnimation = false;
-                    importer.generateColliders = false;
                     importer.meshCompression = ModelImporterMeshCompression.Medium;
 
-                    // Per-colour materials keep the Kenney palette; UV2 so the
-                    // meshes can contribute to baked GI.
-                    importer.materialImportMode = ModelImporterMaterialMode.ImportViaMaterialDescription;
-                    importer.materialLocation = ModelImporterMaterialLocation.ExternalMaterials;
-                    importer.generateLightmapUVs = true;
+                    // Per-colour materials keep the Kenney palette.
+                    importer.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
+                    importer.materialLocation = ModelImporterMaterialLocation.External;
 
                     importer.SaveAndReimport();
                     count++;
@@ -721,7 +720,7 @@ namespace LightShadow.Tools
             renderer.renderMode = ParticleSystemRenderMode.Billboard;
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             renderer.receiveShadows = false;
-            renderer.lightProbes = LightProbes.UseProxyVolume;
+            renderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.BlendProbes;
 
             PrefabUtility.SaveAsPrefabAsset(root, DustMotesPrefabPath);
             UnityEngine.Object.DestroyImmediate(root);
@@ -843,15 +842,9 @@ namespace LightShadow.Tools
                 return "SKIPPED - profile missing (run LightShadow.Tools.SceneBuilder.BuildAllBatch first)";
             }
 
-            Fog fog = GetOrAdd<Fog>(profile);
-            fog.mode.overrideState = true;
-            fog.mode.value = FogMode.Exponential;
-            fog.color.overrideState = true;
-            fog.color.value = fogColor;
-            fog.density.overrideState = true;
-            fog.density.value = fogDensity;
-            fog.maxFogDistance.overrideState = true;
-            fog.maxFogDistance.value = 90f;
+            // URP 17.4 has no Fog volume override; fog is applied per scene via
+            // RenderSettings (see ApplySceneFog, called by the art pass). The
+            // profile tuning therefore covers bloom/grain only.
 
             Bloom bloom = GetOrAdd<Bloom>(profile);
             bloom.threshold.overrideState = true;
@@ -867,7 +860,7 @@ namespace LightShadow.Tools
             {
                 FilmGrain grain = GetOrAdd<FilmGrain>(profile);
                 grain.type.overrideState = true;
-                grain.type.value = FilmGrainLookup.Medium;
+                grain.type.value = FilmGrainLookup.Medium2;
                 grain.intensity.overrideState = true;
                 grain.intensity.value = grainIntensity;
             }
@@ -886,6 +879,17 @@ namespace LightShadow.Tools
             T existing = GetComponentOrNull<T>(profile);
             if (existing != null) return existing;
             return profile.Add<T>(true);
+        }
+
+        /// <summary>Enables exponential scene fog on the currently open scene
+        /// (URP 17.4 has no Fog volume override; RenderSettings is the control).
+        /// The ending scene uses the dawn palette, everything else the night one.</summary>
+        public static void ApplySceneFog(bool isDawn)
+        {
+            RenderSettings.fog = true;
+            RenderSettings.fogColor = isDawn ? DawnFogColor : NightFogColor;
+            RenderSettings.fogMode = FogMode.Exponential;
+            RenderSettings.fogDensity = isDawn ? DawnFogDensity : NightFogDensity;
         }
 
         static T GetComponentOrNull<T>(VolumeProfile profile) where T : VolumeComponent
@@ -915,7 +919,7 @@ namespace LightShadow.Tools
             emission.rateOverTime = new ParticleSystem.MinMaxCurve(4f);
 
             var shape = particles.shape;
-            shape.shapeType = ParticleSystemShapeType.Capsule;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
             shape.scale = new Vector3(0.6f, 1.6f, 0.6f);
 
             var sizeOverLifetime = particles.sizeOverLifetime;

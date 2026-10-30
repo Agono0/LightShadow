@@ -4,6 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using LightShadow.Gameplay;
 
@@ -221,7 +222,7 @@ namespace LightShadow.Tools
                 probe.timeSlicingMode = ReflectionProbeTimeSlicingMode.IndividualFaces;
                 probe.boxProjection = true;
                 probe.intensity = 1f;
-                probe.boxSize = ReflectionProbeSizes[i];
+                probe.size = ReflectionProbeSizes[i];
                 probe.center = Vector3.zero;
                 probe.cullingMask = ~(1 << PlayerLayer) & ~(1 << EnemyLayer);
                 probe.clearFlags = ReflectionProbeClearFlags.SolidColor;
@@ -340,14 +341,16 @@ namespace LightShadow.Tools
             LightingSettings settings = AssetDatabase.LoadAssetAtPath<LightingSettings>(LightingSettingsPath);
             if (settings != null) return settings;
 
-            settings = ScriptableObject.CreateInstance<LightingSettings>();
+            // Unity 6: LightingSettings is no longer a ScriptableObject, so it is
+            // constructed directly and saved with AssetDatabase.CreateAsset.
+            // bounceIntensity was removed from the API in Unity 6 and is skipped.
+            settings = new LightingSettings();
             settings.bakedGI = true;
             settings.realtimeGI = false;
             settings.lightmapper = LightingSettings.Lightmapper.ProgressiveCPU;
-            settings.bounceIntensity = GiBounceIntensity;
             settings.lightmapResolution = LightmapResolution;
             settings.compressLightmaps = true;
-            settings.ambientOcclusion = false;
+            settings.ao = false;
 
             EnsureDataFolder("Assets/_Project/Data");
             AssetDatabase.CreateAsset(settings, LightingSettingsPath);

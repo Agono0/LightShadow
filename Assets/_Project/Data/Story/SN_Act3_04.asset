@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_Act3_04
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_Act3_04
+  act: 0
+  trigger: 7
+  triggerOrdinal: 0
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 0
+  text: 'The windows are turning grey. The gate is one lit runway away, and my legs
+    are a student''s legs: they remember every corridor of this school.'
+  localizationKeys: []
+  choices:
+  - text: Run the lit corridor. Straight lines only.
+    setFlags:
+    - dawn_direct
+    requiredFlags: []
+    blockedFlags: []
+    boldness: 0
+    trust: 0
+    calm: 0.2
+    nextNodeId: SN_Act3_05
+    nextIfCalmNegative: 
+    isTimed: 1
+    timeSeconds: 9
+    timeoutNextId: SN_Act3_04t
+  - text: The back stairs I never used. Faster, darker. Mine.
+    setFlags:
+    - dawn_bold
+    requiredFlags:
+    - knows_backstairs
+    blockedFlags: []
+    boldness: 0.3
+    trust: 0
+    calm: 0
+    nextNodeId: SN_Act3_07
+    nextIfCalmNegative: 
+    isTimed: 0
+    timeSeconds: 8
+    timeoutNextId: 
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 0
+  endingId: 
+  onEnterEventHint: 

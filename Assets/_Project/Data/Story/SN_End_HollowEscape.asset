@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5c4cbe1053bdd14384c7642cc243c74, type: 3}
+  m_Name: SN_End_HollowEscape
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Story.StoryNode
+  nodeId: SN_End_HollowEscape
+  act: 0
+  trigger: 0
+  triggerOrdinal: 0
+  requiredFlags: []
+  blockedFlags: []
+  speaker: 3
+  text: 'The gate closes behind her with a sound like a full stop.
+
+
+    She came
+    for six pieces of a person and left with a handful. The box is light. Light boxes
+    are easy to run with; that is the trouble.
+
+
+    Behind her the building opens
+    its arms to the crews and gives up what it kept, and she will spend years half-remembering
+    that there was something she meant to bring.
+
+
+    The morning is very bright
+    and there is almost nothing in her hands.'
+  localizationKeys:
+  - HOLLOW ESCAPE
+  - The gate, the morning, the road. The box barely weighs anything at all.
+  choices: []
+  nextNodeId: 
+  enterSetFlags: []
+  enterBoldness: 0
+  enterTrust: 0
+  enterCalm: 0
+  isEndingNode: 1
+  endingId: HollowEscape
+  onEnterEventHint: 
