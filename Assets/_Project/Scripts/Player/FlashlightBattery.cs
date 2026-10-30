@@ -26,6 +26,7 @@ namespace LightShadow.Player
         float battery = 1f;
         bool switchedOn;
         float flashMultiplier = 1f;
+        float lastBatteryNotified = 1f;
 
         public bool IsOn => switchedOn && battery > 0f;
         public float Battery01 => battery;
@@ -58,8 +59,9 @@ namespace LightShadow.Player
 
         void Update()
         {
-            // Desktop toggle key. On phones the HUD button calls Toggle().
-            if (Input.GetKeyDown(KeyCode.F)) Toggle();
+            // Desktop toggle key. On phones the HUD button calls Toggle(); on
+            // gamepad the GamepadInput layer calls it. Locked during dialogue.
+            if (!PlayerController.ExternalInputLocked && Input.GetKeyDown(KeyCode.F)) Toggle();
 
             if (IsOn && config != null)
             {
@@ -70,7 +72,13 @@ namespace LightShadow.Player
                     switchedOn = false;
                     OnBatteryEmpty.Invoke();
                 }
-                OnBatteryChanged.Invoke(battery);
+                // Repaint the HUD bar only when the fraction actually moved a
+                // visible step: skips a UnityEvent invoke on most frames.
+                if (Mathf.Abs(battery - lastBatteryNotified) > 0.005f || battery <= 0f)
+                {
+                    lastBatteryNotified = battery;
+                    OnBatteryChanged.Invoke(battery);
+                }
             }
 
             // Publish visible light level: only a working, switched-on beam counts.
@@ -90,6 +98,17 @@ namespace LightShadow.Player
         public void AddBattery(float fraction)
         {
             battery = Mathf.Clamp01(battery + fraction);
+            OnBatteryChanged.Invoke(battery);
+            ApplyState();
+        }
+
+        // Save restore: jump the battery and switch state to the saved values
+        // without playing the toggle sound (premium-pass SaveSystem).
+        public void RestoreBattery(float fraction, bool on)
+        {
+            battery = Mathf.Clamp01(fraction);
+            switchedOn = on && battery > 0f;
+            lastBatteryNotified = battery;
             OnBatteryChanged.Invoke(battery);
             ApplyState();
         }

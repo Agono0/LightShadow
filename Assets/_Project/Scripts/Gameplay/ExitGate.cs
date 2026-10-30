@@ -49,6 +49,24 @@ namespace LightShadow.Gameplay
             if (GameManager.Instance != null) GameManager.Instance.OnGatePowered();
         }
 
+        // Save restore (premium pass): the gate was already powered when the
+        // run was saved. Restore the state instantly - no sound, no count, the
+        // gate leaf lands open, and the dawn chase lights wake through
+        // dawnChaseRoot (which raises DawnRiser and the DawnStarted event).
+        public void PowerFromSave()
+        {
+            if (Powered) return;
+            Powered = true;
+
+            if (dawnChaseRoot != null) dawnChaseRoot.SetActive(true);
+            if (escapeZone != null) escapeZone.enabled = true;
+            if (gateLeaf != null)
+            {
+                Quaternion start = gateLeaf.localRotation;
+                gateLeaf.localRotation = start * Quaternion.Euler(0f, 90f, 0f);
+            }
+        }
+
         System.Collections.IEnumerator TurnCrank()
         {
             Quaternion start = gateLeaf.localRotation;

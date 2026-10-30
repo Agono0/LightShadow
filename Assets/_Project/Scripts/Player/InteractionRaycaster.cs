@@ -46,7 +46,9 @@ namespace LightShadow.Player
         {
             UpdateTarget();
 
-            if (Input.GetKeyDown(KeyCode.E)) PressInteract();
+            // Interact key: skipped while the story system holds the input lock
+            // (the gamepad A button is gated the same way in GamepadInput).
+            if (!PlayerController.ExternalInputLocked && Input.GetKeyDown(KeyCode.E)) PressInteract();
 
             // Show or hide the on-screen interaction hint.
             if (hud != null)

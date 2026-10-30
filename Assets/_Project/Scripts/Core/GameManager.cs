@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using LightShadow.Enemy;
+using LightShadow.Gameplay;
 using LightShadow.Player;
+using LightShadow.Systems;
 using LightShadow.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -102,9 +104,14 @@ namespace LightShadow.Core
             if (hud != null) hud.ShowMessage(text, seconds);
         }
 
+        BrightIdeaMeter cachedMeter;
+
+        // Cached after the first lookup; the meter lives on the player rig for
+        // the whole scene, so one GetComponentInChildren per scene is enough.
         public BrightIdeaMeter GetMeter()
         {
-            return player != null ? player.GetComponentInChildren<BrightIdeaMeter>() : null;
+            if (cachedMeter == null && player != null) cachedMeter = player.GetComponentInChildren<BrightIdeaMeter>();
+            return cachedMeter;
         }
 
         // Used by fragments and memory flashes (meter + recap in one call).
@@ -117,6 +124,7 @@ namespace LightShadow.Core
                 else meter.AddWrong();
             }
             RecordAnswer(question, chosenIndex, correct);
+            GameEvents.RaiseQuestionAnswered(correct);
         }
 
         // Doc 4.1: the study recap remembers every question of the run.
@@ -150,6 +158,7 @@ namespace LightShadow.Core
                 if (hud != null) hud.QueueMessage(FuseBeats[beat], 4.5f);
             }
             if (hud != null) hud.RefreshObjectives();
+            GameEvents.RaiseFuseRestored(FusesRestored, FuseTarget);
         }
 
         public void OnFragmentCollected()
@@ -160,6 +169,7 @@ namespace LightShadow.Core
                 ShowMessage("Every fragment is found. The memory box is full of her voice.", 5f);
             }
             if (hud != null) hud.RefreshObjectives();
+            GameEvents.RaiseFragmentCollected(FragmentsCollected, FragmentTarget);
         }
 
         public void OnGatePowered()
@@ -171,6 +181,9 @@ namespace LightShadow.Core
             StoryTeller.Speak(Localization.Tr(
                 "The gate is powered. The Shadow is right behind you. Run for the dawn."), false);
             if (hud != null) hud.RefreshObjectives();
+            GameEvents.RaiseGatePowered();
+            // A powered gate is a milestone worth surviving: autosave it (D12).
+            SaveSystem.Autosave();
         }
 
         // Escaping ends the run: fade to black, then 03_Ending shows the study recap.
@@ -178,6 +191,11 @@ namespace LightShadow.Core
         {
             if (escaped) return;
             escaped = true;
+
+            // One final scripted angle while the fade runs; it no-ops harmlessly
+            // if the cinematic rigs are missing (premium-pass Cinemachine shots).
+            CinematicDirector.PlayShot(CinematicDirector.ShotGate);
+            GameEvents.RaiseEscapeStarted();
 
             if (enemy != null) enemy.enabled = false;
 
@@ -212,6 +230,7 @@ namespace LightShadow.Core
         {
             if (respawning || escaped) return;
             respawning = true;
+            GameEvents.RaisePlayerCaught();
 
             if (caughtClip == null) caughtClip = ProceduralSfx.Wrong;
             if (caughtClip != null && AudioManager.Instance != null)
@@ -248,6 +267,65 @@ namespace LightShadow.Core
             }
 
             respawning = false;
+        }
+
+        // ---- Save restore (premium pass, D12) ---------------------------------
+        // Called by SaveSystem.Restore after the right scene is live. What this
+        // restores, honestly:
+        //   - counts (fuses/fragments/gate), meter, battery, flashlight state
+        //   - player position + yaw
+        //   - the first N fuse boxes / N fragments found in the scene are set to
+        //     their restored/collected state - WHICH boxes and WHICH fragments
+        //     may differ from the original run, because scene object order is
+        //     not stored in the save. The counts and the quiz difficulty are
+        //     exact; the specific pickups are not.
+        //   - gate powered: the gate and the dawn chase light up again
+        //   - NOT restored: quiz answer history for the recap (per-run data),
+        //     the Shadow's exact position/state (it restarts from patrol)
+        public void ApplyLoadedState(SaveSystem.SaveData data)
+        {
+            if (data == null) return;
+
+            FusesRestored = Mathf.Clamp(data.fusesRestored, 0, FuseTarget);
+            FragmentsCollected = Mathf.Clamp(data.fragmentsCollected, 0, FragmentTarget);
+            GatePowered = data.gatePowered;
+
+            FuseBox[] boxes = FindObjectsByType<FuseBox>(FindObjectsSortMode.None);
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                if (i < FusesRestored) boxes[i].RestoreFromSave();
+            }
+
+            KnowledgeFragment[] fragments = FindObjectsByType<KnowledgeFragment>(FindObjectsSortMode.None);
+            for (int i = 0; i < fragments.Length; i++)
+            {
+                if (i < FragmentsCollected) fragments[i].RestoreFromSave();
+            }
+
+            if (GatePowered)
+            {
+                ExitGate gate = FindFirstObjectByType<ExitGate>();
+                if (gate != null) gate.PowerFromSave();
+                if (enemy != null) enemy.SetAggressive(true);
+            }
+
+            BrightIdeaMeter meter = GetMeter();
+            if (meter != null) meter.SetMeter(data.meterValue);
+
+            if (player != null)
+            {
+                FlashlightBattery flashlight = player.GetComponentInChildren<FlashlightBattery>();
+                if (flashlight != null) flashlight.RestoreBattery(data.batteryFraction, data.flashlightOn);
+
+                // Same hop as the checkpoint wake: switch the capsule off for
+                // the teleport so it does not fight the direct move.
+                CharacterController controller = player.GetComponent<CharacterController>();
+                if (controller != null) controller.enabled = false;
+                player.SetPositionAndRotation(data.position, Quaternion.Euler(0f, data.yaw, 0f));
+                if (controller != null) controller.enabled = true;
+            }
+
+            if (hud != null) hud.RefreshObjectives();
         }
     }
 }

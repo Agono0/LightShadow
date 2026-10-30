@@ -67,6 +67,10 @@ namespace LightShadow.Enemy
                 if (state == EnemyBehaviour.State.Chase || state == EnemyBehaviour.State.Repelled)
                 {
                     if (stingerClip != null) stingerSource.PlayOneShot(stingerClip);
+
+                    // Pooled whisper burst at the Shadow's position (premium pass
+                    // ObjectPool example wiring). One-line, self-guarding.
+                    Systems.PooledFx.SpawnWhisper(transform.position);
                 }
 
                 AudioClip wanted = state == EnemyBehaviour.State.Chase ? chaseClip : patrolClip;

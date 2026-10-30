@@ -23,6 +23,12 @@ namespace LightShadow.Core
             // Apply the saved language, quality, resolution, brightness and
             // sensitivity before the menu appears.
             GameSettings.LoadAndApply();
+
+            // Premium pass: the quality-tier manager applies the D8 frame-rate
+            // policy (Windows 120 FPS uncapped / Android display refresh) and
+            // the auto-detected URP tier AFTER the settings card's fine controls,
+            // so the tier provides the base and player tweaks stay on top.
+            Systems.PerformanceManager.EnsureCreated();
         }
 
         void Start()

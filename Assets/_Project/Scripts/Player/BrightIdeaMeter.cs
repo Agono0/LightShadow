@@ -64,6 +64,10 @@ namespace LightShadow.Player
             // A correct answer spins the crank: sound plus a light flare.
             if (correctClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(correctClip);
             if (flashlight != null) flashlight.Flash(0.3f);
+
+            // Pooled sparkle flare next to the beam (ObjectPool example wiring).
+            // No-op unless PooledFx.Enabled is true; the pool self-creates.
+            if (spotLight != null) Systems.PooledFx.SpawnFlash(spotLight.transform.position, spotLight.color);
         }
 
         // Called on a wrong answer or a timeout.
@@ -109,6 +113,7 @@ namespace LightShadow.Player
             if (Mathf.Abs(n - lastNotified) < 0.001f) return;
             lastNotified = n;
             OnChanged.Invoke(n);
+            GameEvents.RaiseMeterChanged(n);
         }
     }
 }

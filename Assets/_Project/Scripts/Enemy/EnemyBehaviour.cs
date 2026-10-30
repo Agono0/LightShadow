@@ -147,6 +147,8 @@ namespace LightShadow.Enemy
                 && distance <= CatchDistance && !LitZone.PlayerInLitZone)
             {
                 StartCoroutine(CatchSequence());
+                // The catch close-up (premium pass); no-op if the rigs/CM are absent.
+                Systems.CinematicDirector.PlayShot(Systems.CinematicDirector.ShotCatch);
                 return;
             }
 

@@ -26,6 +26,11 @@ namespace LightShadow.Gameplay
         {
             if (lights == null) Capture();
             StartCoroutine(Rise());
+
+            // The dawn chase begins: event bus + the scripted corridor shot
+            // (both no-op when nothing is listening / the rigs are missing).
+            Core.GameEvents.RaiseDawnStarted();
+            Systems.CinematicDirector.PlayShot(Systems.CinematicDirector.ShotDawn);
         }
 
         void Capture()

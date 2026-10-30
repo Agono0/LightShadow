@@ -48,5 +48,26 @@ namespace LightShadow.Gameplay
 
             if (GameManager.Instance != null) GameManager.Instance.OnFuseRestored(memoryFlash);
         }
+
+        // Save restore (premium pass): put this box in its restored visual state
+        // WITHOUT counting it again, showing messages, or creating a checkpoint.
+        public void RestoreFromSave()
+        {
+            if (Restored) return;
+
+            if (lightsRoot != null) lightsRoot.SetActive(true);
+            if (wingZones != null)
+            {
+                for (int i = 0; i < wingZones.Length; i++)
+                {
+                    if (wingZones[i] != null) wingZones[i].gameObject.SetActive(true);
+                }
+            }
+            if (indicator != null && restoredMaterial != null) indicator.sharedMaterial = restoredMaterial;
+
+            // Reflection of the private setter path: the count stays owned by
+            // GameManager.ApplyLoadedState, so only the visuals happen here.
+            Restored = true;
+        }
     }
 }

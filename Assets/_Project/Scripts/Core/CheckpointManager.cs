@@ -39,6 +39,10 @@ namespace LightShadow.Core
                     string.IsNullOrEmpty(chalkLine) ? "Checkpoint reached." : chalkLine,
                     4f);
             }
+
+            // Event bus + autosave: every lit-zone checkpoint is a save point.
+            GameEvents.RaiseCheckpointReached(string.IsNullOrEmpty(chalkLine) ? "Checkpoint reached." : chalkLine);
+            SaveSystem.Autosave();
         }
     }
 }

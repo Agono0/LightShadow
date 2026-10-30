@@ -71,5 +71,17 @@ namespace LightShadow.Gameplay
             if (gm != null) gm.OnFragmentCollected();
             gameObject.SetActive(false);
         }
+
+        // Save restore (premium pass): mark this fragment as already collected
+        // and hide it, WITHOUT counting it again or replaying memory/question.
+        public void RestoreFromSave()
+        {
+            if (collected) return;
+            collected = true;
+
+            Collider selfCollider = GetComponent<Collider>();
+            if (selfCollider != null) selfCollider.enabled = false;
+            gameObject.SetActive(false);
+        }
     }
 }

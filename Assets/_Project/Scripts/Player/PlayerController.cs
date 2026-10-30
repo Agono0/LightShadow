@@ -10,6 +10,13 @@ namespace LightShadow.Player
     [RequireComponent(typeof(CharacterController))]
     public class PlayerController : MonoBehaviour
     {
+        // Input lock contract (premium pass): set true by the story/dialogue
+        // system while a conversation owns the screen. Every input source
+        // (keyboard, mouse, touch, gamepad) checks this before reading, so one
+        // flag freezes Nour without touching gravity, the camera pivot or the
+        // crouch/eye-height smoothing. Pause stays available by design.
+        public static bool ExternalInputLocked;
+
         [Header("Wiring")]
         public GameConfig config;
         public Transform cameraPivot;
@@ -47,6 +54,9 @@ namespace LightShadow.Player
         {
             controller = GetComponent<CharacterController>();
             if (config == null && GameManager.Instance != null) config = GameManager.Instance.config;
+            // Gamepad polling rides along on the same rig (decision D7: classic
+            // Input stays the movement core; the Input System is a polling layer).
+            GamepadInput.EnsureOn(gameObject);
         }
 
         void Start()
@@ -61,7 +71,19 @@ namespace LightShadow.Player
 
         void Update()
         {
-            ReadKeyboardAndMouse();
+            // The input lock (dialogue) freezes move/look but never gravity or
+            // the crouch smoothing, so Nour keeps landing and keeps her pose.
+            if (ExternalInputLocked)
+            {
+                keyboardMove = Vector2.zero;
+                touchMove = Vector2.zero;
+                sprintHeld = false;
+                sprintFromTouch = false;
+            }
+            else
+            {
+                ReadKeyboardAndMouse();
+            }
             UpdateCrouch();
             UpdateMovement();
         }
@@ -126,7 +148,11 @@ namespace LightShadow.Player
         // WASD moves relative to where the camera faces. Gravity keeps Nour grounded.
         void UpdateMovement()
         {
-            Vector2 input = keyboardMove.sqrMagnitude > 0.01f ? keyboardMove : touchMove;
+            // The lock is re-checked here so no input source (touch joystick
+            // included) can slip a move vector past the dialogue freeze.
+            Vector2 input = ExternalInputLocked
+                ? Vector2.zero
+                : (keyboardMove.sqrMagnitude > 0.01f ? keyboardMove : touchMove);
 
             float speed = IsCrouching ? CrouchSpeed : IsSprinting ? SprintSpeed : WalkSpeed;
             Vector3 direction = transform.right * input.x + transform.forward * input.y;

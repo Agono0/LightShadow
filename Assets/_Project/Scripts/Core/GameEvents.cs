@@ -1,0 +1,89 @@
+using System;
+
+namespace LightShadow.Core
+{
+    // Static event bus for the whole night. Gameplay raises here when something
+    // story-worthy happens, and narrative/audio/UI subscribe without any of the
+    // three knowing about the others (premium-pass decision D4/D5). Everything is
+    // raised with null-conditional guards so an event with no listeners costs nothing.
+    //
+    // The contract below is frozen: the Narrative agent codes against these exact
+    // names. Add new events freely, never rename or remove these.
+    public static class GameEvents
+    {
+        // (collected, total). Total is GameManager.FragmentTarget = 6.
+        public static event Action<int, int> FragmentCollected;
+
+        // (restored, total). Total is GameManager.FuseTarget = 3.
+        public static event Action<int, int> FuseRestored;
+
+        // All three fuse boxes are live and the exit gate has power.
+        public static event Action GatePowered;
+
+        // The Shadow caught Nour (before the checkpoint fade).
+        public static event Action PlayerCaught;
+
+        // A lit-zone checkpoint was claimed. Payload is the chalk line / zone name.
+        public static event Action<string> CheckpointReached;
+
+        // A quiz question was answered. Payload: was the answer correct?
+        public static event Action<bool> QuestionAnswered;
+
+        // Bright Idea Meter moved. Payload: normalized 0-1.
+        public static event Action<float> MeterChanged;
+
+        // The dawn chase begins (DawnRiser wakes the horizon).
+        public static event Action DawnStarted;
+
+        // Nour escaped through the gate; GameManager.Escape() runs the ending.
+        public static event Action EscapeStarted;
+
+        // ---- Raise helpers -----------------------------------------------------
+        // Each one-liner guards its event so callers never need to.
+
+        public static void RaiseFragmentCollected(int collected, int total)
+        {
+            FragmentCollected?.Invoke(collected, total);
+        }
+
+        public static void RaiseFuseRestored(int restored, int total)
+        {
+            FuseRestored?.Invoke(restored, total);
+        }
+
+        public static void RaiseGatePowered()
+        {
+            GatePowered?.Invoke();
+        }
+
+        public static void RaisePlayerCaught()
+        {
+            PlayerCaught?.Invoke();
+        }
+
+        public static void RaiseCheckpointReached(string displayName)
+        {
+            CheckpointReached?.Invoke(displayName);
+        }
+
+        public static void RaiseQuestionAnswered(bool correct)
+        {
+            QuestionAnswered?.Invoke(correct);
+        }
+
+        public static void RaiseMeterChanged(float normalized)
+        {
+            MeterChanged?.Invoke(normalized);
+        }
+
+        public static void RaiseDawnStarted()
+        {
+            DawnStarted?.Invoke();
+        }
+
+        public static void RaiseEscapeStarted()
+        {
+            EscapeStarted?.Invoke();
+        }
+    }
+}
