@@ -7,6 +7,11 @@ Made with Unity 6 (Universal Render Pipeline). Single player, 20–40 minutes pe
 
 Design document: [`LightShadow_Project_Document.md`](LightShadow_Project_Document.md) · AI-assistance log: [`AI_DEV_LOG.md`](AI_DEV_LOG.md)
 
+**Premium-pass documentation** lives in [`Docs/`](Docs/): [`AUDIT.md`](Docs/AUDIT.md),
+[`ROADMAP.md`](Docs/ROADMAP.md), [`DECISIONS.md`](Docs/DECISIONS.md), [`PROGRESS.md`](Docs/PROGRESS.md),
+[`CHANGELOG.md`](Docs/CHANGELOG.md), [`PERFORMANCE.md`](Docs/PERFORMANCE.md),
+[`ASSET_LICENSES.md`](Docs/ASSET_LICENSES.md), and the expanded story under [`Docs/Story/`](Docs/Story/).
+
 ## Status
 
 The full gameplay loop is implemented and playable from the generated scenes:
