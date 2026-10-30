@@ -97,8 +97,10 @@ Notes, honestly stated:
 | Per-frame allocations | not audited | audited clean (2 hot-path fixes) | fixed |
 | Static batching flags | scene default | architecture marked (ContributeGI + batching) | enabled |
 | GI lightmaps | none | bake tooling shipped; **batch bake stalled on this machine — open follow-up** | partial |
-| Windows build size | 125.3 MB | see build gate below | — |
-| Android APK size | 45.7 MB | see build gate below | — |
+| Windows build size | 125.3 MB (folder 173 MB) | **223 MB folder** (data rebuilt 21:30 30 Oct; art content added) | +50 MB |
+| Android APK size | 45.7 MB | **73.7 MB** (ASTC, IL2CPP ARM64, API 29; built 21:38 30 Oct) | +28 MB |
+| Boot console errors (built player) | verified clean (pass 3) | **0 errors/exceptions** in Player.log across a 25 s boot | stable |
+| Boot tier auto-detect | n/a | `tier=Ultra, targetFps=120, renderScale=1.00, shadowDistance=60` on 8 GB GPU (real build) | new |
 | On-device FPS / draw calls / frame time | — | requires playtest device + Profiler capture (methodology above) | pending |
 
 ### GI bake note (D11, honest)

@@ -39,9 +39,13 @@ The full gameplay loop is implemented and playable from the generated scenes:
   (resolution, fullscreen, quality, v-sync, brightness, sensitivity, language, narrator);
 - a procedural ambience drone and synthesised interaction sounds (no audio assets required).
 
-The level is a deliberately readable **greybox**; art, textures, recorded audio and lighting bakes are the
-remaining production pass described in the project document. Every seeded question is still marked
-`NEEDS-FACT-CHECK` until a human verifies it against a real reference (doc §8.3).
+The level now ships with a **premium art pass**: 60 real mesh swaps (Kenney CC0 furniture/foliage/
+fence/silhouette), Poly Haven PBR surfaces, a smoke-silhouette Shadow, gripped first-person hands,
+dust motes, light/reflection probes and scene fog — plus a **branching story system** (44-node graph,
+timed choices, stats, 4 endings), 3-slot saves, quality tiers (Low/Medium/High/Ultra with auto-detect),
+120 FPS targeting, gamepad support and accessibility options. Full records: [`Docs/`](Docs/).
+Every seeded question is still marked `NEEDS-FACT-CHECK` until a human verifies it against a real
+reference (doc §8.3); the GI lightmap bake is tooling-complete but pending an editor-UI run.
 
 ## Engine version
 
