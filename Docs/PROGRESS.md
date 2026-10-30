@@ -56,6 +56,30 @@ See also: `Docs/ROADMAP.md` (plan), `Docs/DECISIONS.md` (why), `Docs/CHANGELOG.m
       the editor UI: LightShadow ▸ Art ▸ 3, or `BakeLightingBatch` outside batchmode).
 - [ ] Windows + Android builds (quality gate) — in flight.
 
+## 2026-10-30 — Session 2 (player-reported fixes, merged to main)
+
+- [x] FPS counter: `FpsCounter` on the HUD top-right (fps + ms, colour-coded),
+      settings row "FPS counter" (default on), no per-frame allocation.
+- [x] Graphics settings refactor: GameSettings = single graphics writer;
+      every row reads LIVE applied values; one Quality tier row (Auto/Low/
+      Medium/High/Ultra); Shadows/AA/Render-scale are overrides that return
+      to tier on Reset; PerformanceManager slimmed to detect+frame policy.
+      Fixed the old fight where defaults re-asserted 4x MSAA over the tier.
+- [x] Modern UI theme: `UiThemeTool` generates rounded 9-slice panel/button,
+      glow, painted night backdrop (skyline + moon + fog + grain); builders
+      restyled; menus/cards/dialogue inherit through shared helpers.
+- [x] **Low-FPS root cause found in built-player forensics:** the URP asset
+      shipped with GPU Resident Drawer enabled whose resources were absent —
+      `CreatePipeline()` threw every frame ("Blitter is already initialized"
+      x781 per 22 s), the pipeline never cached. Drawer disabled, SSAO
+      feature disabled (resources also stripped + iGPU cost), Intel-iGPU
+      tier heuristic added (was mis-read as Ultra). Boot smoke now **0
+      errors / 0 warnings / tier=High targetFps=120**.
+- [x] URP post shaders pinned to Always Included (post stack ships; passes
+      still skip gracefully on Intel drivers that cannot compile UberPost —
+      documented in PERFORMANCE.md).
+- [x] Windows + Android rebuilt; committed 667fdee + 442315d; merged to main.
+
 ## Resume notes for the next session
 
 1. Check `git log` + this file; the branch is `feature/premium-pass`.
