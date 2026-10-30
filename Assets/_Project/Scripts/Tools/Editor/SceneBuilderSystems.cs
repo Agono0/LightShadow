@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using Unity.Cinemachine;
 using UnityEditor;
@@ -26,6 +28,8 @@ namespace LightShadow.Tools
         const string UltraAssetPath = SettingsFolder + "/RP_Ultra.asset";
         const string MobileAssetPath = SettingsFolder + "/Mobile_RPAsset.asset";
         const string PcAssetPath = SettingsFolder + "/PC_RPAsset.asset";
+        const string PcRendererPath = SettingsFolder + "/PC_Renderer.asset";
+        const string MobileRendererPath = SettingsFolder + "/Mobile_Renderer.asset";
 
         [MenuItem("LightShadow/8. Quality Tiers + Cinematic Rigs", priority = 8)]
         public static void ConfigureSystemsMenu()
@@ -37,6 +41,21 @@ namespace LightShadow.Tools
                 return; // user declined to save their open scene; do not destroy it
             }
             BuildCinematicRigs();
+        }
+
+        /// <summary>Batch entry: -executeMethod LightShadow.Tools.SceneBuilder.QualityConfigBatch</summary>
+        public static void QualityConfigBatch()
+        {
+            try
+            {
+                ConfigureQualityForBuild();
+                EditorApplication.Exit(0);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                EditorApplication.Exit(1);
+            }
         }
 
         // ====================================================== quality tiers --
@@ -53,12 +72,153 @@ namespace LightShadow.Tools
         //   soft shadows    off  | off  | on   | on
         public static void ConfigureQualityForBuild()
         {
+            // GPU Resident Drawer must be OFF: with the drawer resources absent
+            // from the build the pipeline's CreatePipeline() throws every frame
+            // (GPUResidentDrawer NRE -> Blitter already initialized), the
+            // pipeline never caches, and frame rate collapses. Nothing in the
+            // game needs it (small interior scene, few thousand renderers).
+            string drawer = DisableGpuResidentDrawer(PcAssetPath);
+            drawer += ", " + DisableGpuResidentDrawer(MobileAssetPath);
+            string post = EnsurePostShadersIncluded();
+            string ssao = DisableSsaoFeature(PcRendererPath);
+            ssao += ", " + DisableSsaoFeature(MobileRendererPath);
+
             string summary = "quality assets: ";
             summary += TuneTierCopy(MobileAssetPath, LowAssetPath, 0.65f, 1, 0f, false);
             summary += ", " + TuneTierCopy(MobileAssetPath, MediumAssetPath, 0.75f, 1, 20f, false);
             summary += ", " + TuneTierCopy(PcAssetPath, HighAssetPath, 0.9f, 2, 40f, true);
             summary += ", " + TuneTierCopy(PcAssetPath, UltraAssetPath, 1.0f, 2, 60f, true);
-            Debug.Log("[LightShadow] ConfigureQualityForBuild: " + summary);
+            Debug.Log("[LightShadow] ConfigureQualityForBuild: " + drawer + "; " + post
+                + "; SSAO: " + ssao + "; " + summary);
+        }
+
+        // URP's hidden post shaders get variant-stripped out of player builds
+        // ("Shader ... is not supported -> PostProcessing render passes will
+        // not execute"), which silently ships the game without bloom, vignette,
+        // colour grading and film grain. Pinning them into Graphics settings'
+        // Always Included Shaders keeps the post stack alive in builds.
+        static readonly string[] PostShaderNames =
+        {
+            "Hidden/Universal Render Pipeline/UberPost",
+            "Hidden/Universal Render Pipeline/BokehDepthOfField",
+            "Hidden/Universal Render Pipeline/Bloom",
+            "Hidden/Universal Render Pipeline/FilmGrain",
+        };
+
+        static string EnsurePostShadersIncluded()
+        {
+            try
+            {
+                Object settings = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/GraphicsSettings.asset")
+                    .FirstOrDefault();
+                if (settings == null) return "post shaders: graphics settings missing";
+
+                SerializedObject serialized = new SerializedObject(settings);
+                SerializedProperty included = serialized.FindProperty("m_AlwaysIncludedShaders");
+                if (included == null || !included.isArray) return "post shaders: array missing";
+
+                var added = new List<string>();
+                foreach (string shaderName in PostShaderNames)
+                {
+                    Shader shader = Shader.Find(shaderName);
+                    if (shader == null)
+                    {
+                        added.Add(shaderName + " MISSING");
+                        continue;
+                    }
+
+                    bool present = false;
+                    for (int i = 0; i < included.arraySize; i++)
+                    {
+                        if (included.GetArrayElementAtIndex(i).objectReferenceValue == shader) present = true;
+                    }
+                    if (present) continue;
+                    included.InsertArrayElementAtIndex(included.arraySize);
+                    included.GetArrayElementAtIndex(included.arraySize - 1).objectReferenceValue = shader;
+                    added.Add(Path.GetFileName(shaderName));
+                }
+
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                AssetDatabase.SaveAssets();
+                return "post shaders pinned: " + (added.Count > 0 ? string.Join(", ", added) : "already present");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("[LightShadow] Post shader pinning failed: " + exception.Message);
+                return "post shaders ERROR";
+            }
+        }
+
+        // SSAO's shader resources get stripped from player builds even with
+        // the feature enabled ("Couldn't find the required resources for the
+        // ScreenSpaceAmbientOcclusion render feature"), and on the integrated
+        // GPUs this game actually ships on, SSAO at 120 FPS was never viable.
+        // The feature is disabled on both renderers; depth comes from the
+        // baked probes and the fog instead.
+        static string DisableSsaoFeature(string rendererPath)
+        {
+            try
+            {
+                Object renderer = AssetDatabase.LoadAssetAtPath<Object>(rendererPath);
+                if (renderer == null) return Path.GetFileName(rendererPath) + " MISSING";
+
+                SerializedObject serialized = new SerializedObject(renderer);
+                SerializedProperty features = serialized.FindProperty("m_RendererFeatures");
+                if (features == null || !features.isArray) return Path.GetFileName(rendererPath) + " no-features";
+
+                int disabled = 0;
+                for (int i = 0; i < features.arraySize; i++)
+                {
+                    Object feature = features.GetArrayElementAtIndex(i).objectReferenceValue;
+                    if (feature == null) continue;
+                    if (feature.GetType().Name.IndexOf("ScreenSpaceAmbientOcclusion", StringComparison.OrdinalIgnoreCase) < 0)
+                        continue;
+                    SerializedObject featureSerialized = new SerializedObject(feature);
+                    SerializedProperty enabled = featureSerialized.FindProperty("m_Enabled");
+                    if (enabled != null && enabled.boolValue)
+                    {
+                        enabled.boolValue = false;
+                        featureSerialized.ApplyModifiedPropertiesWithoutUndo();
+                        EditorUtility.SetDirty(feature);
+                        disabled++;
+                    }
+                }
+                if (disabled > 0)
+                {
+                    EditorUtility.SetDirty(renderer);
+                    AssetDatabase.SaveAssets();
+                }
+                return Path.GetFileName(rendererPath) + (disabled > 0 ? " SSAO off" : " SSAO already off");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("[LightShadow] SSAO disable failed for " + rendererPath + ": " + exception.Message);
+                return "ERROR";
+            }
+        }
+
+        // Sets m_GPUResidentDrawerMode = 0 (disabled) on a URP pipeline asset.
+        static string DisableGpuResidentDrawer(string assetPath)
+        {
+            try
+            {
+                Object asset = AssetDatabase.LoadAssetAtPath<Object>(assetPath);
+                if (asset == null) return Path.GetFileName(assetPath) + " MISSING";
+                SerializedObject serialized = new SerializedObject(asset);
+                SerializedProperty mode = serialized.FindProperty("m_GPUResidentDrawerMode");
+                if (mode == null) return Path.GetFileName(assetPath) + " no-drawer-field";
+                if (mode.intValue == 0) return Path.GetFileName(assetPath) + " already off";
+                mode.intValue = 0;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(asset);
+                AssetDatabase.SaveAssets();
+                return Path.GetFileName(assetPath) + " drawer OFF";
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("[LightShadow] GPU drawer disable failed for " + assetPath + ": " + exception.Message);
+                return "ERROR";
+            }
         }
 
         // Copies base -> variant (skipping an identical existing copy), then sets

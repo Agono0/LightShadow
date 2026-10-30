@@ -131,6 +131,15 @@ namespace LightShadow.Systems
                 return Tier.High;
             }
 
+            // Integrated GPUs report shared system memory as VRAM (an Intel
+            // iGPU with 32 GB RAM reports ~9 GB "graphics memory"), which the
+            // old threshold mis-read as Ultra-class hardware. Vendor check:
+            // Intel iGPUs cap at High; Ultra requires a discrete card.
+            string gpuName = SystemInfo.graphicsDeviceName ?? string.Empty;
+            bool looksIntegrated = gpuName.IndexOf("Intel", StringComparison.OrdinalIgnoreCase) >= 0
+                && gpuName.IndexOf("Arc", StringComparison.OrdinalIgnoreCase) < 0;
+            if (looksIntegrated) return Tier.High;
+
             return gpuMemory >= UltraTierGpuMemory ? Tier.Ultra : Tier.High;
         }
 
