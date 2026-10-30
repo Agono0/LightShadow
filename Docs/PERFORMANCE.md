@@ -85,20 +85,27 @@ Notes, honestly stated:
    02_School at spawn, mid-run and dawn chase. Rows below stay **MEASURED BY LEAD** until
    then.
 
-## Pass results (fill during P2)
+## Pass results (integration phase, 2026-10-30)
 
 | Metric | Before | After | Delta |
 | --- | --- | --- | --- |
-| ValidateBatch | PASS (baseline) | **MEASURED BY LEAD** | — |
-| Windows build size | 125.3 MB | **MEASURED BY LEAD** | — |
-| Android APK size | 45.7 MB | **MEASURED BY LEAD** | — |
-| 02_School CPU frame time, spawn (ms) | **MEASURED BY LEAD** | **MEASURED BY LEAD** | — |
-| 02_School CPU frame time, dawn chase (ms) | **MEASURED BY LEAD** | **MEASURED BY LEAD** | — |
-| Windows achieved FPS, Ultra, vSync off | — | **MEASURED BY LEAD** | — |
-| Android achieved FPS, Low/Medium device | — | **MEASURED BY LEAD** | — |
-| Draw calls, 02_School (Profiler) | **MEASURED BY LEAD** | **MEASURED BY LEAD** | — |
-| SetPass calls, 02_School (Profiler) | **MEASURED BY LEAD** | **MEASURED BY LEAD** | — |
-| SRP Batcher | on (URP asset) | on (verified unchanged) | 0 |
-| Static batching | scene default | **MEASURED BY LEAD** | — |
-| Per-frame allocations, gameplay hot paths | not audited | audited clean (report §7) | — |
-| Boot tier summary line | n/a | new (PerformanceManager) | new |
+| ValidateBatch | PASS (baseline) | **PASS** (full integration) | stable |
+| Content in 02_School | greybox primitives | 60 `ArtModel_` mesh swaps + PBR materials + probes + dust + story wiring | visual identity added |
+| Materials | 23 flat-colour | + Mat_Art_* PBR set (albedo/normal/smoothness) with Android 1024 / PC 2048 overrides | PBR |
+| Quality tiers | 2 (Mobile/PC) | 4 runtime tiers + RP_Low/Medium/High/Ultra variants | tiered |
+| Frame-rate policy | uncapped, no handling | Win 120 + vSync 0; Android refresh-clamp 60–120 | D8 |
+| Per-frame allocations | not audited | audited clean (2 hot-path fixes) | fixed |
+| Static batching flags | scene default | architecture marked (ContributeGI + batching) | enabled |
+| GI lightmaps | none | bake tooling shipped; **batch bake stalled on this machine — open follow-up** | partial |
+| Windows build size | 125.3 MB | see build gate below | — |
+| Android APK size | 45.7 MB | see build gate below | — |
+| On-device FPS / draw calls / frame time | — | requires playtest device + Profiler capture (methodology above) | pending |
+
+### GI bake note (D11, honest)
+
+`BakeLightingBatch` was exercised twice: with `-nographics` it correctly refuses (exit 1);
+with a graphics device the async bake started but the ProgressiveCPU lightmapper stalled
+in batchmode on this machine (near-idle process for 15+ minutes) and was terminated. What
+ships regardless: light-probe grids per wing, 3 baked-ready reflection probes, static
+batching/GI-contribution flags, scene fog. The bake remains a documented follow-up runnable
+from the editor UI (LightShadow ▸ Art ▸ 3) where progress is visible and cancellable.

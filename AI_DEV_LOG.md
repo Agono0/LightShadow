@@ -121,6 +121,90 @@ The game itself contains **no AI features** — this log is about the developmen
   build succeeded for the first time in this environment (`Builds/Android/LightShadow.apk`,
   45.7 MB, IL2CPP / ARM64 / API 29).
 
+### 2026-10-30 — Premium pass P0: audit, docs, build-profile repair — Abdelrhman Mohamed (Lead TD orchestration)
+- Tool used: ZCode orchestration (GLM-5.3 Flash session) + three specialized sub-agents; every
+  entry below is part of the same orchestrated pass on branch `feature/premium-pass`.
+- What AI provided: full-project audit (`Docs/AUDIT.md`), roadmap/decisions/progress/changelog/
+  performance/license docs, and the diagnosis of critical C1 — a missing
+  `Assets/Settings/Build Profiles/Windows.asset` that aborted every batch Unity run — plus
+  `Tools/Editor/BuildProfileTool.cs` (idempotent profile recreation + active-profile reselect).
+- What I changed myself: verified the audit findings against the filesystem and batch logs,
+  chose repair-over-rewrite (never hand-writing asset YAML), backed up and reset the stale
+  machine-local `Library/EditorUserBuildSettings.asset` pointer, re-verified the baseline
+  `ValidateBatch` returns `RESULT: PASS`.
+- Teach-back check: pending — will walk a teammate through why the profile pointer lives in
+  machine-local Library state and how `BuildProfileTool.EnsureBatch` recovers a boot failure.
+- Test result: baseline `ValidateBatch` RESULT: PASS (exit 0) restored; build profiles committed.
+
+### 2026-10-30 — Premium pass P1: art sourcing, import pipeline, art-swap pass, lighting — Abdelrhman Mohamed
+- Tool used: Claude agent (Sub-Agent 1, ART & TECH ART) under Lead TD orchestration
+- What AI provided: the CC0 asset sourcing and verification (4 Kenney packs + 8 Poly Haven PBR
+  sets, ~88 MB, every URL/license logged in Docs/ASSET_LICENSES.md), the headless import
+  pipeline (`ArtImporter.cs`: texture/model importer settings, URP/Lit material builder with
+  roughness-to-smoothness conversion, Shadow/Hands/DustMotes prefab assembly, TheShadow and
+  Player prefab rewiring, Post_Night/Post_Dawn tuning via the VolumeProfile API), the art-swap
+  layer over the generated scenes (`SceneBuilderArt.cs`: name-keyed mesh/material swaps,
+  idempotent, validator-safe), the lighting pass (`SceneBuilderArtLighting.cs`: static flags,
+  light probes per wing, 3 baked reflection probes, async bake batch), and the hand-written
+  ShadowSmoke shader.
+- What I changed myself (Lead): reviewed the swap table against real scene names; fixed the
+  Unity 6 API drift the agent could not compile-check (ModelImporter material enums, removed
+  `generateColliders`/`generateLightmapUVs`/`bounceIntensity`, `LightProbeUsage`,
+  `FilmGrainLookup.Medium2`, `ParticleSystemShapeType.Sphere`, `ReflectionProbe` enums via
+  `UnityEngine.Rendering`, `LightingSettings` no longer a ScriptableObject, `boxSize`→`size`);
+  replaced the nonexistent URP 17.4 Fog volume override with per-scene `RenderSettings` fog
+  (night/dawn palettes); chose the final batch order.
+- Teach-back check: pending — walk a teammate through `ApplyArtPass` keying strategy and the
+  bake command's graphics requirement before merge.
+- Test result: Lead-verified via batch — BuildAllBatch/ImportAllBatch/ApplyArtPassBatch/
+  ApplyLightingBatch all exit 0; ValidateBatch RESULT: PASS; 60 `ArtModel_` swaps live in
+  02_School, dust motes + probes present.
+
+### 2026-10-30 — Premium pass P2: event bus, saves, quality tiers, gamepad, pooling, cinematic shots — Abdelrhman Mohamed
+- Tool used: Claude agent (Sub-Agent 2, ENGINEERING) under Lead TD orchestration
+- What AI provided: first drafts of `GameEvents`, `SaveSystem`, `PerformanceManager`,
+  `ObjectPool`+`PooledFx`, `GamepadInput`, `CinematicDirector`, the `SceneBuilderSystems`
+  editor partial, and every additive hook listed in `Docs/AGENT_REPORT_ENG.md` §2.
+- What I changed myself (Lead): fixed `Gamepad.leftStickButton` (1.19 member name) and the
+  static-class `UnityEngine.Object.FindFirstObjectByType` call; confirmed the frozen
+  GameEvents/SaveSystem contracts against the Narrative agent's usage; verified all runtime
+  Cinemachine use is reflection-gated so a package problem cannot hard-fail the game.
+- Teach-back check: pending — how the tier system swaps the Mobile/PC URP asset and why SSAO
+  rides the asset swap instead of a runtime toggle.
+- Test result: Lead-verified via batch — compile clean, ValidateBatch RESULT: PASS; runtime
+  tier/boot-summary behaviour to be play-verified on device (documented in PERFORMANCE.md).
+
+### 2026-10-30 — Premium pass P3: branching story, dialogue UI, endings, save slots, accessibility, audio — Abdelrhman Mohamed
+- Tool used: Claude agent (Sub-Agent 3, NARRATIVE/UI/UX/AUDIO) under Lead TD orchestration
+- What AI provided: `Docs/Story/STORY_BIBLE.md` + `SCRIPT.md` (44-node branching graph, 12
+  authored moments, boldness/trust/calm stats, timed choices, 4 endings per D13);
+  `Scripts/Story/*` (StoryNode/StoryConfig/StoryEvents/StoryStrings/AccessibilityStore/
+  StoryDirector/DialogueUIController); `Scripts/Audio/VolumeCategories` + `AdaptiveMusic`
+  (D15 code-level mixer, layered procedural score); `Scripts/UI/SaveSlotUI` + `LoadingScreen`;
+  additive settings page B; recap ending row + REPLAY; per-ending `EndingController` texts;
+  `SceneBuilderStory.cs` (44 SN_*.asset content table + scene decoration).
+- What I changed myself (Lead): fixed `ScriptableObject.CreateInstance` qualifiers in the
+  builder; verified the storyJson persistence contract against `SaveSystem.SaveCaptured/
+  SaveApplied`; confirmed the PlayerPrefs-only quality-tier row avoids a compile dependency;
+  own the final story text review.
+- Teach-back check: pending — walk the team through `SO_StoryConfig` thresholds and the
+  storyJson shape before merge (SCRIPT.md maps 1:1 to the built assets).
+- Test result: Lead-verified via batch — BuildStoryBatch exit 0, 44 story assets + config
+  built and wired into the scenes; ValidateBatch RESULT: PASS.
+
+### 2026-10-30 — Premium pass P4: integration, gates, builds — Abdelrhman Mohamed (Lead TD orchestration)
+- Tool used: ZCode orchestration; all Unity batch runs executed and verified by the Lead.
+- What AI provided: none directly — integration sequencing, compile-error triage (7 distinct
+  Unity-6 API drifts across agent files, each verified against installed package sources),
+  batch pipeline ordering (BuildAll → Import → Story → ArtPass → Lighting → Validate →
+  Bake → platform builds).
+- What I changed myself: the `BuildAll` wiring (art pass + lighting + quality variants +
+  cinematic rigs run after every scene rebuild so a rebuild can never ship greybox); discovered
+  and fixed the `-batchmode -quit` vs `BakeAsync` race that produced a false-success bake;
+  re-ran the bake without `-quit`.
+- Teach-back check: pending — the batch pipeline order lives in `AGENTS.md` and the reports.
+- Test result: see the final section of this log and `Docs/PERFORMANCE.md` for the gate results.
+
 ---
 
 ## Deviations from the project document (tracked here on purpose)

@@ -24,6 +24,38 @@ See also: `Docs/ROADMAP.md` (plan), `Docs/DECISIONS.md` (why), `Docs/CHANGELOG.m
       Contracts pinned in briefs: GameEvents (10 events), SaveSystem (3 slots, storyJson blob),
       PlayerController.ExternalInputLocked static. Reports land in Docs/AGENT_REPORT_*.md.
 
+## 2026-10-30 — Session 1 continued (integration)
+
+- [x] Sub-Agent 2 (ENGINEERING) complete → `Docs/AGENT_REPORT_ENG.md`; committed as
+      `feat(engineering)` (event bus, saves, tiers, gamepad, pooling, cinematic shots).
+- [x] Sub-Agent 1 (ART) complete → `Docs/AGENT_REPORT_ART.md`; committed as `feat(art)`
+      (4 Kenney packs + 8 Poly Haven sets, import pipeline, swap pass, lighting, shader).
+- [x] Sub-Agent 3 (NARRATIVE) complete → `Docs/AGENT_REPORT_NARRATIVE.md`; committed as
+      `feat(narrative)` (44-node story graph, dialogue UI, 4 endings, saves UI, page-B
+      accessibility rows, code mixer, adaptive music).
+- [x] Integration compile fixes (verified against installed package sources):
+      `Gamepad.leftStickButton`; `UnityEngine.Object.FindFirstObjectByType` in static class +
+      `using System` ambiguity → full qualification; `ModelImporterMaterialImportMode/
+      Location.External`; removed removed-APIs (`generateColliders`, `generateLightmapUVs`,
+      `bounceIntensity`); `LightProbeUsage.BlendProbes`; `FilmGrainLookup.Medium2`;
+      `ParticleSystemShapeType.Sphere`; `ReflectionProbe` enums (needs `UnityEngine.Rendering`)
+      + `size`; `LightingSettings` is not a ScriptableObject in Unity 6 (`new` + `ao`);
+      URP 17.4 has **no Fog volume override** → per-scene `RenderSettings` fog via
+      `ArtImporter.ApplySceneFog(bool isDawn)`; `ScriptableObject.CreateInstance` qualifiers.
+- [x] Pipeline (all exit 0): BuildAllBatch → ArtImporter.ImportAllBatch → BuildStoryBatch →
+      ApplyArtPassBatch → ApplyLightingBatch → **ValidateBatch RESULT: PASS**.
+- [x] Builder wiring added so rebuilds can never ship greybox: `BuildAll()` now calls
+      `ApplyArtPass(); ApplyLighting(); ConfigureQualityForBuild();` and `BuildSchoolScene`
+      builds the cinematic rigs.
+- [x] 1007-file integration commit (scenes with 60 ArtModel_ swaps, Mat_Art_* materials,
+      Shadow_Art/Hands_Art/DustMotes prefabs, 44 story assets, RP_Low/Medium/High/Ultra).
+- [x] GI bake attempt: found and fixed the `-batchmode -quit` vs `BakeAsync` false-success
+      race; re-ran without `-quit`. The CPU lightmapper then **stalled** (near-idle process,
+      no bake progress for 15+ min) — killed, documented per D11: probes + reflection probes
+      + scene fog + static flags ship; lightmap bake remains an open follow-up (works from
+      the editor UI: LightShadow ▸ Art ▸ 3, or `BakeLightingBatch` outside batchmode).
+- [ ] Windows + Android builds (quality gate) — in flight.
+
 ## Resume notes for the next session
 
 1. Check `git log` + this file; the branch is `feature/premium-pass`.
