@@ -1,0 +1,1104 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+
+namespace LightShadow.Tools
+{
+    // Programmatic import pipeline for the premium-pass art assets.
+    // Everything in this file runs headlessly from the Lead's batch command
+    // (LightShadow.Tools.ArtImporter.ImportAllBatch) - no hand-edited YAML:
+    //   1. textures under _Project/Textures/Art get correct sRGB/normal/linear
+    //      settings, 2048 on Windows, a 1024 Android override, mipmaps and
+    //      streaming; roughness maps get an inverted-alpha "smoothness" PNG
+    //      that URP/Lit can actually read;
+    //   2. Kenney FBX models get unit-safe import with no blend shapes,
+    //      animations or colliders, medium mesh compression and generated
+    //      lightmap UVs; the materials Unity auto-generates next to the FBX
+    //      are converted in place to URP/Lit so nothing renders pink;
+    //   3. surface materials (Mat_Art_*) are built from the texture sets;
+    //   4. special prefabs (Shadow_Art, Hands_Art, DustMotes) are assembled;
+    //   5. the existing TheShadow and Player prefabs get their art wiring;
+    //   6. the Post_Night / Post_Dawn volume profiles gain fog, bloom and
+    //      film grain through the VolumeProfile API only.
+    // Every step is idempotent: running it twice changes nothing.
+    public static class ArtImporter
+    {
+        // ------------------------------------------------------------- paths
+        const string ThirdPartyFolder = "Assets/ThirdParty";
+        const string TexturesFolder = "Assets/_Project/Textures/Art";
+        const string ProcessedTexturesFolder = TexturesFolder + "/Generated";
+        const string MaterialsFolder = "Assets/_Project/Materials/Art";
+        const string ArtPrefabsFolder = "Assets/_Project/Prefabs/Art";
+        const string PostNightPath = "Assets/_Project/Data/Post/Post_Night.asset";
+        const string PostDawnPath = "Assets/_Project/Data/Post/Post_Dawn.asset";
+        const string ShadowArtPrefabPath = ArtPrefabsFolder + "/Shadow_Art.prefab";
+        const string HandsArtPrefabPath = ArtPrefabsFolder + "/Hands_Art.prefab";
+        const string DustMotesPrefabPath = ArtPrefabsFolder + "/DustMotes.prefab";
+        const string EnemyShadowPrefabPath = "Assets/_Project/Prefabs/Enemy/TheShadow.prefab";
+        const string PlayerPrefabPath = "Assets/_Project/Prefabs/Player/Player.prefab";
+
+        // ------------------------------------------------------- pack config
+        // The packs extracted under Assets/ThirdParty (see Docs/ASSET_LICENSES.md).
+        static readonly string[] PackFolders =
+        {
+            "KenneyFurnitureKit", "KenneyNatureKit", "KenneyGraveyardKit", "KenneyBlockyCharacters"
+        };
+
+        // Surface folders under Textures/Art and the material each becomes.
+        // Every set ships albedo + OpenGL normal + roughness 2k JPGs.
+        static readonly string[] SurfaceNames =
+        {
+            "PlasterWall", "WoodFloor", "CorridorTile", "Concrete",
+            "MetalLocker", "DoorWood", "Grass", "Fabric"
+        };
+
+        // ------------------------------------------------------- look tuning
+        // Hand-derived surface tints (kept as consts: GameConfig is not ours).
+        static readonly Color CeilingTint = new Color(0.42f, 0.44f, 0.50f);
+        static readonly Color GateMetalTint = new Color(0.42f, 0.45f, 0.52f);
+        static readonly Color StoneTint = new Color(0.55f, 0.54f, 0.50f);
+        static readonly Color ChalkboardColor = new Color(0.045f, 0.085f, 0.065f);
+        static readonly Color HandSkinColor = new Color(0.80f, 0.64f, 0.52f);
+        static readonly Color TorchBodyColor = new Color(0.10f, 0.11f, 0.13f);
+        static readonly Color SmokeBodyColor = new Color(0.012f, 0.010f, 0.022f, 0.88f);
+        static readonly Color SmokeEdgeColor = new Color(0.16f, 0.18f, 0.24f, 0.95f);
+        static readonly Color PuffColor = new Color(0.09f, 0.10f, 0.14f, 0.08f);
+        static readonly Color DustColor = new Color(0.85f, 0.82f, 0.75f);
+
+        // Shadow silhouette target height in metres (matches the enemy's 1.8 m
+        // capsule collider built by SceneBuilderPrefabs).
+        const float ShadowTargetHeight = 1.8f;
+        const float ShadowCharacterHeight = 1.85f;
+
+        // Fog / bloom / grain tuning for the night profile.
+        static readonly Color NightFogColor = new Color(0.024f, 0.031f, 0.052f);
+        const float NightFogDensity = 0.035f;
+        const float NightBloomThreshold = 1.15f;
+        const float NightBloomIntensity = 3.5f;
+        const float NightBloomScatter = 0.55f;
+        const float NightFilmGrainIntensity = 0.18f;
+
+        // Dawn profile keeps the same look but a warmer, thinner haze.
+        static readonly Color DawnFogColor = new Color(0.10f, 0.075f, 0.06f);
+        const float DawnFogDensity = 0.022f;
+        const float DawnBloomThreshold = 1.05f;
+        const float DawnBloomIntensity = 4.5f;
+
+        // URP shader names resolved once.
+        const string UrpLitShaderName = "Universal Render Pipeline/Lit";
+        const string UrpParticlesUnlitShaderName = "Universal Render Pipeline/Particles/Unlit";
+        const string ShadowSmokeShaderName = "LightShadow/ShadowSmoke";
+
+        // ------------------------------------------------------------ entry
+        // Called by Unity in batch mode:
+        // -executeMethod LightShadow.Tools.ArtImporter.ImportAllBatch
+        public static void ImportAllBatch()
+        {
+            try
+            {
+                string summary = ImportAll();
+                Debug.Log("[LightShadow] ART IMPORT\n" + summary);
+                EditorApplication.Exit(0);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                Debug.LogError("[LightShadow] ART IMPORT FAILED: " + exception.Message);
+                EditorApplication.Exit(1);
+            }
+        }
+
+        [MenuItem("LightShadow/Art/1. Import Art Assets", priority = 41)]
+        public static void ImportAllMenu()
+        {
+            string summary = ImportAll();
+            EditorUtility.DisplayDialog("LightShadow - Art Import", summary, "OK");
+        }
+
+        static string ImportAll()
+        {
+            AssetDatabase.Refresh();
+
+            EnsureFolder(MaterialsFolder);
+            EnsureFolder(ArtPrefabsFolder);
+
+            int textures = ImportTextures();
+            int models = ImportModels();
+            int converted = ConvertImportedMaterialsToUrp();
+            int surfaces = BuildSurfaceMaterials();
+            int specials = BuildSpecialMaterials();
+            string prefabs = BuildSpecialPrefabs();
+            string post = UpdatePostVolumes();
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            return "Textures configured: " + textures
+                + "\nModels configured: " + models
+                + "\nPack materials converted to URP: " + converted
+                + "\nSurface materials ensured: " + surfaces
+                + "\nSpecial materials ensured: " + specials
+                + "\n" + prefabs
+                + "\n" + post;
+        }
+
+        // ---------------------------------------------------------- textures
+        static int ImportTextures()
+        {
+            int count = 0;
+            string[] guids = AssetDatabase.FindAssets("t:Texture2D", new[] { TexturesFolder });
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                if (importer == null) continue;
+
+                bool isNormal = path.EndsWith("_Normal.jpg", StringComparison.OrdinalIgnoreCase);
+                bool isRoughness = path.EndsWith("_Roughness.jpg", StringComparison.OrdinalIgnoreCase);
+
+                // Normals must be flagged as normal maps; roughness maps are
+                // data, not colour, so they import linear (sRGB off).
+                importer.textureType = isNormal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+                importer.sRGBTexture = !isNormal && !isRoughness;
+                importer.alphaIsTransparency = false;
+                importer.mipmapEnabled = true;
+                importer.streamingMipmaps = true;
+                importer.anisoLevel = 2;
+                importer.maxTextureSize = 2048;
+                importer.filterMode = FilterMode.Bilinear;
+                importer.wrapMode = TextureWrapMode.Repeat;
+
+                // Android override: half resolution, automatic compression
+                // (Unity 6 picks ASTC on mobile by default).
+                TextureImporterPlatformSettings android = new TextureImporterPlatformSettings();
+                android.name = "Android";
+                android.overridden = true;
+                android.maxTextureSize = 1024;
+                android.format = TextureImporterFormat.Automatic;
+                android.textureCompression = TextureImporterCompression.Compressed;
+                importer.SetPlatformTextureSettings(android);
+
+                // Reimport unconditionally: the settings below are the source
+                // of truth and the pass must converge on them every run.
+                importer.SaveAndReimport();
+                count++;
+            }
+
+            BuildSmoothnessMaps();
+            return count;
+        }
+
+        // URP/Lit cannot invert a roughness map at runtime, so each roughness
+        // JPG gets an inverted-alpha PNG twin that lands in the metallic/
+        // smoothness slot (smoothness = 1 - roughness, exactly what the artist
+        // intent is). One PNG per surface, generated once.
+        static void BuildSmoothnessMaps()
+        {
+            EnsureFolder(ProcessedTexturesFolder);
+            foreach (string surface in SurfaceNames)
+            {
+                string roughPath = TexturesFolder + "/" + surface + "/T_" + surface + "_Roughness.jpg";
+                string smoothPath = ProcessedTexturesFolder + "/T_" + surface + "_Smoothness.png";
+                if (!File.Exists(roughPath)) continue;
+                if (File.Exists(smoothPath)) continue;
+
+                TextureImporter roughImporter = AssetImporter.GetAtPath(roughPath) as TextureImporter;
+                if (roughImporter == null) continue;
+
+                // Make the source readable only for this pass, then restore it.
+                bool wasReadable = roughImporter.isReadable;
+                roughImporter.isReadable = true;
+                roughImporter.SaveAndReimport();
+
+                Texture2D rough = AssetDatabase.LoadAssetAtPath<Texture2D>(roughPath);
+                if (rough == null)
+                {
+                    Debug.LogWarning("[ArtImporter] Could not load roughness map: " + roughPath);
+                    continue;
+                }
+
+                Color32[] pixels = rough.GetPixels32();
+                Color32[] inverted = new Color32[pixels.Length];
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    byte roughByte = pixels[i].r;
+                    inverted[i] = new Color32(roughByte, roughByte, roughByte, (byte)(255 - roughByte));
+                }
+
+                Texture2D output = new Texture2D(rough.width, rough.height, TextureFormat.RGBA32, false, true);
+                output.SetPixels32(inverted);
+                output.Apply();
+                File.WriteAllBytes(smoothPath, output.EncodeToPNG());
+                UnityEngine.Object.DestroyImmediate(output);
+
+                roughImporter.isReadable = wasReadable;
+                roughImporter.SaveAndReimport();
+
+                // Import the new PNG as linear data with the same mip policy.
+                AssetDatabase.ImportAsset(smoothPath);
+                TextureImporter smoothImporter = AssetImporter.GetAtPath(smoothPath) as TextureImporter;
+                if (smoothImporter != null)
+                {
+                    smoothImporter.sRGBTexture = false;
+                    smoothImporter.mipmapEnabled = true;
+                    smoothImporter.streamingMipmaps = true;
+                    smoothImporter.maxTextureSize = 2048;
+                    smoothImporter.SaveAndReimport();
+                }
+            }
+        }
+
+        // ------------------------------------------------------------ models
+        static int ImportModels()
+        {
+            int count = 0;
+            foreach (string pack in PackFolders)
+            {
+                string packPath = ThirdPartyFolder + "/" + pack;
+                if (!AssetDatabase.IsValidFolder(packPath)) continue;
+
+                string[] guids = AssetDatabase.FindAssets("t:Model", new[] { packPath });
+                foreach (string guid in guids)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    if (!path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)) continue;
+
+                    ModelImporter importer = AssetImporter.GetAtPath(path) as ModelImporter;
+                    if (importer == null) continue;
+
+                    // Kenney FBX carry no units: treat them as metres at scale 1
+                    // (the art pass normalizes per-instance scale anyway).
+                    importer.useFileUnits = true;
+                    importer.useFileScale = true;
+                    importer.globalScale = 1f;
+
+                    // Static props only: no blend shapes, no animation, and
+                    // never importer-generated colliders (physics is owned by
+                    // the SceneBuilder boxes and must stay untouched).
+                    importer.importBlendShapes = false;
+                    importer.importAnimation = false;
+                    importer.generateColliders = false;
+                    importer.meshCompression = ModelImporterMeshCompression.Medium;
+
+                    // Per-colour materials keep the Kenney palette; UV2 so the
+                    // meshes can contribute to baked GI.
+                    importer.materialImportMode = ModelImporterMaterialMode.ImportViaMaterialDescription;
+                    importer.materialLocation = ModelImporterMaterialLocation.ExternalMaterials;
+                    importer.generateLightmapUVs = true;
+
+                    importer.SaveAndReimport();
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        // Unity's importer writes one .mat per FBX material into
+        // <pack>/Materials/. They come in on the built-in Standard shader,
+        // which is pink under URP - convert them in place, copying the
+        // diffuse colour across. These files are Unity-generated import
+        // output (not pack content); see the report for the reasoning.
+        static int ConvertImportedMaterialsToUrp()
+        {
+            int count = 0;
+            Shader lit = Shader.Find(UrpLitShaderName);
+            if (lit == null)
+            {
+                Debug.LogError("[ArtImporter] URP/Lit shader not found - cannot convert pack materials.");
+                return 0;
+            }
+
+            foreach (string pack in PackFolders)
+            {
+                string materialsPath = ThirdPartyFolder + "/" + pack + "/Materials";
+                if (!AssetDatabase.IsValidFolder(materialsPath)) continue;
+
+                string[] guids = AssetDatabase.FindAssets("t:Material", new[] { materialsPath });
+                foreach (string guid in guids)
+                {
+                    Material material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
+                    if (material == null || material.shader == lit) continue;
+
+                    Color color = material.HasProperty("_Color")
+                        ? material.GetColor("_Color")
+                        : Color.white;
+
+                    material.shader = lit;
+                    material.color = color;
+                    material.SetFloat("_Metallic", 0f);
+                    material.SetFloat("_Smoothness", 0.4f);
+                    EditorUtility.SetDirty(material);
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        // -------------------------------------------------- surface materials
+        static int BuildSurfaceMaterials()
+        {
+            Shader lit = Shader.Find(UrpLitShaderName);
+            if (lit == null) return 0;
+            int count = 0;
+
+            foreach (string surface in SurfaceNames)
+            {
+                string albedo = TexturesFolder + "/" + surface + "/T_" + surface + "_Albedo.jpg";
+                string normal = TexturesFolder + "/" + surface + "/T_" + surface + "_Normal.jpg";
+                string smoothness = ProcessedTexturesFolder + "/T_" + surface + "_Smoothness.png";
+
+                Material material = GetOrCreateLitMaterial("Mat_Art_" + surface, lit);
+                if (File.Exists(albedo)) material.SetTexture("_BaseMap", LoadAssetGuaranteed<Texture2D>(albedo));
+                if (File.Exists(normal))
+                {
+                    material.SetTexture("_BumpMap", LoadAssetGuaranteed<Texture2D>(normal));
+                    material.EnableKeyword("_NORMALMAP");
+                    material.SetFloat("_NormalScale", 1f);
+                }
+                if (File.Exists(smoothness))
+                {
+                    // Roughness flows through the metallic/smoothness slot with
+                    // smoothness read from that map's alpha (already inverted).
+                    material.SetTexture("_MetallicGlossMap", LoadAssetGuaranteed<Texture2D>(smoothness));
+                    material.EnableKeyword("_METALLICSPECGLOSSMAP");
+                    material.SetFloat("_SmoothnessTextureChannel", 1f); // 1 = MetallicAlpha
+                    material.SetFloat("_Metallic", 0f);
+                }
+                else
+                {
+                    material.SetFloat("_Smoothness", 0.35f);
+                }
+                EditorUtility.SetDirty(material);
+                count++;
+            }
+
+            // Tinted/constant variants used by the art pass.
+            Material ceiling = GetOrCreateLitMaterial("Mat_Art_Ceiling", lit);
+            CopyTextureSetup("Mat_Art_PlasterWall", ceiling);
+            ceiling.SetColor("_BaseColor", CeilingTint);
+            EditorUtility.SetDirty(ceiling);
+
+            Material gate = GetOrCreateLitMaterial("Mat_Art_GateMetal", lit);
+            CopyTextureSetup("Mat_Art_MetalLocker", gate);
+            gate.SetColor("_BaseColor", GateMetalTint);
+            EditorUtility.SetDirty(gate);
+
+            Material stone = GetOrCreateLitMaterial("Mat_Art_Stone", lit);
+            CopyTextureSetup("Mat_Art_Concrete", stone);
+            stone.SetColor("_BaseColor", StoneTint);
+            EditorUtility.SetDirty(stone);
+
+            Material chalkboard = GetOrCreateLitMaterial("Mat_Art_Chalkboard", lit);
+            chalkboard.SetColor("_BaseColor", ChalkboardColor);
+            chalkboard.SetFloat("_Smoothness", 0.3f);
+            EditorUtility.SetDirty(chalkboard);
+
+            Material skin = GetOrCreateLitMaterial("Mat_Art_HandSkin", lit);
+            skin.SetColor("_BaseColor", HandSkinColor);
+            skin.SetFloat("_Smoothness", 0.12f);
+            EditorUtility.SetDirty(skin);
+
+            Material torch = GetOrCreateLitMaterial("Mat_Art_TorchMetal", lit);
+            torch.SetColor("_BaseColor", TorchBodyColor);
+            torch.SetFloat("_Smoothness", 0.55f);
+            torch.SetFloat("_Metallic", 0.6f);
+            EditorUtility.SetDirty(torch);
+
+            return count;
+        }
+
+        // -------------------------------------------------- special materials
+        static int BuildSpecialMaterials()
+        {
+            int count = 0;
+
+            // The Shadow's smoke silhouette uses the hand-written shader.
+            Shader smokeShader = Shader.Find(ShadowSmokeShaderName);
+            if (smokeShader == null)
+            {
+                // Fallback keeps the pass running (plain dark transparent Lit)
+                // but logs loudly so the broken shader gets fixed first.
+                Debug.LogError("[ArtImporter] Shader '" + ShadowSmokeShaderName
+                    + "' not found; falling back to URP/Lit transparent. Fix the shader asset.");
+                smokeShader = Shader.Find(UrpLitShaderName);
+            }
+            Material smoke = GetOrCreateMaterial("M_ShadowSmoke", smokeShader);
+            smoke.SetColor("_BaseColor", SmokeBodyColor);
+            if (smoke.HasProperty("_EdgeColor")) smoke.SetColor("_EdgeColor", SmokeEdgeColor);
+            if (smoke.HasProperty("_RimPower")) smoke.SetFloat("_RimPower", 3.2f);
+            if (smoke.HasProperty("_RimStrength")) smoke.SetFloat("_RimStrength", 0.9f);
+            if (smoke.HasProperty("_WobbleAmplitude")) smoke.SetFloat("_WobbleAmplitude", 0.05f);
+            smoke.renderQueue = (int)RenderQueue.Transparent;
+            EditorUtility.SetDirty(smoke);
+            count++;
+
+            // One soft radial sprite shared by dust and smoke puffs.
+            Texture2D dustSprite = BuildRadialSprite();
+
+            Material dust = GetOrCreateMaterial("M_Art_DustMote", Shader.Find(UrpParticlesUnlitShaderName));
+            dust.SetTexture("_BaseMap", dustSprite);
+            dust.SetColor("_BaseColor", new Color(DustColor.r, DustColor.g, DustColor.b, 1f));
+            ConfigureAdditiveParticleMaterial(dust);
+            EditorUtility.SetDirty(dust);
+            count++;
+
+            Material puff = GetOrCreateMaterial("M_Art_SmokePuff", Shader.Find(UrpParticlesUnlitShaderName));
+            puff.SetTexture("_BaseMap", dustSprite);
+            puff.SetColor("_BaseColor", new Color(PuffColor.r, PuffColor.g, PuffColor.b, 1f));
+            ConfigureAlphaParticleMaterial(puff);
+            EditorUtility.SetDirty(puff);
+            count++;
+
+            return count;
+        }
+
+        // Procedural 64x64 radial falloff sprite for particles (soft edges
+        // without shipping a texture file).
+        static Texture2D BuildRadialSprite()
+        {
+            string path = ProcessedTexturesFolder + "/T_ParticleSoft.png";
+            if (File.Exists(path)) return LoadAssetGuaranteed<Texture2D>(path);
+
+            const int size = 64;
+            Texture2D sprite = new Texture2D(size, size, TextureFormat.RGBA32, false, false);
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x + 0.5f) / size * 2f - 1f;
+                    float dy = (y + 0.5f) / size * 2f - 1f;
+                    float distance = Mathf.Sqrt(dx * dx + dy * dy);
+                    float falloff = Mathf.Clamp01(1f - distance);
+                    byte alpha = (byte)(falloff * falloff * 255f);
+                    sprite.SetPixel(x, y, new Color32(255, 255, 255, alpha));
+                }
+            }
+            sprite.Apply();
+
+            EnsureFolder(ProcessedTexturesFolder);
+            File.WriteAllBytes(path, sprite.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(sprite);
+
+            AssetDatabase.ImportAsset(path);
+            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer != null)
+            {
+                importer.sRGBTexture = true;
+                importer.alphaIsTransparency = true;
+                importer.mipmapEnabled = true;
+                importer.maxTextureSize = 64;
+                importer.SaveAndReimport();
+            }
+            return LoadAssetGuaranteed<Texture2D>(path);
+        }
+
+        // ----------------------------------------------------- special prefabs
+        static string BuildSpecialPrefabs()
+        {
+            string shadow = BuildShadowPrefab();
+            string hands = BuildHandsPrefab();
+            string dust = BuildDustMotesPrefab();
+            string restyle = RestyleExistingPrefabs();
+            return shadow + "\n" + hands + "\n" + dust + "\n" + restyle;
+        }
+
+        // Shadow_Art.prefab: the Kenney blocky humanoid wrapped in the smoke
+        // shader plus a slow dark particle halo. ENG can drop this under any
+        // enemy visual root; TheShadow.prefab is rewired automatically below.
+        static string BuildShadowPrefab()
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(ShadowArtPrefabPath) != null)
+            {
+                return "Shadow_Art.prefab: already present (idempotent skip)";
+            }
+
+            GameObject character = PickTallestCharacter();
+            if (character == null)
+            {
+                return "Shadow_Art.prefab: SKIPPED - no KenneyBlockyCharacters models found";
+            }
+
+            Material smoke = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/M_ShadowSmoke.mat");
+            Material puff = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/M_Art_SmokePuff.mat");
+            if (smoke == null) return "Shadow_Art.prefab: SKIPPED - M_ShadowSmoke missing";
+            if (puff == null) puff = smoke; // halo degrades to the smoke material
+
+            var root = new GameObject("Shadow_Art");
+            GameObject silhouette = (GameObject)PrefabUtility.InstantiatePrefab(character, root.transform);
+            silhouette.name = "Silhouette";
+
+            // Normalize to the enemy's collider height regardless of source scale.
+            Bounds bounds = ComputePrefabBounds(character);
+            float height = Mathf.Max(0.1f, bounds.size.y);
+            float scale = ShadowTargetHeight / height;
+            silhouette.transform.localScale = new Vector3(scale, scale, scale);
+            silhouette.transform.localPosition = new Vector3(0f, 0f, 0f);
+
+            foreach (MeshRenderer renderer in silhouette.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                renderer.sharedMaterials = FillArray(renderer.sharedMaterials.Length, smoke);
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+            }
+
+            // Slow smoke halo: dark alpha-blended puffs in local space so they
+            // drift with the enemy (no additive glow - it must stay a shadow).
+            GameObject halo = new GameObject("SmokeHalo");
+            halo.transform.SetParent(root.transform, false);
+            ParticleSystem particles = halo.AddComponent<ParticleSystem>();
+            ConfigureSmokeHalo(particles, puff);
+            foreach (Renderer renderer in halo.GetComponentsInChildren<Renderer>()) renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+            PrefabUtility.SaveAsPrefabAsset(root, ShadowArtPrefabPath);
+            UnityEngine.Object.DestroyImmediate(root);
+            return "Shadow_Art.prefab: created from " + character.name;
+        }
+
+        // Hands_Art.prefab: improved procedural first-person hand (no CC0 arm
+        // pack exists on the allowed direct-download sources - documented in
+        // the report). Hierarchy Root > Forearm > Hand for FirstPersonHands
+        // wiring; every node sits on the Player layer; no colliders.
+        static string BuildHandsPrefab()
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(HandsArtPrefabPath) != null)
+            {
+                return "Hands_Art.prefab: already present (idempotent skip)";
+            }
+
+            Material skin = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/Mat_Art_HandSkin.mat");
+            Material torch = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/Mat_Art_TorchMetal.mat");
+            if (skin == null || torch == null) return "Hands_Art.prefab: SKIPPED - hand materials missing";
+
+            var root = new GameObject("Hands_Art");
+            root.layer = SceneBuilder.PlayerLayer;
+
+            // Forearm: tapered capsule pointing forward (-Z is the flashlight
+            // direction inside the camera rig).
+            GameObject forearm = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            forearm.name = "Forearm";
+            forearm.layer = SceneBuilder.PlayerLayer;
+            forearm.transform.SetParent(root.transform, false);
+            forearm.transform.localPosition = new Vector3(0f, -0.045f, 0.12f);
+            forearm.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            forearm.transform.localScale = new Vector3(0.058f, 0.10f, 0.058f);
+            forearm.GetComponent<Renderer>().sharedMaterial = skin;
+
+            GameObject hand = new GameObject("Hand");
+            hand.layer = SceneBuilder.PlayerLayer;
+            hand.transform.SetParent(root.transform, false);
+            hand.transform.localPosition = new Vector3(0f, 0.005f, 0.02f);
+
+            // Palm: slightly rounded box via a squashed sphere cluster is
+            // overkill at this pixel size; one box + knuckle spheres reads well.
+            GameObject palm = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            palm.name = "Palm";
+            palm.layer = SceneBuilder.PlayerLayer;
+            palm.transform.SetParent(hand.transform, false);
+            palm.transform.localPosition = new Vector3(0f, 0f, -0.015f);
+            palm.transform.localScale = new Vector3(0.085f, 0.045f, 0.09f);
+            palm.GetComponent<Renderer>().sharedMaterial = skin;
+
+            // Four fingers curled around the torch barrel.
+            float[] fingerX = { -0.032f, -0.011f, 0.011f, 0.032f };
+            for (int i = 0; i < fingerX.Length; i++)
+            {
+                GameObject finger = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                finger.name = "Finger" + i;
+                finger.layer = SceneBuilder.PlayerLayer;
+                finger.transform.SetParent(hand.transform, false);
+                finger.transform.localPosition = new Vector3(fingerX[i], 0.008f, -0.068f);
+                finger.transform.localRotation = Quaternion.Euler(55f, 0f, 0f);
+                finger.transform.localScale = new Vector3(0.014f, 0.026f, 0.014f);
+                finger.GetComponent<Renderer>().sharedMaterial = skin;
+            }
+
+            // Thumb crossing the grip from the near side.
+            GameObject thumb = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            thumb.name = "Thumb";
+            thumb.layer = SceneBuilder.PlayerLayer;
+            thumb.transform.SetParent(hand.transform, false);
+            thumb.transform.localPosition = new Vector3(-0.048f, 0.012f, -0.045f);
+            thumb.transform.localRotation = Quaternion.Euler(35f, 0f, 55f);
+            thumb.transform.localScale = new Vector3(0.016f, 0.03f, 0.016f);
+            thumb.GetComponent<Renderer>().sharedMaterial = skin;
+
+            // Torch body + head ring: matches the old TorchBody footprint so
+            // the flashlight beam still reads from the same spot.
+            GameObject torchBody = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            torchBody.name = "TorchBody";
+            torchBody.layer = SceneBuilder.PlayerLayer;
+            torchBody.transform.SetParent(hand.transform, false);
+            torchBody.transform.localPosition = new Vector3(0.005f, 0.03f, -0.03f);
+            torchBody.transform.localRotation = Quaternion.Euler(90f, 0f, 4f);
+            torchBody.transform.localScale = new Vector3(0.05f, 0.15f, 0.05f);
+            torchBody.GetComponent<Renderer>().sharedMaterial = torch;
+
+            GameObject torchHead = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            torchHead.name = "TorchHead";
+            torchHead.layer = SceneBuilder.PlayerLayer;
+            torchHead.transform.SetParent(hand.transform, false);
+            torchHead.transform.localPosition = new Vector3(0.008f, 0.03f, -0.108f);
+            torchHead.transform.localRotation = Quaternion.Euler(90f, 0f, 4f);
+            torchHead.transform.localScale = new Vector3(0.062f, 0.03f, 0.062f);
+            torchHead.GetComponent<Renderer>().sharedMaterial = torch;
+
+            foreach (Collider collider in root.GetComponentsInChildren<Collider>(true))
+                UnityEngine.Object.DestroyImmediate(collider);
+
+            PrefabUtility.SaveAsPrefabAsset(root, HandsArtPrefabPath);
+            UnityEngine.Object.DestroyImmediate(root);
+            return "Hands_Art.prefab: created (procedural hand, Root/Forearm/Hand)";
+        }
+
+        // DustMotes.prefab: 60-second looping world-space dust drifting through
+        // lamp light. Place 1-3 instances per big room; they cost ~200 quads.
+        static string BuildDustMotesPrefab()
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(DustMotesPrefabPath) != null)
+            {
+                return "DustMotes.prefab: already present (idempotent skip)";
+            }
+
+            Material dust = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/M_Art_DustMote.mat");
+            if (dust == null) return "DustMotes.prefab: SKIPPED - M_Art_DustMote missing";
+
+            var root = new GameObject("DustMotes");
+            ParticleSystem particles = root.AddComponent<ParticleSystem>();
+
+            var main = particles.main;
+            main.duration = 60f;
+            main.loop = true;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(16f, 28f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.01f, 0.05f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.012f, 0.045f);
+            main.startColor = new ParticleSystem.MinMaxGradient(
+                new Color(DustColor.r, DustColor.g, DustColor.b, 0.05f),
+                new Color(DustColor.r, DustColor.g, DustColor.b, 0.11f));
+            main.gravityModifier = 0f;
+            main.maxParticles = 220;
+
+            var emission = particles.emission;
+            emission.rateOverTime = new ParticleSystem.MinMaxCurve(8f);
+
+            var shape = particles.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(18f, 3f, 26f);
+
+            var velocity = particles.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.x = new ParticleSystem.MinMaxCurve(-0.02f, 0.02f);
+            velocity.y = new ParticleSystem.MinMaxCurve(-0.005f, 0.015f);
+            velocity.z = new ParticleSystem.MinMaxCurve(-0.02f, 0.02f);
+
+            var noise = particles.noise;
+            noise.enabled = true;
+            noise.strength = new ParticleSystem.MinMaxCurve(0.03f);
+            noise.frequency = 0.25f;
+
+            var colorOverLifetime = particles.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            Gradient gradient = new Gradient();
+            gradient.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[]
+                {
+                    new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.15f),
+                    new GradientAlphaKey(1f, 0.75f), new GradientAlphaKey(0f, 1f)
+                });
+            colorOverLifetime.color = new ParticleSystem.MinMaxGradient(gradient);
+
+            var sizeOverLifetime = particles.sizeOverLifetime;
+            sizeOverLifetime.enabled = true;
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 0.8f, 1f, 1.2f));
+
+            ParticleSystemRenderer renderer = root.GetComponent<ParticleSystemRenderer>();
+            renderer.material = dust;
+            renderer.renderMode = ParticleSystemRenderMode.Billboard;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            renderer.lightProbes = LightProbes.UseProxyVolume;
+
+            PrefabUtility.SaveAsPrefabAsset(root, DustMotesPrefabPath);
+            UnityEngine.Object.DestroyImmediate(root);
+            return "DustMotes.prefab: created (world space, 60 s loop, ~8/s)";
+        }
+
+        // Wires the special art into the two EXISTING prefabs without touching
+        // any gameplay component: TheShadow gains the smoke silhouette under
+        // Visual (primitive renderers hidden, transforms kept for ShadowMotion,
+        // ember eyes kept), and the Player's camera Hand swaps its primitive
+        // blocks for Hands_Art. FirstPersonHands is not modified.
+        static string RestyleExistingPrefabs()
+        {
+            string report = "";
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(ShadowArtPrefabPath) != null
+                && AssetDatabase.LoadAssetAtPath<GameObject>(EnemyShadowPrefabPath) != null)
+            {
+                GameObject contents = PrefabUtility.LoadPrefabContents(EnemyShadowPrefabPath);
+                try
+                {
+                    Transform visual = contents.transform.Find("Visual");
+                    if (visual == null)
+                    {
+                        report += "TheShadow.prefab: no Visual node found - skipped";
+                    }
+                    else
+                    {
+                        if (visual.Find("Shadow_Art") == null)
+                        {
+                            GameObject art = (GameObject)PrefabUtility.InstantiatePrefab(
+                                AssetDatabase.LoadAssetAtPath<GameObject>(ShadowArtPrefabPath), visual);
+                            art.name = "Shadow_Art";
+                        }
+
+                        // Hide the greybox shapes but keep every transform:
+                        // ShadowMotion animates ArmL/ArmR by name.
+                        foreach (string shapeName in new[] { "Body", "Head", "ArmL", "ArmR" })
+                        {
+                            Transform shape = visual.Find(shapeName);
+                            if (shape == null) continue;
+                            Renderer renderer = shape.GetComponent<Renderer>();
+                            if (renderer != null) renderer.enabled = false;
+                        }
+
+                        PrefabUtility.SaveAsPrefabAsset(contents, EnemyShadowPrefabPath);
+                        report += "TheShadow.prefab: smoke silhouette added, primitives hidden";
+                    }
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(contents);
+                }
+                report += "\n";
+            }
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(HandsArtPrefabPath) != null
+                && AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath) != null)
+            {
+                GameObject contents = PrefabUtility.LoadPrefabContents(PlayerPrefabPath);
+                try
+                {
+                    Transform hand = FindChildByName(contents.transform, "Hand");
+                    if (hand == null)
+                    {
+                        report += "Player.prefab: no Hand node found - skipped";
+                    }
+                    else
+                    {
+                        if (hand.Find("Hands_Art") == null)
+                        {
+                            GameObject hands = (GameObject)PrefabUtility.InstantiatePrefab(
+                                AssetDatabase.LoadAssetAtPath<GameObject>(HandsArtPrefabPath), hand);
+                            hands.name = "Hands_Art";
+                            hands.transform.localPosition = Vector3.zero;
+                            hands.transform.localRotation = Quaternion.identity;
+                        }
+
+                        foreach (string blockName in new[] { "Palm", "Thumb", "Forearm", "TorchBody" })
+                        {
+                            Transform block = hand.Find(blockName);
+                            if (block == null) continue;
+                            Renderer renderer = block.GetComponent<Renderer>();
+                            if (renderer != null) renderer.enabled = false;
+                        }
+
+                        PrefabUtility.SaveAsPrefabAsset(contents, PlayerPrefabPath);
+                        report += "Player.prefab: procedural hand installed under camera Hand";
+                    }
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(contents);
+                }
+            }
+
+            return report;
+        }
+
+        // ------------------------------------------------------------- post
+        // Extends the existing volume profiles through the VolumeProfile API
+        // (AddOverride-equivalent via Add<T>): exponential fog, tuned bloom and
+        // a subtle film grain. Depth of field is ensured ABSENT in gameplay.
+        static string UpdatePostVolumes()
+        {
+            string night = TunePostProfile(PostNightPath, NightFogColor, NightFogDensity,
+                NightBloomThreshold, NightBloomIntensity, NightBloomScatter, NightFilmGrainIntensity);
+            string dawn = TunePostProfile(PostDawnPath, DawnFogColor, DawnFogDensity,
+                DawnBloomThreshold, DawnBloomIntensity, NightBloomScatter, 0f);
+            return "Post_Night: " + night + "\nPost_Dawn: " + dawn;
+        }
+
+        static string TunePostProfile(string path, Color fogColor, float fogDensity,
+            float bloomThreshold, float bloomIntensity, float bloomScatter, float grainIntensity)
+        {
+            VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+            if (profile == null)
+            {
+                return "SKIPPED - profile missing (run LightShadow.Tools.SceneBuilder.BuildAllBatch first)";
+            }
+
+            Fog fog = GetOrAdd<Fog>(profile);
+            fog.mode.overrideState = true;
+            fog.mode.value = FogMode.Exponential;
+            fog.color.overrideState = true;
+            fog.color.value = fogColor;
+            fog.density.overrideState = true;
+            fog.density.value = fogDensity;
+            fog.maxFogDistance.overrideState = true;
+            fog.maxFogDistance.value = 90f;
+
+            Bloom bloom = GetOrAdd<Bloom>(profile);
+            bloom.threshold.overrideState = true;
+            bloom.threshold.value = bloomThreshold;
+            bloom.intensity.overrideState = true;
+            bloom.intensity.value = bloomIntensity;
+            bloom.scatter.overrideState = true;
+            bloom.scatter.value = bloomScatter;
+            bloom.highQualityFiltering.overrideState = true;
+            bloom.highQualityFiltering.value = false; // cheaper on mobile
+
+            if (grainIntensity > 0f)
+            {
+                FilmGrain grain = GetOrAdd<FilmGrain>(profile);
+                grain.type.overrideState = true;
+                grain.type.value = FilmGrainLookup.Medium;
+                grain.intensity.overrideState = true;
+                grain.intensity.value = grainIntensity;
+            }
+
+            // Depth of field stays off in gameplay: if an earlier pass added
+            // it, switch the component off instead of deleting (idempotent).
+            DepthOfField depth = GetComponentOrNull<DepthOfField>(profile);
+            if (depth != null) depth.active = false;
+
+            EditorUtility.SetDirty(profile);
+            return "fog/bloom/grain tuned";
+        }
+
+        static T GetOrAdd<T>(VolumeProfile profile) where T : VolumeComponent, new()
+        {
+            T existing = GetComponentOrNull<T>(profile);
+            if (existing != null) return existing;
+            return profile.Add<T>(true);
+        }
+
+        static T GetComponentOrNull<T>(VolumeProfile profile) where T : VolumeComponent
+        {
+            foreach (VolumeComponent component in profile.components)
+            {
+                if (component is T typed) return typed;
+            }
+            return null;
+        }
+
+        // ------------------------------------------------------------ helpers
+        static void ConfigureSmokeHalo(ParticleSystem particles, Material puffMaterial)
+        {
+            var main = particles.main;
+            main.duration = 8f;
+            main.loop = true;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(2.5f, 4.5f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.05f, 0.15f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.35f, 0.8f);
+            main.startColor = new ParticleSystem.MinMaxGradient(PuffColor);
+            main.maxParticles = 24;
+            main.gravityModifier = -0.02f; // smoke rises
+
+            var emission = particles.emission;
+            emission.rateOverTime = new ParticleSystem.MinMaxCurve(4f);
+
+            var shape = particles.shape;
+            shape.shapeType = ParticleSystemShapeType.Capsule;
+            shape.scale = new Vector3(0.6f, 1.6f, 0.6f);
+
+            var sizeOverLifetime = particles.sizeOverLifetime;
+            sizeOverLifetime.enabled = true;
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 0.6f, 1f, 1.5f));
+
+            var colorOverLifetime = particles.colorOverLifetime;
+            colorOverLifetime.enabled = true;
+            Gradient gradient = new Gradient();
+            gradient.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[]
+                {
+                    new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.3f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            colorOverLifetime.color = new ParticleSystem.MinMaxGradient(gradient);
+
+            ParticleSystemRenderer renderer = particles.GetComponent<ParticleSystemRenderer>();
+            renderer.material = puffMaterial;
+            renderer.renderMode = ParticleSystemRenderMode.Billboard;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+        }
+
+        static void ConfigureAdditiveParticleMaterial(Material material)
+        {
+            material.SetFloat("_Surface", 1f); // transparent
+            material.SetFloat("_Blend", 1f); // additive
+            material.SetFloat("_ZWrite", 0f);
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+            material.SetInt("_DstBlend", (int)BlendMode.One);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue = (int)RenderQueue.Transparent;
+        }
+
+        static void ConfigureAlphaParticleMaterial(Material material)
+        {
+            material.SetFloat("_Surface", 1f); // transparent
+            material.SetFloat("_Blend", 0f); // alpha
+            material.SetFloat("_ZWrite", 0f);
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+            material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue = (int)RenderQueue.Transparent;
+        }
+
+        // The Shadow's silhouette mesh: the tallest blocky character reads as
+        // the most humanoid silhouette without any inspection tooling.
+        static GameObject PickTallestCharacter()
+        {
+            string packPath = ThirdPartyFolder + "/KenneyBlockyCharacters";
+            if (!AssetDatabase.IsValidFolder(packPath)) return null;
+
+            GameObject best = null;
+            float bestHeight = 0f;
+            string[] guids = AssetDatabase.FindAssets("t:Model", new[] { packPath });
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)) continue;
+                GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (model == null) continue;
+                Bounds bounds = ComputePrefabBounds(model);
+                if (bounds.size.y > bestHeight)
+                {
+                    bestHeight = bounds.size.y;
+                    best = model;
+                }
+            }
+            return best;
+        }
+
+        // Prefab-asset bounds in the asset's root space (no scene needed):
+        // every mesh's local bounds corners go through localToWorldMatrix so
+        // rotated/scaled FBX children land correctly.
+        // Shared with SceneBuilderArt for the per-instance scale normalization.
+        public static Bounds ComputePrefabBounds(GameObject prefabAsset)
+        {
+            bool hasAny = false;
+            Vector3 min = Vector3.zero;
+            Vector3 max = Vector3.zero;
+            Matrix4x4 rootToWorld = prefabAsset.transform.worldToLocalMatrix;
+            MeshFilter[] filters = prefabAsset.GetComponentsInChildren<MeshFilter>(true);
+            foreach (MeshFilter filter in filters)
+            {
+                Mesh mesh = filter.sharedMesh;
+                if (mesh == null) continue;
+                Matrix4x4 meshToRoot = rootToWorld * filter.transform.localToWorldMatrix;
+                Bounds meshBounds = mesh.bounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector3 corner = meshBounds.center
+                        + Vector3.Scale(meshBounds.extents,
+                            new Vector3(
+                                (i & 1) == 0 ? -1f : 1f,
+                                (i & 2) == 0 ? -1f : 1f,
+                                (i & 4) == 0 ? -1f : 1f));
+                    Vector3 inRoot = meshToRoot.MultiplyPoint3x4(corner);
+                    if (!hasAny)
+                    {
+                        min = inRoot;
+                        max = inRoot;
+                        hasAny = true;
+                    }
+                    else
+                    {
+                        min = Vector3.Min(min, inRoot);
+                        max = Vector3.Max(max, inRoot);
+                    }
+                }
+            }
+            return new Bounds((min + max) * 0.5f, hasAny ? max - min : Vector3.one);
+        }
+
+        static Material GetOrCreateLitMaterial(string name, Shader lit)
+        {
+            return GetOrCreateMaterial(name, lit);
+        }
+
+        static Material GetOrCreateMaterial(string name, Shader shader)
+        {
+            string path = MaterialsFolder + "/" + name + ".mat";
+            Material existing = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (existing != null) return existing;
+
+            Material material = new Material(shader);
+            AssetDatabase.CreateAsset(material, path);
+            return material;
+        }
+
+        // Copies the texture wiring of one Mat_Art_* onto another (used for the
+        // tinted variants: ceiling/gate/stone share maps with their source).
+        static void CopyTextureSetup(string sourceName, Material target)
+        {
+            Material source = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/" + sourceName + ".mat");
+            if (source == null) return;
+            target.SetTexture("_BaseMap", source.GetTexture("_BaseMap"));
+            target.SetTexture("_BumpMap", source.GetTexture("_BumpMap"));
+            if (source.GetTexture("_BumpMap") != null) target.EnableKeyword("_NORMALMAP");
+            target.SetTexture("_MetallicGlossMap", source.GetTexture("_MetallicGlossMap"));
+            if (source.GetTexture("_MetallicGlossMap") != null) target.EnableKeyword("_METALLICSPECGLOSSMAP");
+            target.SetFloat("_SmoothnessTextureChannel", source.GetFloat("_SmoothnessTextureChannel"));
+        }
+
+        static T LoadAssetGuaranteed<T>(string path) where T : UnityEngine.Object
+        {
+            T asset = AssetDatabase.LoadAssetAtPath<T>(path);
+            if (asset == null)
+            {
+                Debug.LogWarning("[ArtImporter] Expected asset missing at " + path);
+            }
+            return asset;
+        }
+
+        static T[] FillArray<T>(int length, T value)
+        {
+            T[] result = new T[Mathf.Max(1, length)];
+            for (int i = 0; i < result.Length; i++) result[i] = value;
+            return result;
+        }
+
+        static Transform FindChildByName(Transform parent, string name)
+        {
+            if (parent.name == name) return parent;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform found = FindChildByName(parent.GetChild(i), name);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        static void EnsureFolder(string folderPath)
+        {
+            if (AssetDatabase.IsValidFolder(folderPath)) return;
+            string parent = Path.GetDirectoryName(folderPath).Replace('\\', '/');
+            string leaf = Path.GetFileName(folderPath);
+            if (string.IsNullOrEmpty(parent) || !parent.StartsWith("Assets")) return;
+            EnsureFolder(parent);
+            AssetDatabase.CreateFolder(parent, leaf);
+        }
+    }
+}
