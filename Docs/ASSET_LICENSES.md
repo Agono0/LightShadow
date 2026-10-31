@@ -13,6 +13,12 @@ pack ships its original `License.txt` inside its folder under `Assets/ThirdParty
 | Kenney Nature Kit (329 FBX) | https://kenney.nl/assets/nature-kit | CC0 1.0 | Kenney (kenney.nl) | 2026-10-30 | bushes/planter foliage, garden trees |
 | Kenney Graveyard Kit (91 FBX) | https://kenney.nl/assets/graveyard-kit | CC0 1.0 | Kenney (kenney.nl) | 2026-10-30 | lightposts, iron fence segments, pines — forecourt/garden dressing |
 | Kenney Blocky Characters (18 FBX) | https://kenney.nl/assets/blocky-characters | CC0 1.0 | Kenney (kenney.nl) | 2026-10-30 | The Shadow's humanoid silhouette mesh (tallest of the 18, wrapped in M_ShadowSmoke) |
+| Kenney Interface Sounds (100 ogg) | https://kenney.nl/assets/interface-sounds | CC0 1.0 | Kenney (kenney.nl) | 2026-10-31 | quiz correct/wrong, click, pickup (SFX_QuizCorrect/Wrong/Click/Pickup) |
+| Kenney Impact Sounds (130 ogg) | https://kenney.nl/assets/impact-sounds | CC0 1.0 | Kenney (kenney.nl) | 2026-10-31 | footstep sets by surface (concrete/wood), fuse power hit (SFX_Footstep*, SFX_Power) |
+| Kenney RPG Audio (51 ogg) | https://kenney.nl/assets/rpg-audio | CC0 1.0 | Kenney (kenney.nl) | 2026-10-31 | door creak (SFX_DoorCreak) |
+| qubodup Ghost Moans (5 wav) | https://opengameart.org/content/ghost-monster-voice-moaning-growling | CC0 1.0 | qubodup | 2026-10-31 | The Shadow's voice: patrol/chase/stinger (SFX_ShadowMoan_0..2) |
+| Abandoned Building Ambience (mp3) | https://opengameart.org/content/abandoned-building-ambience | **CC-BY 3.0 — attribution required** | tcarisland (https://opengameart.org/users/tcarisland) | 2026-10-31 | school-at-night ambience loop (AMB_SchoolNight); attribution file shipped in the pack folder |
+| (The blocky-characters mesh is NO LONGER USED for the Shadow — replaced 2026-10-31 by the procedural SM_Wraith mesh, no third-party rights.) | — | — | — | — | — |
 | grey_plaster (2K JPG: diff/nor_gl/rough) | https://polyhaven.com/a/grey_plaster | CC0 1.0 | Rob Tuytel | 2026-10-30 | Mat_Art_PlasterWall (walls, lintels), Mat_Art_Ceiling (tinted) |
 | old_wood_floor (2K JPG) | https://polyhaven.com/a/old_wood_floor | CC0 1.0 | Guillaume Monsergent | 2026-10-30 | Mat_Art_WoodFloor (school floor, stage) |
 | floor_tiles_02 (2K JPG) | https://polyhaven.com/a/floor_tiles_02 | CC0 1.0 | Rob Tuytel | 2026-10-30 | Mat_Art_CorridorTile (reserved; corridor floors currently share the wood floor) |
