@@ -2,12 +2,22 @@ using UnityEngine;
 
 namespace LightShadow.Core
 {
-    // The project ships without recorded audio, so the small interaction sounds
-    // are synthesised once at runtime. This keeps the game audible with zero
-    // external assets and no package downloads.
+    // The interaction sounds are LIBRARY-FIRST since the audio pass: when the
+    // imported CC0 clip exists (registered by AudioLibraryBootstrap) it plays;
+    // otherwise the synthesised fallback below still keeps the game audible
+    // with zero external assets. Nothing here throws when the library is
+    // missing.
     public static class ProceduralSfx
     {
         const int SampleRate = 44100;
+
+        // Library-first: the imported CC0 clip wins; the synthesised fallback
+        // keeps every call site audible when the library has not shipped.
+        static AudioClip Resolve(string id, System.Func<AudioClip> synthesise)
+        {
+            AudioClip imported = LightShadow.Audio.SfxRegistry.Clip(id);
+            return imported != null ? imported : synthesise();
+        }
 
         static AudioClip correct;
         static AudioClip wrong;
@@ -19,7 +29,7 @@ namespace LightShadow.Core
         {
             get
             {
-                if (correct == null) correct = MakeSequence("SFX_Correct", new[] { 660f, 990f }, 0.22f, 0.35f);
+                if (correct == null) correct = Resolve("SFX_QuizCorrect", () => MakeSequence("SFX_Correct", new[] { 660f, 990f }, 0.22f, 0.35f));
                 return correct;
             }
         }
@@ -28,7 +38,7 @@ namespace LightShadow.Core
         {
             get
             {
-                if (wrong == null) wrong = MakeSequence("SFX_Wrong", new[] { 220f, 165f }, 0.28f, 0.32f);
+                if (wrong == null) wrong = Resolve("SFX_QuizWrong", () => MakeSequence("SFX_Wrong", new[] { 220f, 165f }, 0.28f, 0.32f));
                 return wrong;
             }
         }
@@ -37,7 +47,7 @@ namespace LightShadow.Core
         {
             get
             {
-                if (click == null) click = MakeSequence("SFX_Click", new[] { 900f }, 0.05f, 0.22f);
+                if (click == null) click = Resolve("SFX_Click", () => MakeSequence("SFX_Click", new[] { 900f }, 0.05f, 0.22f));
                 return click;
             }
         }
@@ -46,7 +56,7 @@ namespace LightShadow.Core
         {
             get
             {
-                if (pickup == null) pickup = MakeSequence("SFX_Pickup", new[] { 660f, 880f, 1100f }, 0.24f, 0.28f);
+                if (pickup == null) pickup = Resolve("SFX_Pickup", () => MakeSequence("SFX_Pickup", new[] { 660f, 880f, 1100f }, 0.24f, 0.28f));
                 return pickup;
             }
         }
@@ -55,7 +65,7 @@ namespace LightShadow.Core
         {
             get
             {
-                if (power == null) power = MakeSequence("SFX_Power", new[] { 110f, 165f, 220f, 330f }, 0.7f, 0.38f);
+                if (power == null) power = Resolve("SFX_Power", () => MakeSequence("SFX_Power", new[] { 110f, 165f, 220f, 330f }, 0.7f, 0.38f));
                 return power;
             }
         }

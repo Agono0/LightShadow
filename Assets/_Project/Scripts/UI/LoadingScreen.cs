@@ -32,6 +32,9 @@ namespace LightShadow.UI
         Canvas canvas;
         CanvasGroup group;
         Image progressFill;
+        Image beam;
+        Text tipText;
+        float beamClock;
         Text progressText;
         Text captionText;
 
@@ -87,6 +90,20 @@ namespace LightShadow.UI
             if (Instance == this) Instance = null;
         }
 
+        void Update()
+        {
+            if (group == null || group.alpha <= 0.01f) return;
+            // The beam drifts across the school front and eases back - a
+            // searchlight looking for whoever is still inside.
+            beamClock += Time.unscaledDeltaTime;
+            float sweep = Mathf.PingPong(beamClock * 0.22f, 1f) * 2f - 1f;
+            if (beam != null)
+            {
+                beam.rectTransform.anchoredPosition = new Vector2(sweep * 760f, 80f);
+                beam.color = new Color(1f, 0.94f, 0.80f, Mathf.Lerp(0.10f, 0.22f, (sweep + 1f) / 2f));
+            }
+        }
+
         void BuildUI()
         {
             var canvasGo = new GameObject("UI_Loading", typeof(RectTransform), typeof(Canvas),
@@ -106,22 +123,38 @@ namespace LightShadow.UI
 
             Font font = Localization.EnglishFont;
 
-            // Night ground.
-            var background = MakeRect(canvasGo.transform, "Background", Vector2.zero, Vector2.one, Color.black);
-            background.color = new Color(0.012f, 0.012f, 0.02f, 1f);
+            // Redesigned loading look: gradient night, the school silhouette,
+            // and a flashlight beam that sweeps across it while you wait.
+            var background = MakeRect(canvasGo.transform, "Background", Vector2.zero, Vector2.one, Color.white);
+            background.sprite = LoadingTheme.Sprite(LoadingTheme.Gradient, "LoadingGradient", Vector4.zero);
+            background.type = Image.Type.Simple;
 
             BuildSilhouette(canvasGo.transform);
+
+            // The sweeping flashlight: a soft glow panning across the skyline.
+            beam = MakeRect(canvasGo.transform, "BeamSweep", Vector2.zero, Vector2.one, new Color(1f, 0.94f, 0.80f, 0.0f));
+            beam.sprite = LoadingTheme.Sprite(LoadingTheme.Glow, "LoadingGlow", Vector4.zero);
+            beam.type = Image.Type.Simple;
+            beam.rectTransform.sizeDelta = new Vector2(560f, 560f);
+            beam.rectTransform.anchoredPosition = new Vector2(-700f, 80f);
 
             captionText = MakeText(canvasGo.transform, "Caption",
                 StoryStrings.Tr("DEMOLITION AT DAWN"), 30,
                 new Color(0.85f, 0.78f, 0.62f, 0.85f), TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.62f), new Vector2(0.5f, 0.62f), new Vector2(1100f, 60f));
 
-            // Progress bar (bottom centre, wide, thin - a chalk line with light).
+            // Progress bar (bottom centre, rounded track with an amber fill).
             var track = MakeRect(canvasGo.transform, "ProgressTrack",
                 new Vector2(0.5f, 0.28f), new Vector2(0.5f, 0.28f),
-                new Color(0.06f, 0.06f, 0.08f, 0.95f));
-            track.rectTransform.sizeDelta = new Vector2(920f, 18f);
+                new Color(1f, 1f, 1f, 0.9f));
+            track.sprite = LoadingTheme.Sprite(LoadingTheme.Panel, "LoadingPanel", new Vector4(14f, 14f, 14f, 14f));
+            track.type = Image.Type.Sliced;
+            track.rectTransform.sizeDelta = new Vector2(920f, 22f);
+
+            tipText = MakeText(canvasGo.transform, "Tip",
+                StoryStrings.Tr("Knowledge is the only light that follows a person into the dark."), 19,
+                new Color(0.62f, 0.60f, 0.55f, 0.85f), TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.34f), new Vector2(0.5f, 0.34f), new Vector2(1100f, 46f));
 
             progressFill = MakeRect(track.transform, "Fill", Vector2.zero, Vector2.one,
                 new Color(1f, 0.86f, 0.62f, 0.95f));

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c17533bf8aa0f948a2a98cf0d1495eb, type: 3}
+  m_Name: AudioLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Audio.AudioLibrary
+  quizCorrect: {fileID: 8300000, guid: bbc747e0fa483114f8effe6a90d25fa7, type: 3}
+  quizWrong: {fileID: 8300000, guid: c900e39606ed08442a0377c8ded59d8e, type: 3}
+  click: {fileID: 8300000, guid: f6319f6ecd287b04e8027cca00198f6f, type: 3}
+  pickup: {fileID: 8300000, guid: 89bac71ab149d8640880f81fdb6bb490, type: 3}
+  power: {fileID: 8300000, guid: 76241b2a47761b44cbe9df535502ddba, type: 3}
+  doorCreak: {fileID: 8300000, guid: f6d9842f914c7b346b37f50974baa6fe, type: 3}
+  footstepConcrete:
+  - {fileID: 8300000, guid: 5182776a417581d40a223dbed36be4f4, type: 3}
+  - {fileID: 8300000, guid: 09a354dcc422e9d488ecb30f20f83d96, type: 3}
+  - {fileID: 8300000, guid: d9a646750f9931a41a0f5c0563558bb6, type: 3}
+  - {fileID: 8300000, guid: 7c70f9944561ca040a20f803123ade6e, type: 3}
+  footstepWood:
+  - {fileID: 8300000, guid: 3c53b476b73db2a4580ad0f6d2620df2, type: 3}
+  - {fileID: 8300000, guid: 999f67523d500b74380fb2ccb4adfa07, type: 3}
+  shadowMoans:
+  - {fileID: 8300000, guid: 68fc87a56ed499a43800208c73f593d7, type: 3}
+  - {fileID: 8300000, guid: e304a78cf95f111489ea268d1818ea1a, type: 3}
+  - {fileID: 8300000, guid: d0ff1a73fbf92134fa9d39d2bb65f79a, type: 3}
+  ambienceNight: {fileID: 8300000, guid: caff98630f5057c46834208cc4510255, type: 3}

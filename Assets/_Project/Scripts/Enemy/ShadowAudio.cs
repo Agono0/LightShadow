@@ -43,9 +43,14 @@ namespace LightShadow.Enemy
             stingerSource.maxDistance = maxHearDistance + 5f;
             stingerSource.rolloffMode = AudioRolloffMode.Linear;
 
-            patrolClip = BuildGrowl("SFX_Shadow_Patrol", 48f, 72f, 0.12f, 0.55f);
-            chaseClip = BuildGrowl("SFX_Shadow_Chase", 84f, 126f, 0.22f, 0.75f);
-            stingerClip = BuildStinger("SFX_Shadow_Stinger");
+            // Library-first: the imported CC0 moans (qubodup) give the Shadow a
+            // real voice; the synthesised growl/stinger stay as fallback.
+            patrolClip = LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_0");
+            if (patrolClip == null) patrolClip = BuildGrowl("SFX_Shadow_Patrol", 48f, 72f, 0.12f, 0.55f);
+            chaseClip = LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_1");
+            if (chaseClip == null) chaseClip = BuildGrowl("SFX_Shadow_Chase", 84f, 126f, 0.22f, 0.75f);
+            stingerClip = LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_2");
+            if (stingerClip == null) stingerClip = BuildStinger("SFX_Shadow_Stinger");
 
             growlSource.clip = patrolClip;
             growlSource.Play();

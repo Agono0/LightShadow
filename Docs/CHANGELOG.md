@@ -1,5 +1,34 @@
 # LIGHT SHADOW — Changelog (Premium Pass)
 
+## [0.5.0-premium] — 2026-10-31 — Round 3: bug fixes + horror presentation
+
+### Fixed
+- **Reversed controls / stuck camera after being caught**: the cinematic shot never
+  restored the main camera's local pose (and a failed brain-enable left it pinned).
+  Snapshot/finally-restore + brain re-fetch + `PlayerController.RespawnReset()` at
+  the checkpoint + per-zone spawn yaw (were identity: woke facing world +Z).
+- **Mouse escaping the window**: focus-regain re-lock + guarded re-assert (desktop).
+- **FPS counter never appeared** — and the root cause was bigger: `BuildCinematicRigs`
+  opened the STALE school scene from disk over the fresh unsaved build, silently
+  discarding every school-scene builder change since round 1. Save-order fixed;
+  FpsCounter also no longer disables itself (was dead-unsubscribing after first off).
+- Quiz timer bar variable, `Screen.resolutions` null in headless batch, two Unity-6
+  API drifts (cookie importer, duplicate Image AddComponent).
+
+### Added
+- **Real audio**: CC0 packs (Kenney Interface/Impact/RPG Audio, qubodup Ghost Moans)
+  + CC-BY ambience (tcarisland, attributed) — library-first with synthesised
+  fallbacks; new footstep system; Shadow voice per FSM state; `AudioImportTool`.
+- **Procedural wraith mesh** (SM_Wraith) replacing the blocky Shadow silhouette.
+- **Darkness pass**: near-black ambient, dimmed lamps/moon, flashlight cookie +
+  additive beam cone, brighter ember eyes.
+- **Live 3D menu diorama**: corridor + flickering lamp + drifting Shadow + camera
+  breathing + title flicker (first menu animation).
+- **Loading screen redesign**: gradient night, sweeping searchlight, styled bar, tip.
+- **Quiz popup redesign**: real timer bar (hot near timeout), themed chrome.
+
+
+
 All notable changes to code, scenes, docs, and settings since `main` @ 49e22e5.
 Format follows Keep a Changelog; newest entries at the bottom.
 

@@ -554,7 +554,70 @@ namespace LightShadow.Tools
             EditorUtility.SetDirty(puff);
             count++;
 
+            // Darkness pass: a real flashlight cookie (hot centre, irregular
+            // streaks) so the beam throws believable structure, and an additive
+            // material for the volumetric beam cone.
+            Texture2D cookie = BuildFlashlightCookie();
+            Material beam = GetOrCreateMaterial("M_Art_Beam", Shader.Find(UrpParticlesUnlitShaderName));
+            beam.SetTexture("_BaseMap", dustSprite);
+            beam.SetColor("_BaseColor", new Color(1f, 0.93f, 0.78f, 1f));
+            ConfigureAdditiveParticleMaterial(beam);
+            beam.EnableKeyword("_VERTEX_COLOR"); // alpha comes from the cone mesh
+            beam.renderQueue = (int)RenderQueue.Transparent;
+            EditorUtility.SetDirty(beam);
+            count++;
+
             return count;
+        }
+
+        // 256 px spotlight cookie: warm hotspot, soft round falloff, faint
+        // radial streaks and per-pixel dust so walls show beam structure.
+        // Imported as a Cookie (spot) asset the prefab builder assigns.
+        static Texture2D BuildFlashlightCookie()
+        {
+            string path = ProcessedTexturesFolder + "/T_FlashlightCookie.png";
+            if (File.Exists(path)) return LoadAssetGuaranteed<Texture2D>(path);
+
+            const int size = 256;
+            Texture2D cookie = new Texture2D(size, size, TextureFormat.RGBA32, false, true); // linear
+            var random = new System.Random(8080);
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x + 0.5f) / size * 2f - 1f;
+                    float dy = (y + 0.5f) / size * 2f - 1f;
+                    float distance = Mathf.Sqrt(dx * dx + dy * dy);
+                    float angle = Mathf.Atan2(dy, dx);
+
+                    float falloff = Mathf.Clamp01(1f - Mathf.Pow(distance, 1.6f));
+                    float hotspot = Mathf.Clamp01(1f - distance * 2.2f) * 0.8f;
+                    // A few fixed-frequency streaks + fine dust grain.
+                    float streaks = 0.86f + 0.10f * Mathf.Sin(angle * 7f + 1.7f)
+                                        + 0.06f * Mathf.Sin(angle * 13f);
+                    float grain = 1f + ((float)random.NextDouble() * 2f - 1f) * 0.05f;
+
+                    float value = Mathf.Clamp01((falloff * streaks + hotspot) * grain);
+                    byte channel = (byte)(value * 255f);
+                    cookie.SetPixel(x, y, new Color32(channel, channel, channel, 255));
+                }
+            }
+            cookie.Apply();
+
+            EnsureFolder(ProcessedTexturesFolder);
+            File.WriteAllBytes(path, cookie.EncodeToPNG());
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer != null)
+            {
+                importer.textureType = TextureImporterType.Cookie;
+                importer.wrapMode = TextureWrapMode.Clamp;
+                importer.mipmapEnabled = true;
+                importer.sRGBTexture = false;
+                importer.maxTextureSize = 256;
+                importer.SaveAndReimport();
+            }
+            return LoadAssetGuaranteed<Texture2D>(path);
         }
 
         // Procedural 64x64 radial falloff sprite for particles (soft edges
@@ -612,15 +675,16 @@ namespace LightShadow.Tools
         // enemy visual root; TheShadow.prefab is rewired automatically below.
         static string BuildShadowPrefab()
         {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(ShadowArtPrefabPath) != null)
+            // Rebuild (not skip) while the current prefab predates the wraith
+            // mesh: the marker child names the silhouette source.
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(ShadowArtPrefabPath);
+            if (existing != null && existing.transform.Find("Wraith") != null)
             {
-                return "Shadow_Art.prefab: already present (idempotent skip)";
+                return "Shadow_Art.prefab: already present (wraith, idempotent skip)";
             }
-
-            GameObject character = PickTallestCharacter();
-            if (character == null)
+            if (existing != null)
             {
-                return "Shadow_Art.prefab: SKIPPED - no KenneyBlockyCharacters models found";
+                AssetDatabase.DeleteAsset(ShadowArtPrefabPath);
             }
 
             Material smoke = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/M_ShadowSmoke.mat");
@@ -628,23 +692,22 @@ namespace LightShadow.Tools
             if (smoke == null) return "Shadow_Art.prefab: SKIPPED - M_ShadowSmoke missing";
             if (puff == null) puff = smoke; // halo degrades to the smoke material
 
+            Mesh wraith = BuildWraithMesh();
+
             var root = new GameObject("Shadow_Art");
-            GameObject silhouette = (GameObject)PrefabUtility.InstantiatePrefab(character, root.transform);
-            silhouette.name = "Silhouette";
 
-            // Normalize to the enemy's collider height regardless of source scale.
-            Bounds bounds = ComputePrefabBounds(character);
-            float height = Mathf.Max(0.1f, bounds.size.y);
-            float scale = ShadowTargetHeight / height;
+            GameObject silhouette = new GameObject("Wraith");
+            silhouette.transform.SetParent(root.transform, false);
+            MeshFilter filter = silhouette.AddComponent<MeshFilter>();
+            filter.sharedMesh = wraith;
+            MeshRenderer renderer = silhouette.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = smoke;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            // Normalize to the enemy's collider height.
+            float scale = ShadowTargetHeight / WraithHeight;
             silhouette.transform.localScale = new Vector3(scale, scale, scale);
-            silhouette.transform.localPosition = new Vector3(0f, 0f, 0f);
-
-            foreach (MeshRenderer renderer in silhouette.GetComponentsInChildren<MeshRenderer>(true))
-            {
-                renderer.sharedMaterials = FillArray(renderer.sharedMaterials.Length, smoke);
-                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-            }
 
             // Slow smoke halo: dark alpha-blended puffs in local space so they
             // drift with the enemy (no additive glow - it must stay a shadow).
@@ -652,11 +715,106 @@ namespace LightShadow.Tools
             halo.transform.SetParent(root.transform, false);
             ParticleSystem particles = halo.AddComponent<ParticleSystem>();
             ConfigureSmokeHalo(particles, puff);
-            foreach (Renderer renderer in halo.GetComponentsInChildren<Renderer>()) renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            foreach (Renderer haloRenderer in halo.GetComponentsInChildren<Renderer>()) haloRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
             PrefabUtility.SaveAsPrefabAsset(root, ShadowArtPrefabPath);
             UnityEngine.Object.DestroyImmediate(root);
-            return "Shadow_Art.prefab: created from " + character.name;
+            return "Shadow_Art.prefab: rebuilt with procedural wraith silhouette";
+        }
+
+        // The wraith silhouette: a revolved profile (hooded head, shoulder
+        // swell, ragged trailing skirt) with deterministic per-vertex noise so
+        // the outline is organic, not a cone. The smoke shader wobbles it
+        // further at runtime. Replaces the Kenney blocky humanoid (player
+        // request: "not a good 3d model").
+        const float WraithHeight = 2.3f;
+
+        static Mesh BuildWraithMesh()
+        {
+            const int segments = 36;
+            const int rings = 14;
+
+            // Radius profile from the ragged bottom (0) to the hood tip (1).
+            float[] ringHeight = new float[rings];
+            float[] ringRadius = new float[rings];
+            for (int i = 0; i < rings; i++)
+            {
+                float t = i / (float)(rings - 1);
+                ringHeight[i] = t * WraithHeight;
+                // Hood (0.72..1), neck pinch (0.58..0.72), shoulder swell
+                // (0.40..0.58), taper (0.14..0.40), ragged skirt (0..0.14).
+                float radius;
+                if (t > 0.72f) radius = Mathf.Lerp(0.34f, 0.02f, (t - 0.72f) / 0.28f);
+                else if (t > 0.58f) radius = Mathf.Lerp(0.46f, 0.34f, (t - 0.58f) / 0.14f);
+                else if (t > 0.40f) radius = Mathf.Lerp(0.30f, 0.46f, (t - 0.40f) / 0.18f);
+                else if (t > 0.14f) radius = Mathf.Lerp(0.44f, 0.30f, (t - 0.14f) / 0.26f);
+                else radius = Mathf.Lerp(0.24f, 0.44f, t / 0.14f);
+                ringRadius[i] = radius;
+            }
+
+            var random = new System.Random(20626);
+            var vertices = new Vector3[rings * (segments + 1)];
+            var uvs = new Vector2[vertices.Length];
+            int vertexIndex = 0;
+
+            for (int ring = 0; ring < rings; ring++)
+            {
+                float t = ring / (float)(rings - 1);
+                for (int segment = 0; segment <= segments; segment++)
+                {
+                    float angle = segment / (float)segments * Mathf.PI * 2f;
+                    float directionX = Mathf.Cos(angle);
+                    float directionZ = Mathf.Sin(angle);
+
+                    // Deterministic raggedness: strongest at the skirt, fading
+                    // toward the hood so the head reads cleanly.
+                    float raggedness = Mathf.Lerp(0.5f, 0.12f, t);
+                    float noise = 1f + ((float)random.NextDouble() * 2f - 1f) * raggedness;
+                    // Low-frequency lumps so the raggedness stays smooth.
+                    noise *= 1f + 0.18f * Mathf.Sin(angle * 3f + t * 9f);
+
+                    float radius = ringRadius[ring] * noise;
+                    // A slight forward hunch: the upper body leans toward -Z.
+                    float hunch = Mathf.SmoothStep(0f, 0.22f, Mathf.Clamp01((t - 0.5f) / 0.5f));
+
+                    vertices[vertexIndex] = new Vector3(
+                        directionX * radius,
+                        ringHeight[ring],
+                        directionZ * radius - hunch);
+                    uvs[vertexIndex] = new Vector2(segment / (float)segments, t);
+                    vertexIndex++;
+                }
+            }
+
+            var triangles = new int[(rings - 1) * segments * 6];
+            int triangleIndex = 0;
+            for (int ring = 0; ring < rings - 1; ring++)
+            {
+                for (int segment = 0; segment < segments; segment++)
+                {
+                    int current = ring * (segments + 1) + segment;
+                    int next = current + segments + 1;
+                    triangles[triangleIndex++] = current;
+                    triangles[triangleIndex++] = next;
+                    triangles[triangleIndex++] = current + 1;
+                    triangles[triangleIndex++] = current + 1;
+                    triangles[triangleIndex++] = next;
+                    triangles[triangleIndex++] = next + 1;
+                }
+            }
+
+            Mesh mesh = new Mesh
+            {
+                name = "SM_Wraith",
+                vertices = vertices,
+                triangles = triangles,
+                uv = uvs,
+            };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            AssetDatabase.CreateAsset(mesh, "Assets/_Project/Models/SM_Wraith.asset");
+            return mesh;
         }
 
         // Hands_Art.prefab: improved procedural first-person hand (no CC0 arm

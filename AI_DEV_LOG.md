@@ -205,6 +205,28 @@ The game itself contains **no AI features** — this log is about the developmen
 - Teach-back check: pending — the batch pipeline order lives in `AGENTS.md` and the reports.
 - Test result: see the final section of this log and `Docs/PERFORMANCE.md` for the gate results.
 
+### 2026-10-31 — Round 3: player-reported bug fixes + horror presentation pass — Abdelrhman Mohamed (Lead TD orchestration)
+- Tool used: ZCode orchestration (GLM-5.3 Flash) with 3 read-only explore agents for the
+  catch/respawn trace, UI-systems audit and audio-pipeline map; all fixes applied and
+  verified by the Lead via batch + built-player smoke.
+- What AI provided: root-cause traces (cinematic camera corruption = "reversed controls";
+  FpsCounter absent from scenes + self-disable; no OnApplicationFocus cursor handling),
+  the catch→respawn timeline, the BuildQuiz/LoadingScreen/ProceduralSfx seams, and first
+  drafts of the wraith mesh, AudioImportTool/SfxRegistry, Footsteps, MenuCameraDrift/
+  MenuTitleFX, LoadingTheme, and the darkness/cookie/beam values.
+- What I changed myself: found the biggest bug of the pass while verifying the FPS fix —
+  `BuildCinematicRigs` re-opened the STALE school scene over the unsaved fresh build
+  (every school-scene builder change since round 1 had been silently discarded); fixed
+  the save order. Chose the procedural wraith over unlicense-verifiable model pages;
+  picked CC0/CC-BY audio sources with a library-first seam so synthesis stays as
+  fallback; reviewed all downloaded files against the license table.
+- Teach-back check: pending — walk a teammate through the save-order bug (why rigs
+  must run after the first SaveScene) and the library-first audio seam.
+- Test result: BuildAllBatch exit 0; ValidateBatch RESULT: PASS; Windows build +
+  Android APK (64.5 MB) exit 0; built-player boot smoke 0 errors, audio library
+  registered, tier/fps policy active. Feel-based items (darkness taste, audio mix,
+  menu drift) await the player's hands.
+
 ---
 
 ## Deviations from the project document (tracked here on purpose)

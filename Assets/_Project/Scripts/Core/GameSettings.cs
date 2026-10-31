@@ -118,7 +118,9 @@ namespace LightShadow.Core
         static void BuildResolutionList()
         {
             resolutions.Clear();
-            Resolution[] available = Screen.resolutions;
+            // -nographics batch sessions report no screen: guard the null so
+            // editor tooling that touches GameSettings still works headlessly.
+            Resolution[] available = Screen.resolutions ?? Array.Empty<Resolution>();
             var seen = new HashSet<long>();
 
             for (int i = 0; i < available.Length; i++)

@@ -14,6 +14,10 @@ namespace LightShadow.Tools
     public static class SceneBuilderUI
     {
         static Font _font;
+        // False when the menu scene ships the live 3D corridor diorama: the
+        // canvas then draws only a translucent scrim over the real school.
+        public static bool UseLiveBackdrop = true;
+
         static Sprite _background;
         static Sprite _knob;
         static Sprite _ui;
@@ -281,6 +285,22 @@ namespace LightShadow.Tools
                 new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
                 new Vector2(-44f, -28f), new Vector2(160f, 32f));
 
+            // Real timer bar (was text only): drains left-to-right each
+            // question; turns hot as time runs out.
+            Image timerTrack = MakeImage(card, "TimerTrack", new Vector2(0f, 1f), new Vector2(1f, 1f),
+                new Vector2(0.5f, 1f), new Vector2(0f, -62f), new Vector2(-88f, 12f),
+                ButtonSprite, new Color(0.16f, 0.15f, 0.13f, 0.95f), false);
+            // The fill is a CHILD object - a GameObject cannot host two
+            // Image components (AddComponent returns null for the second).
+            Image timerFill = MakeImage(timerTrack.transform, "TimerFill", Vector2.zero, Vector2.one,
+                new Vector2(0f, 0.5f), Vector2.zero, Vector2.zero,
+                ButtonSprite, new Color(1f, 0.84f, 0.55f, 0.95f), false);
+            timerFill.type = Image.Type.Filled;
+            timerFill.fillMethod = Image.FillMethod.Horizontal;
+            timerFill.fillOrigin = (int)Image.OriginHorizontal.Left;
+            timerFill.rectTransform.offsetMin = new Vector2(3f, 3f);
+            timerFill.rectTransform.offsetMax = new Vector2(-3f, -3f);
+
             Text question = MakeText(card, "Question", "", 31, Paper, TextAnchor.UpperLeft,
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
                 new Vector2(44f, -80f), new Vector2(952f, 140f));
@@ -315,6 +335,7 @@ namespace LightShadow.Tools
             quiz.headerText = header;
             quiz.questionText = question;
             quiz.timerText = timer;
+            quiz.timerFill = timerFill;
             quiz.optionButtons = buttons;
             quiz.optionTexts = labels;
             quiz.feedbackPanel = feedbackPanel.gameObject;
@@ -459,9 +480,14 @@ namespace LightShadow.Tools
             Transform root = canvas.transform;
             MainMenuController controller = canvas.gameObject.AddComponent<MainMenuController>();
 
-            // Painted night backdrop (school skyline, moon, fog, grain) with a
-            // flat dark fallback when the theme has not been generated.
-            if (BackdropSprite != null)
+            // Painted night backdrop for the 2D fallback menu; the live 3D
+            // corridor diorama (BuildMainMenuScene) sets UseLiveBackdrop=false
+            // so the real school shows through behind the title block.
+            if (!UseLiveBackdrop)
+            {
+                MakeFullScreen(root, "Background", new Color(0f, 0f, 0f, 0.28f), false);
+            }
+            else if (BackdropSprite != null)
             {
                 Image backdrop = MakeImage(root, "Background", Vector2.zero, Vector2.one,
                     new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero, BackdropSprite, Color.white, false);
@@ -494,6 +520,10 @@ namespace LightShadow.Tools
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0f, 175f), new Vector2(1100f, 90f), FontStyle.Italic);
             Localize(subtitle);
+
+            // Horror flicker on the title block (first menu animation).
+            MenuTitleFX titleFX = root.gameObject.AddComponent<MenuTitleFX>();
+            titleFX.flickerTargets = new Graphic[] { title, eyebrow, subtitle };
 
             Text playLabel;
             Button play = MakeButton(root, "PlayButton", "ENTER THE SCHOOL", new Vector2(0.5f, 0.5f),

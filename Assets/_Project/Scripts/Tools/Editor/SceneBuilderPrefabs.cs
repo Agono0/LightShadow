@@ -101,14 +101,39 @@ namespace LightShadow.Tools
             Light spot = flashlightGo.AddComponent<Light>();
             spot.type = LightType.Spot;
             spot.color = new Color(1f, 0.94f, 0.82f);
-            spot.intensity = 2.2f;
-            spot.range = 8f;
-            spot.spotAngle = 58f;
-            spot.innerSpotAngle = 34f;
+            spot.intensity = 2.6f;
+            spot.range = 11f;
+            spot.spotAngle = 62f;
+            spot.innerSpotAngle = 32f;
             spot.shadows = LightShadows.Soft;
-            spot.shadowStrength = 0.75f;
+            spot.shadowStrength = 0.8f;
             spot.shadowBias = 0.04f;
             spot.shadowNormalBias = 0.2f;
+
+            // Darkness pass: the beam throws a real cookie (hot centre,
+            // streaks) and a faint additive cone gives it volume in the
+            // fog. Both assets come from ArtImporter; the cone mesh carries
+            // vertex alpha so the haze dissolves instead of ending.
+            Texture2D cookie = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                "Assets/_Project/Textures/Art/Generated/T_FlashlightCookie.png");
+            if (cookie != null) spot.cookie = cookie;
+
+            Material beamMaterial = AssetDatabase.LoadAssetAtPath<Material>(
+                "Assets/_Project/Materials/Art/M_Art_Beam.mat");
+            if (beamMaterial != null)
+            {
+                GameObject cone = new GameObject("BeamCone");
+                cone.transform.SetParent(flashlightGo.transform, false);
+                cone.transform.localPosition = Vector3.zero;
+                cone.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // -Z forward
+                MeshFilter coneFilter = cone.AddComponent<MeshFilter>();
+                coneFilter.sharedMesh = BuildBeamConeMesh();
+                MeshRenderer coneRenderer = cone.AddComponent<MeshRenderer>();
+                coneRenderer.sharedMaterial = beamMaterial;
+                coneRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                coneRenderer.receiveShadows = false;
+                coneRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+            }
 
             PlayerController player = root.AddComponent<PlayerController>();
             FlashlightBattery battery = root.AddComponent<FlashlightBattery>();
@@ -131,6 +156,11 @@ namespace LightShadow.Tools
             raycaster.config = config;
             raycaster.rayCamera = camera;
             raycaster.interactMask = ~((1 << PlayerLayer) | (1 << EnemyLayer));
+
+            // Real-audio pass: footsteps timed from the controller's ground
+            // speed; silent when the CC0 footstep library has not shipped.
+            Footsteps footsteps = root.AddComponent<Footsteps>();
+            footsteps.player = player;
 
             // Low-poly hand holding the flashlight under the camera. FirstPersonHands
             // adds breathing, walk bob and a crouch dip; the visuals carry no
@@ -460,5 +490,57 @@ namespace LightShadow.Tools
 
             return SavePrefab(root, PrefabsFolder + "/Interactables", "ExitGate");
         }
+        // Tapered beam cone in front of the flashlight: narrow at the lens,
+        // wide at the far end, vertex alpha fading to zero so the haze
+        // dissolves instead of ending. Forward is -Z (camera forward).
+        static Mesh BuildBeamConeMesh()
+        {
+            const int segments = 18;
+            const float length = 6.5f;
+            const float startRadius = 0.06f;
+            const float endRadius = 1.7f;
+
+            var vertices = new Vector3[(segments + 1) * 2];
+            var colors = new Color[vertices.Length];
+            var uvs = new Vector2[vertices.Length];
+            for (int i = 0; i <= segments; i++)
+            {
+                float angle = i / (float)segments * Mathf.PI * 2f;
+                float dx = Mathf.Cos(angle);
+                float dy = Mathf.Sin(angle);
+                int nearIndex = i * 2;
+                int farIndex = i * 2 + 1;
+                vertices[nearIndex] = new Vector3(dx * startRadius, dy * startRadius, 0f);
+                vertices[farIndex] = new Vector3(dx * endRadius, dy * endRadius, -length);
+                colors[nearIndex] = new Color(1f, 1f, 1f, 0.55f);
+                colors[farIndex] = new Color(1f, 1f, 1f, 0f);
+                uvs[nearIndex] = new Vector2(0.5f, 0f);
+                uvs[farIndex] = new Vector2(0.5f, 1f);
+            }
+
+            var triangles = new int[segments * 6];
+            int t = 0;
+            for (int i = 0; i < segments; i++)
+            {
+                int near = i * 2;
+                int far = i * 2 + 1;
+                int nextNear = (i + 1) * 2;
+                int nextFar = (i + 1) * 2 + 1;
+                triangles[t++] = near;      triangles[t++] = nextNear; triangles[t++] = far;
+                triangles[t++] = far;       triangles[t++] = nextNear; triangles[t++] = nextFar;
+            }
+
+            Mesh mesh = new Mesh { name = "SM_BeamCone" };
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+            mesh.vertices = vertices;
+            mesh.colors = colors;
+            mesh.uv = uvs;
+            mesh.triangles = triangles;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            AssetDatabase.CreateAsset(mesh, "Assets/_Project/Models/SM_BeamCone.asset");
+            return mesh;
+        }
+
     }
 }

@@ -20,12 +20,15 @@ namespace LightShadow.UI
         public Text[] optionTexts = new Text[4];
         public GameObject feedbackPanel;
         public Text feedbackText;
+        [Header("Redesign: live timer bar + feedback punch")]
+        public Image timerFill;
 
         public bool IsOpen => panel != null && panel.activeSelf;
 
         QuestionData current;
         Action<bool, int> onAnswered;
         float timeLeft;
+        float timeTotal;   // question timer at ShowQuestion time (drives the bar)
         bool answered;
         bool cursorWasLocked;
 
@@ -56,6 +59,13 @@ namespace LightShadow.UI
             if (timerText != null)
             {
                 timerText.text = Localization.TimerLabel(timeLeft);
+                if (timerFill != null)
+                {
+                    timerFill.fillAmount = Mathf.Clamp01(timeLeft / Mathf.Max(0.01f, timeTotal));
+                    timerFill.color = timeLeft < timeTotal * 0.25f
+                        ? new Color(0.95f, 0.45f, 0.32f, 0.95f)   // hot: running out
+                        : new Color(1f, 0.84f, 0.55f, 0.95f);     // calm amber
+                }
                 timerText.font = Localization.CurrentFont;
             }
 
@@ -128,6 +138,7 @@ namespace LightShadow.UI
 
             GameConfig config = GameManager.Instance != null ? GameManager.Instance.config : null;
             timeLeft = config != null ? config.questionTimer : 20f;
+            timeTotal = timeLeft;
 
             RenderTexts();
 

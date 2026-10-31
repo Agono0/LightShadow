@@ -54,12 +54,65 @@ namespace LightShadow.Tools
         static void BuildMainMenuScene()
         {
             Scene scene = NewScene();
-            ApplyAtmosphere(new Color(0.02f, 0.02f, 0.03f), Color.black, 0.02f);
+            // The menu is now a LIVE 3D vignette (player request): a school
+            // corridor at night, one flickering lamp, drifting dust and the
+            // Shadow waiting far down the hall. The camera breathes.
+            ApplyAtmosphere(new Color(0.010f, 0.012f, 0.020f), new Color(0.012f, 0.015f, 0.024f), 0.032f);
 
-            CreateCamera("MenuCamera", new Vector3(0f, 0f, -10f), Quaternion.identity,
-                new Color(0.012f, 0.014f, 0.019f));
+            Material floor = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/Art/Mat_Art_WoodFloor.mat");
+            Material wall = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/Art/Mat_Art_PlasterWall.mat");
+            Material ceiling = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/Art/Mat_Art_Ceiling.mat");
+            Material metal = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/Art/Mat_Art_MetalLocker.mat");
+            Material wood = AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/Art/Mat_Art_DoorWood.mat");
+
+            var diorama = new GameObject("MenuDiorama");
+            diorama.layer = LevelLayer;
+            Transform t = diorama.transform;
+            Box(t, "Floor", new Vector3(0f, -0.1f, 0f), new Vector3(7f, 0.2f, 34f), floor);
+            Box(t, "Ceiling", new Vector3(0f, 4.3f, 0f), new Vector3(7f, 0.2f, 34f), ceiling);
+            Box(t, "WallL", new Vector3(-3.6f, 2.1f, 0f), new Vector3(0.3f, 4.4f, 34f), wall);
+            Box(t, "WallR", new Vector3(3.6f, 2.1f, 0f), new Vector3(0.3f, 4.4f, 34f), wall);
+            Box(t, "EndWall", new Vector3(0f, 2.1f, 17.2f), new Vector3(7.5f, 4.4f, 0.3f), wall);
+            Box(t, "DoorFrame", new Vector3(0f, 1.6f, 16.9f), new Vector3(1.6f, 3.2f, 0.12f), wood);
+            // Wall dressing for parallax depth while the camera drifts.
+            for (int i = 0; i < 4; i++)
+            {
+                float z = -8f + i * 6f;
+                Box(t, "LockerL" + i, new Vector3(-3.15f, 1.1f, z), new Vector3(0.5f, 1.9f, 1.1f), metal);
+                Box(t, "LockerR" + i, new Vector3(3.15f, 1.1f, z + 3f), new Vector3(0.5f, 1.9f, 1.1f), metal);
+            }
+            Box(t, "Bench", new Vector3(0.8f, 0.45f, -4f), new Vector3(1.9f, 0.5f, 0.55f), wood);
+
+            // One lamp flickering near the camera, one dying far away.
+            AddLamp(t, new Vector3(0f, 3.7f, -3f), new Color(1f, 0.72f, 0.40f), 1.1f, 9f);
+            AddLamp(t, new Vector3(0f, 3.7f, 9f), new Color(1f, 0.70f, 0.38f), 0.45f, 7f);
+
+            // The Shadow, far down the hall, barely inside the falloff.
+            GameObject shadowArt = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Art/Shadow_Art.prefab");
+            if (shadowArt != null)
+            {
+                GameObject silhouette = (GameObject)PrefabUtility.InstantiatePrefab(shadowArt, t);
+                silhouette.transform.localPosition = new Vector3(0.4f, 0f, 13.5f);
+                silhouette.transform.localRotation = Quaternion.Euler(0f, 195f, 0f);
+            }
+
+            // Drifting dust catches the lamp light.
+            GameObject dust = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Art/DustMotes.prefab");
+            if (dust != null)
+            {
+                GameObject dustInstance = (GameObject)PrefabUtility.InstantiatePrefab(dust, t);
+                dustInstance.transform.localPosition = new Vector3(0f, 1.8f, -4f);
+            }
+
+            // Camera inside the corridor; MenuCameraDrift breathes slowly.
+            Camera menuCamera = CreateCamera("MenuCamera", new Vector3(0f, 1.6f, -13f), Quaternion.identity,
+                new Color(0.004f, 0.005f, 0.008f));
+            menuCamera.transform.rotation = Quaternion.Euler(2f, 0f, 0f);
+            menuCamera.gameObject.AddComponent<LightShadow.UI.MenuCameraDrift>();
+
             CreatePostVolume(null, "GlobalVolume", PostNightPath);
             EnsureEventSystem();
+            SceneBuilderUI.UseLiveBackdrop = false; // the corridor IS the backdrop
             SceneBuilderUI.BuildMainMenuUI();
 
             SaveScene(scene, MainMenuPath);
@@ -111,8 +164,8 @@ namespace LightShadow.Tools
             AddGateLeaf(t, "GateLeafL", -5.7f, 58f, 1f, palette);
             AddGateLeaf(t, "GateLeafR", 5.7f, -58f, -1f, palette);
 
-            AddLamp(t, new Vector3(-6f, 4.05f, 4f), new Color(1f, 0.74f, 0.42f), 2.2f, 12f, false);
-            AddLamp(t, new Vector3(6f, 4.05f, 4f), new Color(1f, 0.74f, 0.42f), 2.2f, 12f, false);
+            AddLamp(t, new Vector3(-6f, 4.05f, 4f), new Color(1f, 0.74f, 0.42f), 1.2f, 9f, false);
+            AddLamp(t, new Vector3(6f, 4.05f, 4f), new Color(1f, 0.74f, 0.42f), 1.2f, 9f, false);
 
             // ---- the pavement outside the gate ------------------------------
             for (int i = 0; i < 2; i++)
@@ -120,7 +173,7 @@ namespace LightShadow.Tools
                 float x = i == 0 ? -5.2f : 5.2f;
                 float z = -2.5f;
                 Box(t, "LampPost_" + i, new Vector3(x, 1.7f, z), new Vector3(0.12f, 3.4f, 0.12f), palette.metal, false);
-                AddLamp(t, new Vector3(x, 3.4f, z), new Color(1f, 0.70f, 0.38f), 1.5f, 10f, false);
+                AddLamp(t, new Vector3(x, 3.4f, z), new Color(1f, 0.70f, 0.38f), 0.85f, 8f, false);
             }
 
             Box(t, "Pavement", new Vector3(0f, 0.03f, -6f), new Vector3(18f, 0.06f, 12f), palette.floor, false);
@@ -206,7 +259,9 @@ namespace LightShadow.Tools
         static void BuildSchoolScene(GameConfig config, QuestionDatabase database, Palette palette, Prefabs prefabs)
         {
             Scene scene = NewScene();
-            ApplyAtmosphere(new Color(0.030f, 0.033f, 0.045f), new Color(0.020f, 0.024f, 0.034f), 0.020f);
+            // Darkness pass: near-black ambient — the flashlight and the lit
+            // islands carry the scene now (player request: top-horror look).
+            ApplyAtmosphere(new Color(0.012f, 0.014f, 0.022f), new Color(0.014f, 0.017f, 0.026f), 0.026f);
 
             var level = new GameObject("Level");
             level.layer = LevelLayer;
@@ -300,6 +355,17 @@ namespace LightShadow.Tools
 
             // The brightness option acts through URP post-exposure and ambient lift.
             systems.AddComponent<BrightnessController>();
+
+            // Real-audio pass: register the imported CC0 clip library (idempotent;
+            // consumers keep synthesised fallbacks when a clip is missing).
+            LightShadow.Audio.AudioLibrary audioLibrary =
+                AssetDatabase.LoadAssetAtPath<LightShadow.Audio.AudioLibrary>(
+                    "Assets/_Project/Audio/AudioLibrary.asset");
+            if (audioLibrary != null)
+            {
+                var bootstrap = systems.AddComponent<LightShadow.Audio.AudioLibraryBootstrap>();
+                bootstrap.library = audioLibrary;
+            }
             CreatePostVolume(systems.transform, "GlobalVolume", PostNightPath);
 
             checkpoints.defaultSpawn = spawn.transform;
@@ -433,8 +499,8 @@ namespace LightShadow.Tools
             var lights = Group("Lighting", parent);
 
             // Entrance is always lit and is the first checkpoint.
-            AddLamp(lights.transform, new Vector3(-3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 2.8f, 10f);
-            AddLamp(lights.transform, new Vector3(3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 2.8f, 10f);
+            AddLamp(lights.transform, new Vector3(-3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 2.4f, 10f);
+            AddLamp(lights.transform, new Vector3(3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 2.4f, 10f);
             CreatePointLight(lights.transform, "GateGlow", new Vector3(0f, 2.6f, -33.5f),
                 new Color(1f, 0.72f, 0.42f), 1.6f, 8f);
 

@@ -174,6 +174,9 @@ namespace LightShadow.Tools
             // built; generation is deterministic and idempotent.
             UiThemeTool.Generate();
 
+            // The audio library must exist before the Systems object is wired.
+            AudioImportTool.ImportAll();
+
             // The school cannot be answered without questions.
             string questionSummary = QuestionGenerator.GenerateQuestionsSilent();
             QuestionDatabase database = AssetDatabase.LoadAssetAtPath<QuestionDatabase>(DatabasePath);
@@ -430,7 +433,7 @@ namespace LightShadow.Tools
                 curtain = MakeLit("Mat_Curtain", new Color(0.28f, 0.05f, 0.05f), 0.1f),
                 books = MakeLit("Mat_Books", new Color(0.35f, 0.18f, 0.10f), 0.1f),
                 water = MakeLit("Mat_Water", new Color(0.08f, 0.18f, 0.25f), 0.85f, 0.1f),
-                eye = MakeUnlit("Mat_Eye", new Color(1.65f, 0.16f, 0.10f)),
+                eye = MakeUnlit("Mat_Eye", new Color(2.2f, 0.30f, 0.10f)),
                 sun = MakeUnlit("Mat_Sun", new Color(1f, 0.80f, 0.48f) * 3.4f),
                 sky = MakeUnlit("Mat_Sky", new Color(0.15f, 0.13f, 0.18f))
             };
@@ -691,7 +694,7 @@ namespace LightShadow.Tools
             Light light = go.AddComponent<Light>();
             light.type = LightType.Directional;
             light.color = new Color(0.55f, 0.66f, 0.92f);
-            light.intensity = 0.11f;
+            light.intensity = 0.05f; // darkness pass: moon is a hint, not a lamp
             light.shadows = LightShadows.Soft;
             light.shadowStrength = 0.6f;
             light.renderMode = LightRenderMode.ForcePixel;

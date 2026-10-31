@@ -21,7 +21,10 @@ namespace LightShadow.Core
             source.loop = true;
             source.spatialBlend = 0f;
             source.volume = 0f;
-            source.clip = BuildClip();
+            // Library-first: the imported CC0 ambience (abandoned-building
+            // recording) replaces the synthesised drone when present.
+            AudioClip imported = LightShadow.Audio.SfxRegistry.Clip("AMB_SchoolNight");
+            source.clip = imported != null ? imported : BuildClip();
         }
 
         void Start()
