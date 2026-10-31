@@ -27,6 +27,7 @@ namespace LightShadow.UI
 
         const float FadeSeconds = 0.3f;
         const float MinimumShowSeconds = 0.8f;
+        const float StallTimeoutSeconds = 20f;
         const int SortOrder = 32000;
 
         Canvas canvas;
@@ -269,7 +270,25 @@ namespace LightShadow.UI
         void RunTransition(string sceneName)
         {
             StopAllCoroutines();
-            StartCoroutine(TransitionRoutine(sceneName));
+            if (inTransition) return; // a second click must not queue a second gated load
+            inTransition = true;
+            StartCoroutine(TransitionRoutineGuarded(sceneName));
+        }
+
+        static bool inTransition;
+
+        IEnumerator TransitionRoutineGuarded(string sceneName)
+        {
+            // try/finally (legal with yield): an exception mid-transition
+            // must not leave the guard closed forever.
+            try
+            {
+                yield return TransitionRoutine(sceneName);
+            }
+            finally
+            {
+                inTransition = false;
+            }
         }
 
         IEnumerator TransitionRoutine(string sceneName)
@@ -283,20 +302,34 @@ namespace LightShadow.UI
             AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
             if (operation != null)
             {
-                operation.allowSceneActivation = false;
-                while (operation.progress < 0.9f)
+                // NO activation gate: with allowSceneActivation=false Unity
+                // throttles the background load, and with competing background
+                // loads (our streaming audio) it stalled indefinitely at ~7%
+                // (player report: 'stuck on loading at 7%'). Activation stays
+                // allowed; the bar shows real progress to 100%.
+                float lastProgress = 0f;
+                float lastMoveAt = Time.unscaledTime;
+                while (!operation.isDone)
                 {
-                    progressFill.fillAmount = Mathf.Clamp01(operation.progress / 0.9f);
+                    progressFill.fillAmount = Mathf.Clamp01(operation.progress);
                     progressText.text = Mathf.RoundToInt(progressFill.fillAmount * 100f) + "%";
+                    // Belt and braces: if the loader ever stalls outright,
+                    // force activation rather than hanging the night.
+                    if (operation.allowSceneActivation &&
+                        operation.progress - lastProgress > 0.001f)
+                    {
+                        lastProgress = operation.progress;
+                        lastMoveAt = Time.unscaledTime;
+                    }
+                    else if (Time.unscaledTime - lastMoveAt > StallTimeoutSeconds)
+                    {
+                        operation.allowSceneActivation = true;
+                    }
                     yield return null;
                 }
 
                 // Hold the silhouette a moment so the transition breathes.
                 while (Time.unscaledTime - shownAt < MinimumShowSeconds) yield return null;
-
-                progressFill.fillAmount = 1f;
-                operation.allowSceneActivation = true;
-                while (!operation.isDone) yield return null;
             }
 
             yield return FadeTo(0f, FadeSeconds);
