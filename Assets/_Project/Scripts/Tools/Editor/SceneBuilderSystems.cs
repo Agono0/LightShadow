@@ -80,8 +80,8 @@ namespace LightShadow.Tools
             string drawer = DisableGpuResidentDrawer(PcAssetPath);
             drawer += ", " + DisableGpuResidentDrawer(MobileAssetPath);
             string post = EnsurePostShadersIncluded();
-            string ssao = DisableSsaoFeature(PcRendererPath);
-            ssao += ", " + DisableSsaoFeature(MobileRendererPath);
+            string ssao = RemoveSsaoFeature(PcRendererPath);
+            ssao += ", " + RemoveSsaoFeature(MobileRendererPath);
 
             string summary = "quality assets: ";
             summary += TuneTierCopy(MobileAssetPath, LowAssetPath, 0.65f, 1, 0f, false);
@@ -149,13 +149,14 @@ namespace LightShadow.Tools
             }
         }
 
-        // SSAO's shader resources get stripped from player builds even with
-        // the feature enabled ("Couldn't find the required resources for the
-        // ScreenSpaceAmbientOcclusion render feature"), and on the integrated
-        // GPUs this game actually ships on, SSAO at 120 FPS was never viable.
-        // The feature is disabled on both renderers; depth comes from the
-        // baked probes and the fog instead.
-        static string DisableSsaoFeature(string rendererPath)
+        // SSAO's shader resources get stripped from player builds, and URP 17.4
+        // calls AddRenderPasses on the feature EVERY FRAME even when the feature
+        // is disabled - each call logging LogErrorFormat("Couldn't find the
+        // required resources...") (5196 lines in a 40 s run = frozen game on the
+        // loading screen). Disabling is not enough: the feature is REMOVED from
+        // the renderer's feature list (and its sub-asset deleted) so nothing
+        // references SSAO in the shipped build.
+        static string RemoveSsaoFeature(string rendererPath)
         {
             try
             {
@@ -164,35 +165,40 @@ namespace LightShadow.Tools
 
                 SerializedObject serialized = new SerializedObject(renderer);
                 SerializedProperty features = serialized.FindProperty("m_RendererFeatures");
+                SerializedProperty featureMap = serialized.FindProperty("m_RendererFeatureMap");
                 if (features == null || !features.isArray) return Path.GetFileName(rendererPath) + " no-features";
 
-                int disabled = 0;
-                for (int i = 0; i < features.arraySize; i++)
+                int removed = 0;
+                for (int i = features.arraySize - 1; i >= 0; i--)
                 {
                     Object feature = features.GetArrayElementAtIndex(i).objectReferenceValue;
                     if (feature == null) continue;
                     if (feature.GetType().Name.IndexOf("ScreenSpaceAmbientOcclusion", StringComparison.OrdinalIgnoreCase) < 0)
                         continue;
-                    SerializedObject featureSerialized = new SerializedObject(feature);
-                    SerializedProperty enabled = featureSerialized.FindProperty("m_Enabled");
-                    if (enabled != null && enabled.boolValue)
+
+                    // Drop the matching 8-byte hash from the feature map so the
+                    // list and map stay paired.
+                    if (featureMap != null && featureMap.isArray && featureMap.arraySize == features.arraySize)
                     {
-                        enabled.boolValue = false;
-                        featureSerialized.ApplyModifiedPropertiesWithoutUndo();
-                        EditorUtility.SetDirty(feature);
-                        disabled++;
+                        featureMap.DeleteArrayElementAtIndex(i);
                     }
+                    features.DeleteArrayElementAtIndex(i);
+                    AssetDatabase.RemoveObjectFromAsset(feature);
+                    Object.DestroyImmediate(feature, true);
+                    removed++;
                 }
-                if (disabled > 0)
+
+                if (removed > 0)
                 {
+                    serialized.ApplyModifiedPropertiesWithoutUndo();
                     EditorUtility.SetDirty(renderer);
                     AssetDatabase.SaveAssets();
                 }
-                return Path.GetFileName(rendererPath) + (disabled > 0 ? " SSAO off" : " SSAO already off");
+                return Path.GetFileName(rendererPath) + (removed > 0 ? " SSAO removed" : " no SSAO feature");
             }
             catch (Exception exception)
             {
-                Debug.LogWarning("[LightShadow] SSAO disable failed for " + rendererPath + ": " + exception.Message);
+                Debug.LogWarning("[LightShadow] SSAO removal failed for " + rendererPath + ": " + exception.Message);
                 return "ERROR";
             }
         }
