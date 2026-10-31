@@ -257,6 +257,12 @@ namespace LightShadow.Core
                 if (controller != null) controller.enabled = true;
             }
 
+            // Full rig reset: pitch, camera local pose, crouch state, input lock
+            // and cursor. Without this the catch's cinematic could leave the
+            // camera facing the Shadow and movement feeling reversed.
+            PlayerController playerController = player != null ? player.GetComponent<PlayerController>() : null;
+            if (playerController != null) playerController.RespawnReset();
+
             if (enemy != null) enemy.ResetToPatrol();
 
             if (hud != null)

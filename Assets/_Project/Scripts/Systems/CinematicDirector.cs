@@ -76,32 +76,41 @@ namespace LightShadow.Systems
 
             cinematicPlaying = true;
 
-            // Take over: position the shot for this exact moment, raise its
-            // priority, and wake the brain on the gameplay camera.
-            PositionShot(id, shotCam, main.transform);
-            CinematicRunner.Cine.SetPriority(shotCam, ShotPriority);
-            Component brain = EnableBrain(main);
+            // The main camera is a CHILD of the camera pivot; while the brain
+            // drives it the world-space writes land as corrupted local pose and
+            // survive the shot (the reported "controls reversed / camera stuck"
+            // after being caught). Snapshot the exact local pose and restore it
+            // no matter how the handback goes.
+            Transform mainTransform = main.transform;
+            Vector3 savedLocalPosition = mainTransform.localPosition;
+            Quaternion savedLocalRotation = mainTransform.localRotation;
 
-            yield return new WaitForSeconds(HoldSecondsFor(id));
-
-            // Hand back: drop the priority, put the rig back to sleep, then
-            // switch the brain off so the first-person rig owns the camera again.
-            CinematicRunner.Cine.SetPriority(shotCam, GameplayPriority);
-            shotCam.gameObject.SetActive(false);
-            if (brain != null)
+            try
             {
-                try
-                {
-                    var enabledProperty = brain.GetType().GetProperty("enabled");
-                    if (enabledProperty != null) enabledProperty.SetValue(brain, false);
-                }
-                catch (Exception exception)
-                {
-                    Debug.LogWarning("[LightShadow] Cinematic brain re-disable failed: " + exception.Message);
-                }
-            }
+                // Take over: position the shot for this exact moment, raise its
+                // priority, and wake the brain on the gameplay camera.
+                PositionShot(id, shotCam, mainTransform);
+                CinematicRunner.Cine.SetPriority(shotCam, ShotPriority);
+                EnableBrain(main);
 
-            cinematicPlaying = false;
+                yield return new WaitForSeconds(HoldSecondsFor(id));
+            }
+            finally
+            {
+                // Hand back: drop the priority, put the rig back to sleep, then
+                // switch the brain off so the first-person rig owns the camera
+                // again. The brain is re-fetched by component rather than
+                // trusting EnableBrain's return, so a partially-failed enable
+                // can never leave the brain permanently enabled.
+                CinematicRunner.Cine.SetPriority(shotCam, GameplayPriority);
+                shotCam.gameObject.SetActive(false);
+                DisableBrain(main);
+
+                mainTransform.localPosition = savedLocalPosition;
+                mainTransform.localRotation = savedLocalRotation;
+
+                cinematicPlaying = false;
+            }
         }
 
         // ------------------------------------------------------ rig lookup --
@@ -183,12 +192,10 @@ namespace LightShadow.Systems
             }
         }
 
-        static Component EnableBrain(Camera main)
+        static void EnableBrain(Camera main)
         {
-            Type brainType = CinematicRunner.Cine.Find(CinematicRunner.Cine.BrainType);
-            if (brainType == null) return null;
-            Component brain = main.GetComponent(brainType);
-            if (brain == null) return null;
+            Component brain = FindBrain(main);
+            if (brain == null) return;
             try
             {
                 brain.GetType().GetProperty("enabled")?.SetValue(brain, true);
@@ -196,9 +203,31 @@ namespace LightShadow.Systems
             catch (Exception exception)
             {
                 Debug.LogWarning("[LightShadow] CinemachineBrain could not wake: " + exception.Message);
-                return null;
             }
-            return brain;
+        }
+
+        // Looked up fresh for every handback: trusting EnableBrain's return
+        // left the brain enabled forever when the wake half-way failed, which
+        // pinned the camera to a stale shot pose (mouse-look dead).
+        static void DisableBrain(Camera main)
+        {
+            Component brain = FindBrain(main);
+            if (brain == null) return;
+            try
+            {
+                brain.GetType().GetProperty("enabled")?.SetValue(brain, false);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("[LightShadow] Cinemachine brain re-disable failed: " + exception.Message);
+            }
+        }
+
+        static Component FindBrain(Camera main)
+        {
+            Type brainType = CinematicRunner.Cine.Find(CinematicRunner.Cine.BrainType);
+            if (brainType == null) return null;
+            return main.GetComponent(brainType);
         }
 
         static void EnsureRigRoot()

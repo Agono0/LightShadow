@@ -321,10 +321,15 @@ namespace LightShadow.Tools
             // Give the starting checkpoint a spawn even before a LitZone fires.
             Empty(environment.transform, "PlayerStartMarker", new Vector3(0f, 0f, -29.5f), Quaternion.identity);
 
+            // Save the freshly built scene BEFORE the cinematic rigs run:
+            // BuildCinematicRigs resolves the school scene by path, and for an
+            // UNSAVED active scene it would OpenScene(Single) the stale file
+            // from disk — silently discarding the entire build (this exact bug
+            // ate every school-scene builder change between round 1 and now).
+            SaveScene(scene, SchoolPath);
+
             // Premium pass: dormant Cinemachine rigs for the scripted catch/dawn/gate shots.
             BuildCinematicRigs();
-
-            SaveScene(scene, SchoolPath);
         }
 
         // ------------------------------------------------------------- shell
@@ -491,36 +496,40 @@ namespace LightShadow.Tools
             set.dawnLights.SetActive(false);
 
             // ---- lit zones / checkpoints --------------------------------------
+            // The zone's yaw is the respawn facing (CheckpointManager stores the
+            // zone transform): each spawn wakes looking into its room, not at
+            // world +Z.
             set.entrance = MakeLitZone(parent, "LitZone_Entrance", new Vector3(0f, 0f, -29.5f),
-                new Vector3(0f, 1.5f, -0.5f), new Vector3(13.4f, 3f, 5.4f), true,
+                new Vector3(0f, 1.5f, -0.5f), new Vector3(13.4f, 3f, 5.4f), 0f, true,
                 "The entrance light still works. It watched her come in.", true);
 
             set.library = MakeLitZone(parent, "LitZone_Library", new Vector3(-12f, 0f, -12f),
-                new Vector3(-0.325f, 1.5f, -3f), new Vector3(19.35f, 3f, 14f), true,
+                new Vector3(-0.325f, 1.5f, -3f), new Vector3(19.35f, 3f, 14f), 90f, true,
                 "The library holds its breath. \"Put me back together.\"", false);
 
             set.physics = MakeLitZone(parent, "LitZone_Physics", new Vector3(11f, 0f, -10f),
-                new Vector3(1.325f, 1.5f, -5f), new Vector3(19.35f, 3f, 14f), true,
+                new Vector3(1.325f, 1.5f, -5f), new Vector3(19.35f, 3f, 14f), 270f, true,
                 "The lab smells of dust and copper. The light steadies her hands.", false);
 
             set.staff = MakeLitZone(parent, "LitZone_Staff", new Vector3(-12f, 0f, 21f),
-                new Vector3(-0.325f, 1.5f, 2.5f), new Vector3(19.35f, 3f, 6.4f), true,
+                new Vector3(-0.325f, 1.5f, 2.5f), new Vector3(19.35f, 3f, 6.4f), 90f, true,
                 "Her mug is still on the table. The room remembers her.", false);
 
             set.mainHall = MakeLitZone(parent, "LitZone_MainHall", new Vector3(0f, 0f, 28f),
-                new Vector3(0f, 1.5f, 6.5f), new Vector3(27.35f, 3f, 13.4f), true,
+                new Vector3(0f, 1.5f, 6.5f), new Vector3(27.35f, 3f, 13.4f), 180f, true,
                 "The hall is full of empty seats. The last light is warm.", false);
 
             return set;
         }
 
         static LitZone MakeLitZone(Transform parent, string name, Vector3 position, Vector3 center, Vector3 size,
-            bool checkpoint, string chalkLine, bool active)
+            float spawnYaw, bool checkpoint, string chalkLine, bool active)
         {
             var go = new GameObject(name);
             go.layer = LevelLayer;
             go.transform.SetParent(parent, false);
             go.transform.localPosition = position;
+            go.transform.localRotation = Quaternion.Euler(0f, spawnYaw, 0f);
 
             BoxCollider box = go.AddComponent<BoxCollider>();
             box.isTrigger = true;

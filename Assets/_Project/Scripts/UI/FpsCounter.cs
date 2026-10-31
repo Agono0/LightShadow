@@ -65,8 +65,10 @@ namespace LightShadow.UI
 
         void RefreshVisibility()
         {
+            // Only the LABEL is toggled. Disabling this component instead would
+            // fire OnDisable, unsubscribe from GameSettings.Changed, and leave
+            // the counter permanently dark after the first off-toggle.
             if (label != null) label.gameObject.SetActive(GameSettings.ShowFps);
-            enabled = GameSettings.ShowFps;
         }
 
         static Color ColorFor(int fps)

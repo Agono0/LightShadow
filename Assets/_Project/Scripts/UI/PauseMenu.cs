@@ -16,7 +16,9 @@ namespace LightShadow.UI
         public Button quitButton;
         public SettingsPanelController settings;
 
-        public bool IsOpen { get; private set; }
+        // Static: the player controller's cursor guard reads it without a
+        // reference, and a single pause menu exists per scene.
+        public static bool IsOpen { get; private set; }
 
         void Awake()
         {

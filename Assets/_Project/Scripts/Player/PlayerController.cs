@@ -1,4 +1,5 @@
 using LightShadow.Core;
+using LightShadow.UI;
 using UnityEngine;
 
 namespace LightShadow.Player
@@ -61,11 +62,63 @@ namespace LightShadow.Player
 
         void Start()
         {
-            // Desktop keeps the mouse locked to the window while playing.
+            LockCursorForPlay();
+        }
+
+        void OnApplicationFocus(bool hasFocus)
+        {
+            // Alt-tab (or any focus loss) silently releases the cursor lock;
+            // on focus regain it never comes back by itself, which read as
+            // "the mouse randomly gets off the game". Re-assert while playing.
+            if (hasFocus && !Application.isMobilePlatform)
+            {
+                LockCursorForPlay();
+            }
+        }
+
+        void LockCursorForPlay()
+        {
+            // Overlays that legitimately free the cursor (pause, quiz, dialogue,
+            // ending) re-lock on their own close paths; do not fight them.
+            if (PauseMenu.IsOpen || ExternalInputLocked || GameManager.Instance != null && GameManager.Instance.quizUI != null && GameManager.Instance.quizUI.IsOpen)
+            {
+                return;
+            }
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
+        /// <summary>Full pose/state reset for checkpoint respawn: the catch
+        /// sequence (camera shake, cinematic shot, crouch) can leave the rig in
+        /// a state that read as "reversed controls / broken camera". Zeroes
+        /// everything the respawn does not restore by itself.</summary>
+        public void RespawnReset()
+        {
+            pitch = 0f;
+            crouchToggle = false;
+            crouchHeldByKey = false;
+            sprintHeld = false;
+            sprintFromTouch = false;
+            keyboardMove = Vector2.zero;
+            touchMove = Vector2.zero;
+            verticalVelocity = 0f;
+            ExternalInputLocked = false;
+
+            if (cameraPivot != null)
+            {
+                cameraPivot.localRotation = Quaternion.identity;
+            }
+            if (playerCamera != null)
+            {
+                playerCamera.transform.localPosition = Vector3.zero;
+                playerCamera.transform.localRotation = Quaternion.identity;
+            }
+            // CharacterController height follows the crouch smoothing on the
+            // next Update once crouchToggle is cleared.
+
             if (!Application.isMobilePlatform)
             {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                LockCursorForPlay();
             }
         }
 
