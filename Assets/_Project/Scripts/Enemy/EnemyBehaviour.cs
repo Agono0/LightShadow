@@ -194,7 +194,7 @@ namespace LightShadow.Enemy
 
             // How visible Nour is right now: standing in a lit room counts as fully lit.
             float effectiveLight = LitZone.PlayerInLitZone ? 1f : FlashlightBattery.PlayerLightLevel;
-            bool sighted = distance <= SightRange && (sight == null || sight.HasLineOfSight());
+            bool sighted = distance <= SightRange && (sight == null || sight.HasLineOfSightCached());
 
             // Sweaty-palm hearing (P3): a fresh noise inside its radius pulls
             // the Shadow off patrol/stalk (or interrupts a search) to

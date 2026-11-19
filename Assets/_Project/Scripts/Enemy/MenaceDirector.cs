@@ -113,12 +113,14 @@ namespace LightShadow.Enemy
 
         // Rise = strongest applicable pressure: chase > seen > near, or a slow
         // decay when the Shadow is far and unseeing. Dawn hunts harder (the
-        // enemy's aggressive flag mirrors Act III, plan 4.12).
+        // enemy's aggressive flag mirrors Act III, plan 4.12). The sight read
+        // goes through EnemySight's per-frame cache so the FSM poll and this
+        // one share a single Linecast per frame.
         float ComputeRise()
         {
             float distance = Vector3.Distance(enemy.transform.position, player.position);
             bool seen = distance <= (enemy.sight != null ? enemy.sight.range : 15f)
-                && enemy.sight != null && enemy.sight.HasLineOfSight();
+                && enemy.sight != null && enemy.sight.HasLineOfSightCached();
             bool near = distance <= NearDistance;
 
             float rise;
