@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Citrus fruits such as oranges are rich in vitamin C, which supports
     the immune system and helps the body absorb iron.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي من هذه الأطعمة مصدر جيد لفيتامين ج؟
+  optionsAr:
+  - البرتقال
+  - الأرز الأبيض
+  - الزبدة
+  - ملح الطعام
+  explanationAr: ثمار الحوامض كالبرتقال غنية بفيتامين ج الذي يدعم جهاز المناعة ويساعد الجسم على امتصاص الحديد.

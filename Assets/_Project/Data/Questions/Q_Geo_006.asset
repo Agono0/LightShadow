@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: The Sahara covers roughly 9 million square kilometres across North
     Africa, making it the largest hot desert.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي مما يلي أكبر صحراء حارة في العالم؟
+  optionsAr:
+  - صحراء جوبي
+  - صحراء كالاهاري
+  - الصحراء الكبرى
+  - صحراء أتاكاما
+  explanationAr: تمتد الصحراء الكبرى على نحو 9 ملايين كيلومتر مربع عبر شمال إفريقيا، فهي أكبر الصحاري الحارة.

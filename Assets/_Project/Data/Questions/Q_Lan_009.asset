@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: '"She runs every morning" has a subject and a verb and expresses a
     complete thought.'
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي مما يلي جملة تامة؟
+  optionsAr:
+  - Running down the street.
+  - Because it was late.
+  - She runs every morning.
+  - The big red ball.
+  explanationAr: الجملة التامة فيها فاعل وفعل، وتعبر عن معنى كامل يُفهم بذاته.

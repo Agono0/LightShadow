@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: White blood cells recognise and attack pathogens; red blood cells
     carry oxygen.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي خلايا الدم تعين الجسم على محاربة العدوى؟
+  optionsAr:
+  - كرات الدم الحمراء
+  - كرات الدم البيضاء
+  - الصفائح الدموية
+  - خلايا البلازما
+  explanationAr: كرات الدم البيضاء تميز الجراثيم الممرضة وتهاجمها، أما كرات الدم الحمراء فتحمل الأكسجين.

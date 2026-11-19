@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Sleep guidelines recommend 8-10 hours a night for teenagers aged 13
     to 18.
   factSource: NEEDS-FACT-CHECK
+  questionAr: كم ساعة نوم يحتاج معظم المراهقين في كل ليلة؟
+  optionsAr:
+  - من 4 إلى 5 ساعات
+  - من 6 إلى 7 ساعات
+  - من 8 إلى 10 ساعات
+  - من 12 إلى 14 ساعة
+  explanationAr: توصيات النوم ترشد إلى 8-10 ساعات في الليلة للمراهقين من 13 إلى 18 عامًا.

@@ -24,3 +24,10 @@ MonoBehaviour:
   difficulty: 2
   explanation: 25% of 40 is 10, and 40 - 10 = 30.
   factSource: NEEDS-FACT-CHECK
+  questionAr: وشاح سعره المعتاد 40، وهو معروض للبيع بخصم 25%. كم تدفعين؟
+  optionsAr:
+  - 25
+  - 30
+  - 32
+  - 35
+  explanationAr: 25% من 40 يساوي 10، ومن ثم 40-10=30.

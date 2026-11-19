@@ -43,7 +43,8 @@ namespace LightShadow.Tools
             }
 
             // Question bank integrity (doc 4.1 and T13): at least 60 valid
-            // questions, every one draft-marked for the human fact-check.
+            // questions, every one draft-marked for the human fact-check and
+            // carrying full Arabic fields (task P4; HasArabic + explanationAr).
             QuestionDatabase database = AssetDatabase.LoadAssetAtPath<QuestionDatabase>(DatabasePath);
             if (database == null)
             {
@@ -52,19 +53,24 @@ namespace LightShadow.Tools
             else
             {
                 int valid = 0;
+                int arabic = 0;
                 var categories = new HashSet<QuestionCategory>();
                 foreach (QuestionData question in database.all)
                 {
                     if (question == null || !question.IsValid) continue;
                     valid++;
                     categories.Add(question.category);
+                    if (question.HasArabic && !string.IsNullOrWhiteSpace(question.explanationAr)) arabic++;
                     if (string.IsNullOrEmpty(question.factSource)) problems.Add("Question " + question.name + " has no fact source.");
                 }
 
                 report.AppendLine("Question bank: " + valid + " valid / " + database.all.Count + " linked");
                 report.AppendLine("Question categories: " + categories.Count + "/6");
+                report.AppendLine("Question Arabic fields: " + arabic + "/" + valid);
                 if (valid < 60) problems.Add("Question bank has " + valid + " valid questions; the project document asks for 60+.");
                 if (categories.Count < 6) problems.Add("Question bank is missing one or more categories.");
+                if (arabic < valid) problems.Add("Question bank: " + (valid - arabic) + " of " + valid
+                    + " valid questions lack full Arabic fields (questionAr/optionsAr/explanationAr).");
             }
 
             EditorSceneManager.OpenScene(SchoolPath, OpenSceneMode.Single);
