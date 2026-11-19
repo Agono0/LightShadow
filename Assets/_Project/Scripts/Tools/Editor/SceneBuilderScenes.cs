@@ -9,6 +9,7 @@ using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.AI;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -45,6 +46,11 @@ namespace LightShadow.Tools
 
             var bootstrap = new GameObject("Bootstrap");
             bootstrap.AddComponent<BootstrapLoader>();
+
+            // The mixer must be wired process-wide before the menu loads
+            // (D15 follow-up §4.2); snapshot driving starts here and the school
+            // Systems copy is the fallback for direct school-scene play.
+            AttachAudioSnapshot(bootstrap.transform);
 
             SaveScene(scene, BootstrapPath);
         }
@@ -211,6 +217,23 @@ namespace LightShadow.Tools
             ending.dawnLight = dawnLight;
             ending.endingCamera = camera;
 
+            // Ending music cues (Phase 1): one-shot per ending id, wired from
+            // the audio library (Kevin MacLeod CC-BY). PartialMemory /
+            // HollowEscape have no cue yet and stay silent until the Pixabay
+            // primaries are downloaded (Docs/SOURCING_FONTS_MUSIC.md).
+            ending.musicSource = CreateAudioSource(ending.transform, "EndingMusicSource");
+            LightShadow.Audio.AudioLibrary audioLibrary =
+                AssetDatabase.LoadAssetAtPath<LightShadow.Audio.AudioLibrary>(
+                    "Assets/_Project/Audio/AudioLibrary.asset");
+            if (audioLibrary != null)
+            {
+                ending.endingMusic = new[]
+                {
+                    new EndingController.EndingMusic { endingId = "FullRecovery", clip = audioLibrary.endingHopeGold },
+                    new EndingController.EndingMusic { endingId = "Dawnless", clip = audioLibrary.endingDawnlessGrey },
+                };
+            }
+
             SaveScene(scene, EndingPath);
         }
 
@@ -366,6 +389,11 @@ namespace LightShadow.Tools
                 var bootstrap = systems.AddComponent<LightShadow.Audio.AudioLibraryBootstrap>();
                 bootstrap.library = audioLibrary;
             }
+
+            // Snapshot driving on the school Systems object (idempotent; direct
+            // play of the school scene works without the bootstrap).
+            AttachAudioSnapshot(systems.transform);
+
             CreatePostVolume(systems.transform, "GlobalVolume", PostNightPath);
 
             checkpoints.defaultSpawn = spawn.transform;
@@ -1045,6 +1073,24 @@ namespace LightShadow.Tools
             source.loop = false;
             source.spatialBlend = 0f;
             return source;
+        }
+
+        // ------------------------------------------------------- audio mixer --
+
+        // Idempotent attach of the runtime snapshot driver with the mixer asset
+        // wired (AGENT_REPORT_AUDIO_MIXER §4.2/§4.5). AudioSnapshotController
+        // guards duplicates itself (first instance wins), so attaching to both
+        // the bootstrap and the school Systems is safe.
+        static void AttachAudioSnapshot(Transform parent)
+        {
+            if (parent == null) return;
+            LightShadow.Audio.AudioSnapshotController controller =
+                parent.GetComponent<LightShadow.Audio.AudioSnapshotController>();
+            if (controller == null)
+            {
+                controller = parent.gameObject.AddComponent<LightShadow.Audio.AudioSnapshotController>();
+            }
+            controller.mixer = AssetDatabase.LoadAssetAtPath<AudioMixer>(AudioMixerTool.MixerPath);
         }
     }
 }

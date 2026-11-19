@@ -32,6 +32,9 @@ namespace LightShadow.Audio
             SfxRegistry.RegisterMany("SFX_FootstepWood", library.footstepWood);
             SfxRegistry.RegisterMany("SFX_ShadowMoan", library.shadowMoans);
             SfxRegistry.Register("AMB_SchoolNight", library.ambienceNight);
+            SfxRegistry.Register("MUS_Bed_LongNoteOne", library.musicBedLongNoteOne);
+            SfxRegistry.Register("MUS_Ending_HopeGold", library.endingHopeGold);
+            SfxRegistry.Register("MUS_Ending_DawnlessGrey", library.endingDawnlessGrey);
             Debug.Log("[LightShadow] Audio library registered (" + library.name + ").");
         }
     }

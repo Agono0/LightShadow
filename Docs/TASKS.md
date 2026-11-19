@@ -15,27 +15,39 @@ before merge (AGENTS.md, Git workflow).
 - [x] Fix the release job x86_64 APK rename loop (leftover code broke the
       `v0.1.0-ci-test` release) — fixed on this branch. *(P0)*
 - [x] Tag cleanup for `v0.1.0-ci-test`. *(P0)*
-- [ ] Commit the missing generated assets scenes reference (SM_Wraith,
+- [x] Commit the missing generated assets scenes reference (SM_Wraith,
       SM_BeamCone, reflection-probe bakes) after the ArtImporter rerun. *(P0)*
-- [ ] Write the adopted-plan documentation set (MASTER_PLAN / PROJECT_STATE /
+      — covered by the premium-pass-phase0 PR 3 (commit `3638000`).
+- [x] Write the adopted-plan documentation set (MASTER_PLAN / PROJECT_STATE /
       TASKS / STYLE_GUIDE / CREDITS + README/ROADMAP updates). *(P0)*
+      — covered by the premium-pass-phase0 PR 3.
 - [ ] README/ROADMAP hygiene: statuses accurate, stale claims removed, links
       resolve. *(P0)*
 
 ## P1 — Fonts, AudioMixer and music
 
-- [ ] Bundle OFL fonts with fallback chains: Arabic body + display
+- [x] Bundle OFL fonts with fallback chains: Arabic body + display
       (Noto Naskh Arabic, Reem Kufi/Cairo class) and Latin UI/notes fonts
       (Inter, typewriter/handwriting styles); Arabic stops depending on OS
-      fonts. *(P1)*
-- [ ] Replace the code-level category mixer with a real AudioMixer asset
+      fonts. *(P1)* — fonts bundled + wired in this PR
+      (`feat/audio-mixer-snapshots`); Arabic titles use Noto Naskh Bold because
+      Cairo/Reem Kufi lack the Presentation Forms-B glyphs the ArabicSupport
+      shaper emits (SOURCING doc Part 1); OS-font fallback retained.
+- [x] Replace the code-level category mixer with a real AudioMixer asset
       (Master > Music/SFX/Ambience/Voice/UI) and wire the existing settings
-      sliders to it (supersedes D15's interim mixer). *(P1)*
-- [ ] AudioMixer snapshots (Explore / Stalk / Chase / Hide / Memory / Dawn)
-      driven from the Shadow FSM and story moments. *(P1)*
-- [ ] Real music: per-wing drones + ending cues from a licensed/CC0 source
+      sliders to it (supersedes D15's interim mixer). *(P1)* — built by
+      `AudioMixerTool.EnsureBatch` (M_Main.mixer + Shadow/Voice groups), sliders
+      drive exposed group params via `VolumeCategories` (D15 follow-up spec).
+- [x] AudioMixer snapshots (Explore / Stalk / Chase / Hide / Memory / Dawn)
+      driven from the Shadow FSM and story moments. *(P1)* — six snapshots +
+      Master low-pass; driven by `GameEvents.EnemyStateChanged`,
+      `LitZone.PlayerInLitZone` and the fragment/fuse/dawn events via
+      `AudioSnapshotController` (transition seconds in GameConfig).
+- [x] Real music: per-wing drones + ending cues from a licensed/CC0 source
       (D9 logged in ASSET_LICENSES) with the procedural AdaptiveMusic kept as
-      fallback. *(P1)*
+      fallback. *(P1)* — Kevin MacLeod CC-BY 3.0 bed + ending cues imported and
+      wired in this PR; Pixabay primaries pending manual download (bot-protected
+      pages need a browser session); per-wing drones remain procedural.
 
 ## P2 — Blender hero props + key architecture
 

@@ -99,11 +99,12 @@ not include them in the session.
   when a clip exists**; `StoryTeller` stays as the fallback for missing lines.
   `node.speaker` gives the channel, `node.nodeId` the file name — both already
   on the asset.
-- Routing: the **Voice group in the M_Main AudioMixer** (Master > Voice, from
-  the P1 mixer work) is empty and waiting for these clips. VO routes there so
-  the mixer snapshots can duck everything but Voice/Music at memory-flash and
-  chase beats (plan §8.3). Until the mixer lands, the interim path is the
-  code-level `VolumeCategories` Voice/UI category.
+- Routing: the **Voice group in the M_Main AudioMixer** (Master > Voice, now
+  shipped with the P1 mixer work — `Assets/_Project/Audio/Mixers/M_Main.mixer`)
+  is waiting for these clips. The VO `AudioSource` routes there via
+  `VolumeCategories.GroupFor(VolumeCategories.Category.Voice)` (the same bridge
+  every other source uses), so the mixer snapshots can duck everything but
+  Voice/Music at memory-flash and chase beats (plan §8.3).
 - Other `StoryTeller.Speak` call sites (`GameManager` quiz feedback,
   `KnowledgeFragment` fragment lines, `EndingController` epilogue echo) are
   UI strings — out of scope for this session; they can keep TTS or get a

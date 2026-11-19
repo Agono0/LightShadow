@@ -22,6 +22,7 @@ namespace LightShadow.Tools
         const string ThirdParty = "Assets/ThirdParty";
         const string SfxFolder = "Assets/_Project/Audio/SFX";
         const string AmbFolder = "Assets/_Project/Audio/Ambience";
+        const string MusicFolder = "Assets/_Project/Audio/Music";
         const string LibraryPath = "Assets/_Project/Audio/AudioLibrary.asset";
 
         [MenuItem("LightShadow/Art/5. Import Audio Library", priority = 25)]
@@ -40,6 +41,7 @@ namespace LightShadow.Tools
         {
             EnsureFolder(SfxFolder);
             EnsureFolder(AmbFolder);
+            EnsureFolder(MusicFolder);
 
             var library = AssetDatabase.LoadAssetAtPath<AudioLibrary>(LibraryPath);
             if (library == null)
@@ -89,6 +91,15 @@ namespace LightShadow.Tools
             library.ambienceNight = ImportCopy(
                 "AbandonedBuildingAmbience/abandonedbuildingambience2.mp3", AmbFolder, "AMB_SchoolNight");
 
+            // ---- music (Phase 1) ---------------------------------------------------
+            // These files are downloaded directly into _Project (staged per
+            // Docs/SOURCING_FONTS_MUSIC.md, logged in Docs/ASSET_LICENSES.md),
+            // so unlike the pack copies above there is no ThirdParty source;
+            // the tool only configures their importers and links the library.
+            library.musicBedLongNoteOne = ImportPlaced(AmbFolder, "MUS_Bed_LongNoteOne.mp3");
+            library.endingHopeGold = ImportPlaced(MusicFolder, "MUS_Ending_HopeGold.mp3");
+            library.endingDawnlessGrey = ImportPlaced(MusicFolder, "MUS_Ending_DawnlessGrey.mp3");
+
             EditorUtility.SetDirty(library);
             AssetDatabase.SaveAssets();
             return "Audio library built at " + LibraryPath;
@@ -112,6 +123,22 @@ namespace LightShadow.Tools
             {
                 File.Copy(sourcePath, targetPath, false);
                 AssetDatabase.ImportAsset(targetPath, ImportAssetOptions.ForceUpdate);
+            }
+
+            ConfigureImporter(targetPath);
+            return AssetDatabase.LoadAssetAtPath<AudioClip>(targetPath);
+        }
+
+        /// <summary>Wires a music file that already lives in _Project (downloaded
+        /// and license-logged, no ThirdParty pack copy) into the library:
+        /// configures the importer and returns the loaded clip or null.</summary>
+        static AudioClip ImportPlaced(string targetFolder, string fileName)
+        {
+            string targetPath = targetFolder + "/" + fileName;
+            if (!File.Exists(targetPath))
+            {
+                Debug.LogWarning("[LightShadow] Music file missing: " + targetPath);
+                return null;
             }
 
             ConfigureImporter(targetPath);

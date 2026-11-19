@@ -31,3 +31,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: e304a78cf95f111489ea268d1818ea1a, type: 3}
   - {fileID: 8300000, guid: d0ff1a73fbf92134fa9d39d2bb65f79a, type: 3}
   ambienceNight: {fileID: 8300000, guid: caff98630f5057c46834208cc4510255, type: 3}
+  musicBedLongNoteOne: {fileID: 8300000, guid: 07f7169932f70cb46b30b1bd9f753b6d, type: 3}
+  endingHopeGold: {fileID: 8300000, guid: 83b7e58a71a37784d9198e61b364fe8f, type: 3}
+  endingDawnlessGrey: {fileID: 8300000, guid: 4736c5766d1d14f4e8fd4be492d71b3f, type: 3}
