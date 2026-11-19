@@ -19,10 +19,13 @@ namespace LightShadow.Tools
     //      animations or colliders, medium mesh compression and generated
     //      lightmap UVs; the materials Unity auto-generates next to the FBX
     //      are converted in place to URP/Lit so nothing renders pink;
-    //   3. surface materials (Mat_Art_*) are built from the texture sets;
-    //   4. special prefabs (Shadow_Art, Hands_Art, DustMotes) are assembled;
-    //   5. the existing TheShadow and Player prefabs get their art wiring;
-    //   6. the Post_Night / Post_Dawn volume profiles gain fog, bloom and
+    //   3. hero FBX models from Assets/_Project/Models/Hero (built by the
+    //      Art/pipeline Blender scripts) get the same unit-safe static-prop
+    //      import with their own HeroModels settings table;
+    //   4. surface materials (Mat_Art_*) are built from the texture sets;
+    //   5. special prefabs (Shadow_Art, Hands_Art, DustMotes) are assembled;
+    //   6. the existing TheShadow and Player prefabs get their art wiring;
+    //   7. the Post_Night / Post_Dawn volume profiles gain fog, bloom and
     //      film grain through the VolumeProfile API only.
     // Every step is idempotent: running it twice changes nothing.
     public static class ArtImporter
@@ -46,6 +49,47 @@ namespace LightShadow.Tools
         static readonly string[] PackFolders =
         {
             "KenneyFurnitureKit", "KenneyNatureKit", "KenneyGraveyardKit", "KenneyBlockyCharacters"
+        };
+
+        // ----------------------------------------------------- hero models
+        // FBX files built by the Blender pipeline in Art/pipeline (P2). The
+        // scripts export real-world metres with Forward -Z / Up Y / Apply
+        // Transform, so everything imports at scale 1. UV1 (lightmap UVs)
+        // is authored in Blender because Unity 6 removed the importer's
+        // generateLightmapUVs flag - the HeroModelImport entry keeps the
+        // flag to document the intent and to assert the FBX carries UV1.
+        const string HeroModelsFolder = "Assets/_Project/Models/Hero";
+
+        sealed class HeroModelImport
+        {
+            public readonly string Name;        // FBX basename without .fbx
+            public readonly float FbxScale;     // ModelImporter.globalScale
+            public readonly bool GenerateLightmapUVs; // true: UV1 ships in the FBX
+
+            public HeroModelImport(string name, float fbxScale = 1f, bool generateLightmapUVs = true)
+            {
+                Name = name;
+                FbxScale = fbxScale;
+                GenerateLightmapUVs = generateLightmapUVs;
+            }
+        }
+
+        static readonly HeroModelImport[] HeroModels =
+        {
+            new HeroModelImport("SM_Story_MemoryBox"),
+            new HeroModelImport("SM_Story_Card"),
+            new HeroModelImport("SM_Story_Bookmark"),
+            new HeroModelImport("SM_Story_ExamPaper"),
+            new HeroModelImport("SM_Story_Prism"),
+            new HeroModelImport("SM_Story_Photograph"),
+            new HeroModelImport("SM_Story_Programme"),
+            new HeroModelImport("SM_Story_Mug"),
+            new HeroModelImport("SM_Player_Flashlight"),
+            new HeroModelImport("SM_Wraith_HD"),
+            new HeroModelImport("SM_Arch_DoorGrille"),
+            new HeroModelImport("SM_Arch_Chalkboard"),
+            new HeroModelImport("SM_Arch_GateCrank"),
+            new HeroModelImport("SM_Arch_IronGate"),
         };
 
         // Surface folders under Textures/Art and the material each becomes.
@@ -128,6 +172,7 @@ namespace LightShadow.Tools
 
             int textures = ImportTextures();
             int models = ImportModels();
+            int heroModels = ImportHeroModels();
             int converted = ConvertImportedMaterialsToUrp();
             int surfaces = BuildSurfaceMaterials();
             int specials = BuildSpecialMaterials();
@@ -140,6 +185,7 @@ namespace LightShadow.Tools
 
             return "Textures configured: " + textures
                 + "\nModels configured: " + models
+                + "\nHero models configured: " + heroModels
                 + "\nPack materials converted to URP: " + converted
                 + "\nSurface materials ensured: " + surfaces
                 + "\nSpecial materials ensured: " + specials
@@ -396,6 +442,76 @@ namespace LightShadow.Tools
                 }
             }
             return count;
+        }
+
+        // Hero FBX models from Art/pipeline (see HeroModels above). Same
+        // unit-safe static-prop policy as the Kenney packs: metres at scale
+        // 1, no blend shapes, no animations, no importer colliders, medium
+        // mesh compression, external materials so the generated .mat files
+        // (named exactly Mat_Art_* / M_ShadowSmoke / Mat_Story_*) can be
+        // remapped onto the existing art materials by name. UV1 ships in
+        // the FBX; Unity 6 has no generateLightmapUVs importer flag anymore.
+        static int ImportHeroModels()
+        {
+            if (!AssetDatabase.IsValidFolder(HeroModelsFolder)) return 0;
+
+            var known = new Dictionary<string, HeroModelImport>();
+            foreach (HeroModelImport entry in HeroModels) known[entry.Name] = entry;
+
+            int count = 0;
+            string[] guids = AssetDatabase.FindAssets("t:Model", new[] { HeroModelsFolder });
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)) continue;
+
+                string fileName = Path.GetFileNameWithoutExtension(path);
+                if (!known.TryGetValue(fileName, out HeroModelImport entry))
+                {
+                    Debug.LogWarning("[ArtImporter] Hero FBX without a HeroModels entry: " + path);
+                    continue;
+                }
+
+                ModelImporter importer = AssetImporter.GetAtPath(path) as ModelImporter;
+                if (importer == null) continue;
+
+                importer.useFileUnits = true;
+                importer.useFileScale = true;
+                importer.globalScale = entry.FbxScale;
+
+                importer.importBlendShapes = false;
+                importer.importAnimation = false;
+                importer.meshCompression = ModelImporterMeshCompression.Medium;
+
+                importer.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
+                importer.materialLocation = ModelImporterMaterialLocation.External;
+
+                importer.SaveAndReimport();
+
+                // The pipeline authors non-overlapping lightmap UVs as the
+                // second UV channel. Unity 6 cannot generate them anymore,
+                // so a missing UV1 must be loud now, not at lightmap bake.
+                if (entry.GenerateLightmapUVs && !HeroMeshHasUv1(path))
+                {
+                    Debug.LogWarning("[ArtImporter] Hero FBX is missing UV1 lightmap UVs: " + path);
+                }
+                count++;
+            }
+            return count;
+        }
+
+        // True when at least one mesh in the FBX carries a second UV set.
+        static bool HeroMeshHasUv1(string path)
+        {
+            var uvBuffer = new List<Vector2>();
+            foreach (UnityEngine.Object candidate in AssetDatabase.LoadAllAssetsAtPath(path))
+            {
+                if (candidate is Mesh mesh && mesh.GetUVs(1, uvBuffer) && uvBuffer.Count > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         // Unity's importer writes one .mat per FBX material into
