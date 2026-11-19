@@ -327,7 +327,6 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: `ValidateBatch` RESULT: PASS (0 compile errors) with regenerated meshes
   wired; release job fix verified by log diagnosis; CI build workflow re-runs on this PR.
 
-<<<<<<< HEAD
 ### 2026-11-19 — Premium pass P1: fonts + real AudioMixer + music — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) implementing `Docs/AGENT_REPORT_AUDIO_MIXER.md`
   nearly verbatim on branch `feat/audio-mixer-snapshots` (stacked PR; Lead runs the Unity
@@ -358,7 +357,7 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: pending Lead batch run — expected `AudioMixerTool.EnsureBatch` → `RESULT: PASS`
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
-=======
+
 ### 2026-11-19 — P2 Blender hero-prop pipeline (Art/pipeline + Assets/_Project/Models/Hero) — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) driving Blender 5.3 headless (`blender -b -P`).
 - What AI provided: the full pipeline — `Art/pipeline/` (`ls_common.py` registry/helpers,
@@ -383,4 +382,3 @@ The game itself contains **no AI features** — this log is about the developmen
   verifies UV0+UV1 on every mesh, correct material names, upright axes, and the Crank pivot
   at (-0.03, 0, 0.135) with identity rotation; 8 turntable PNGs per prop in Art/Previews/;
   Unity runs intentionally left to the lead (no Unity.exe invoked).
->>>>>>> f67df41 (docs(ai-log): P2 Blender hero-prop pipeline entry)

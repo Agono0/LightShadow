@@ -272,8 +272,97 @@ namespace LightShadow.Tools
                     if (!mixer.GetFloat(parameter, out _))
                     {
                         problems.Add("Mixer: exposed parameter missing: " + parameter + ".");
+
+            // ------------------------------------------------- P2 hero props
+            // The 14 Blender FBX models must be imported, every registered
+            // FBX material (the three Mat_Story_* slots included) must resolve
+            // to its canonical asset, and the built scenes must carry the
+            // hero swap instances. Swap counts are reported per model name.
+            string[] heroNames = ArtImporter.HeroModelNames();
+            int heroFbxCount = 0;
+            foreach (string heroName in heroNames)
+            {
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(ArtImporter.HeroModelsFolder + "/" + heroName + ".fbx") != null)
+                {
+                    heroFbxCount++;
+                }
+                else
+                {
+                    problems.Add("Hero FBX not imported (run ArtImporter.ImportAllBatch): " + heroName);
+                }
+            }
+            report.AppendLine("Hero FBX assets: " + heroFbxCount + "/" + heroNames.Length);
+
+            var heroSwapCounts = new SortedDictionary<string, int>();
+            int heroNullMaterialSlots = 0;
+            foreach (string scenePath in new[] { SchoolPath, EndingPath })
+            {
+                if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null) continue;
+                EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                foreach (GameObject rootObject in EditorSceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    foreach (Transform node in rootObject.GetComponentsInChildren<Transform>(true))
+                    {
+                        if (!node.name.StartsWith("ArtModel_", StringComparison.Ordinal)) continue;
+                        foreach (Renderer renderer in node.GetComponentsInChildren<Renderer>(true))
+                        {
+                            foreach (Material material in renderer.sharedMaterials)
+                            {
+                                if (material == null) heroNullMaterialSlots++;
+                            }
+                        }
+                        foreach (string heroName in heroNames)
+                        {
+                            if (!node.name.Contains(heroName)) continue;
+                            heroSwapCounts.TryGetValue(heroName, out int swapCount);
+                            heroSwapCounts[heroName] = swapCount + 1;
+                            break;
+                        }
                     }
                 }
+            }
+
+            var swapSummary = new List<string>();
+            foreach (KeyValuePair<string, int> pair in heroSwapCounts)
+            {
+                swapSummary.Add(pair.Key + "=" + pair.Value);
+            }
+            report.AppendLine("Hero swaps: " + (swapSummary.Count > 0 ? string.Join(", ", swapSummary) : "none"));
+            if (heroNullMaterialSlots > 0)
+            {
+                problems.Add("Hero swap instances carry " + heroNullMaterialSlots + " null material slot(s).");
+            }
+
+            string[] heroMaterialNames = ArtImporter.HeroMaterialNames();
+            var missingHeroMaterials = new List<string>();
+            foreach (string materialName in heroMaterialNames)
+            {
+                if (AssetDatabase.LoadAssetAtPath<Material>(ArtMaterialsFolder + "/" + materialName + ".mat") == null)
+                {
+                    missingHeroMaterials.Add(materialName);
+                }
+            }
+            report.AppendLine("Hero materials: " + (heroMaterialNames.Length - missingHeroMaterials.Count)
+                + "/" + heroMaterialNames.Length
+                + (missingHeroMaterials.Count > 0 ? " (missing: " + string.Join(", ", missingHeroMaterials) + ")" : ""));
+            if (missingHeroMaterials.Count > 0)
+            {
+                problems.Add("Hero material assets missing, run ArtImporter first: "
+                    + string.Join(", ", missingHeroMaterials));
+            }
+
+            // The three P2 story materials need their specific looks, not just
+            // presence (covered by the map check above): emissive LED,
+            // transparent glass.
+            Material storyLed = AssetDatabase.LoadAssetAtPath<Material>(ArtMaterialsFolder + "/Mat_Story_LED.mat");
+            if (storyLed != null && !storyLed.IsKeywordEnabled("_EMISSION"))
+            {
+                problems.Add("Mat_Story_LED has no emission enabled.");
+            }
+            Material storyGlass = AssetDatabase.LoadAssetAtPath<Material>(ArtMaterialsFolder + "/Mat_Story_Glass.mat");
+            if (storyGlass != null && storyGlass.GetFloat("_Surface") != 1f)
+            {
+                problems.Add("Mat_Story_Glass is not set up as a transparent surface.");
             }
 
             report.AppendLine();
