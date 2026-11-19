@@ -98,8 +98,9 @@ namespace LightShadow.Audio
         // ----------------------------------------------------------- mixer ----
 
         // Idempotent: the first non-null mixer wins, groups resolve once, and the
-        // saved slider levels are applied to the mixer immediately. Safe to call
-        // from both scene-built AudioSnapshotControllers (§4.2).
+        // saved slider levels are applied to the mixer immediately. Sources that
+        // registered before the mixer landed are re-routed onto the resolved
+        // groups. Safe to call from both scene-built AudioSnapshotControllers (§4.2).
         public static void SetMixer(AudioMixer value)
         {
             if (value == null || mixer == value) return;
@@ -111,6 +112,11 @@ namespace LightShadow.Audio
             }
 
             ApplyMixerVolumes();
+            // Defensive: a source registered before mixer activation got the
+            // legacy volume math and no bus (GroupFor was null). Re-apply the
+            // full registry now that the groups exist so every source lands
+            // on its mixer group.
+            ApplyAll();
         }
 
         public static AudioMixerGroup GroupFor(Category category)
