@@ -83,6 +83,24 @@ namespace LightShadow.Core
         public float crankGestureResetSeconds = 0.35f;
         public float crankGestureDeadZone = 4f;
 
+        [Header("Menace Director (Plan 4.12, P3)")]
+        // Pacing gauge 0-100: rises while the Shadow sees Nour or stays near;
+        // at menaceMax it forces a 45-60 s cool-down (the Shadow leaves the
+        // wing) and the gauge resets to menaceResetValue. chaseGraceSeconds is
+        // the guaranteed no-chase window after every chase ends. The dawn
+        // multiplier is plan 4.12's Act III aggression (+30%).
+        public float menaceMax = 100f;
+        public float menaceResetValue = 30f;
+        public float menaceChaseRisePerSecond = 10f;
+        public float menaceSeenRisePerSecond = 5f;
+        public float menaceNearRisePerSecond = 2f;
+        public float menaceDecayPerSecond = 1.5f;
+        public float menaceNearDistance = 12f;
+        public float dawnMenaceMultiplier = 1.3f;
+        public float forcedCooldownMinSeconds = 45f;
+        public float forcedCooldownMaxSeconds = 60f;
+        public float chaseGraceSeconds = 30f;
+
         [Header("Penalties (Doc 4.3)")]
         public float caughtMeterPenalty = 15f;
 

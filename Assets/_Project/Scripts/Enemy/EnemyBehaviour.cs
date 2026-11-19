@@ -15,11 +15,12 @@ namespace LightShadow.Enemy
     //           +-------------------------------------+
     //  Patrol/Stalk --fresh noise in range-->  Investigate  --search done-->  Patrol
     //        Any state --beam at close range with meter>30-->  Repelled --> Stalk
+    //        Gauge 100 (MenaceDirector) -->  ForcedCooldown  --timer done-->  Patrol
     //
     [RequireComponent(typeof(NavMeshAgent))]
     public class EnemyBehaviour : MonoBehaviour
     {
-        public enum State { Patrol, Stalk, Chase, Repelled, Investigate }
+        public enum State { Patrol, Stalk, Chase, Repelled, Investigate, ForcedCooldown }
 
         [Header("Wiring")]
         public GameConfig config;
@@ -51,6 +52,11 @@ namespace LightShadow.Enemy
         float lastNoiseTime = -99f;
         float lastNoiseRadius;
         float investigateTimer;
+
+        // Forced cool-down (P3 MenaceDirector): the Shadow leaves the wing.
+        Vector3 forcedCooldownTarget;
+        float forcedCooldownTimer;
+        float forcedCooldownSeconds;
 
         public State CurrentState => state;
         public bool IsAggressive => aggressive;
@@ -180,8 +186,9 @@ namespace LightShadow.Enemy
             }
 
             // Caught: close enough while unlit. The GameManager handles the fade,
-            // the meter penalty and the checkpoint return (Doc 4.3).
-            if (state != State.Repelled && catchCooldownTimer <= 0f
+            // the meter penalty and the checkpoint return (Doc 4.3). The forced
+            // cool-down exempt: the Shadow is leaving the wing on purpose.
+            if (state != State.Repelled && state != State.ForcedCooldown && catchCooldownTimer <= 0f
                 && distance <= CatchDistance && !LitZone.PlayerInLitZone)
             {
                 StartCoroutine(CatchSequence());
@@ -192,7 +199,8 @@ namespace LightShadow.Enemy
 
             // Repel check runs from every state: a strong beam to the face pushes
             // the Shadow back without ever hurting the player (Doc 4.3).
-            if (state != State.Repelled && repelCooldownTimer <= 0f && CanRepel(sighted))
+            if (state != State.Repelled && state != State.ForcedCooldown
+                && repelCooldownTimer <= 0f && CanRepel(sighted))
             {
                 EnterRepelled(playerPosition);
                 return;
@@ -205,7 +213,19 @@ namespace LightShadow.Enemy
                 case State.Chase: UpdateChase(dt, playerPosition, distance, sighted); break;
                 case State.Repelled: UpdateRepelled(); break;
                 case State.Investigate: UpdateInvestigate(dt, playerPosition, distance, effectiveLight, sighted); break;
+                case State.ForcedCooldown: UpdateForcedCooldown(dt); break;
             }
+        }
+
+        // P3 MenaceDirector pacing: a public one-way valve. At gauge 100 the
+        // director parks the Shadow on the farthest waypoint for 45-60 s; no
+        // catches, no chases, no stalk while it is leaving. The gauge resets
+        // when the director sees ForcedCooldown exit.
+        public void ForceCooldown(float seconds)
+        {
+            if (catching) return;
+            forcedCooldownSeconds = Mathf.Max(1f, seconds);
+            EnterState(State.ForcedCooldown);
         }
 
         // A noise is actionable when it is young enough and close enough: the
@@ -260,7 +280,7 @@ namespace LightShadow.Enemy
                 SetDestination(lastNoisePosition);
             }
 
-            if (sighted)
+            if (sighted && !MenaceDirector.ChaseBlocked)
             {
                 EnterState(State.Chase);
                 return;
@@ -277,10 +297,49 @@ namespace LightShadow.Enemy
             if (investigateTimer >= InvestigateSearchSeconds) EnterState(State.Patrol);
         }
 
+        // ------------------------- ForcedCooldown -------------------------
+        // The MenaceDirector pulled the gauge to 100: walk to the waypoint
+        // farthest from Nour, then stand there until the cool-down ends. The
+        // Update gates above already exempt this state from catching, chasing,
+        // stalking and the beam repel - the Shadow is leaving, full stop.
+        void UpdateForcedCooldown(float dt)
+        {
+            if (!agent.hasPath || agent.remainingDistance > InvestigateArriveDistance)
+            {
+                agent.isStopped = false;
+                SetDestination(forcedCooldownTarget);
+                return;
+            }
+
+            agent.isStopped = true;
+            forcedCooldownTimer += dt;
+            if (forcedCooldownTimer >= forcedCooldownSeconds) EnterState(State.Patrol);
+        }
+
+        void PickFarWaypoint()
+        {
+            forcedCooldownTarget = transform.position;
+            if (route == null || route.Count == 0 || player == null) return;
+
+            float best = -1f;
+            for (int i = 0; i < route.Count; i++)
+            {
+                Transform waypoint = route.Get(i);
+                if (waypoint == null) continue;
+                float distance = Vector3.Distance(waypoint.position, player.position);
+                if (distance > best)
+                {
+                    best = distance;
+                    forcedCooldownTarget = waypoint.position;
+                }
+            }
+        }
+
         // ------------------------- Stalk -------------------------
         // Creeps toward Nour in the darkness with an audible breath. Stops
         // three or four meters away and watches; that is the horror beat.
         // Returns to patrol the moment the light comes up (unless dawn chase).
+        // Chase is gated by the MenaceDirector's post-chase grace window.
         void UpdateStalk(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
         {
             if (distance > 4f)
@@ -294,7 +353,7 @@ namespace LightShadow.Enemy
                 FaceTowards(playerPosition);
             }
 
-            if (sighted)
+            if (sighted && !MenaceDirector.ChaseBlocked)
             {
                 EnterState(State.Chase);
                 return;
@@ -378,6 +437,15 @@ namespace LightShadow.Enemy
                     investigateTimer = 0f;
                     SetBreathing(true);
                     break;
+                case State.ForcedCooldown:
+                    // Leaving the wing: patrol pace, quiet, no target fixes
+                    // while the timer runs.
+                    agent.speed = PatrolSpeed;
+                    agent.isStopped = false;
+                    forcedCooldownTimer = 0f;
+                    PickFarWaypoint();
+                    SetBreathing(false);
+                    break;
             }
         }
 
@@ -408,6 +476,7 @@ namespace LightShadow.Enemy
             catchCooldownTimer = 1.5f;
             sightLostTimer = 0f;
             investigateTimer = 0f;
+            forcedCooldownTimer = 0f;
             EnterState(State.Patrol);
         }
 
@@ -419,6 +488,7 @@ namespace LightShadow.Enemy
             catching = true;
             sightLostTimer = 0f;
             investigateTimer = 0f;
+            forcedCooldownTimer = 0f;
 
             if (agent != null && agent.isOnNavMesh)
             {
