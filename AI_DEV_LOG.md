@@ -513,3 +513,33 @@ The game itself contains **no AI features** — this log is about the developmen
   empty); empty-field grep = 0; factSource stays NEEDS-FACT-CHECK on all 60 (never claimed
   review). Unity ValidateBatch to be run by the lead (no Unity run in this task). Human/native
   Arabic review still required before release.
+
+### 2026-11-19 — Premium pass P5: app-icon pipeline, store listing, VO recording specs — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) on a dedicated release-prep worktree
+  (`LS-p5`, branch `feat/release-prep`).
+- What AI provided: `Art/Pipeline/ls_icon.py` — a Blender 5.3 EEVEE headless
+  pipeline that builds the flashlight emblem (stylized silhouette + warm beam
+  cone on the STYLE_GUIDE gold-on-dark palette, #E8B54A on #0B0F16) and renders
+  `Art/Previews/icon_{1024,512,192,96}.png` natively per size; `Docs/STORE_LISTING.md`
+  (EN/AR titles within limits, short + full descriptions, keyword candidates,
+  IARC age-rating answer sheet, no-data privacy blurb); `Docs/VO_RECORDING_SPECS.md`
+  (per-character voice profiles from STORY_BIBLE §3-4, dry 48 kHz/24-bit chain
+  normalized to −16 LUFS, `VO_<character>_<nodeId>_<lang>.wav` naming, and the
+  per-speaker line-count table grepped from the 44 `SN_*.asset` files —
+  Nour 22 / Mother 7 / Shadow 9 / Memory 6, plus the 4 ending-epilogue echoes
+  found in `EndingController.localizationKeys[1]` = 96 delivered files EN+AR).
+- What I changed myself: iterated the icon render three times from visual checks
+  (rotated the cylinders onto the beam axis, made emissive planes black-base and
+  specular-free after a diagnostic render showed the area lights washing the
+  backdrop grey, smoothed the beam to four nested cones); kept ProjectSettings
+  untouched and documented the PlayerSettings wiring path in the script header
+  instead; verified the 96 px render stays readable; kept TASKS.md honest by
+  splitting the store-assets item (screenshots need Unity runs, this pass had
+  none) rather than marking it done.
+- Teach-back check: pending — walk the team through the icon pipeline header
+  (how Unity consumes the previews) and the VO integration point
+  (StoryDirector.cs:314 + the empty Voice group in the M_Main mixer).
+- Test result: no Unity runs by design; Blender headless exits 0 and wrote all
+  four PNGs (verified visually at 1024/192/96); speaker tallies re-derived
+  twice (22+7+9+6 = 44 nodes); docs-only changes so the CI fast-checks are the
+  gate for this branch.

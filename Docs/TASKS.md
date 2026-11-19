@@ -103,10 +103,20 @@ before merge (AGENTS.md, Git workflow).
 - [ ] Performance doc refresh from CI build numbers + any device profiling
       that lands (Docs/PERFORMANCE.md); on-device profiling remains
       human-assisted. *(P5)*
-- [ ] App icons (Windows + Android, all densities). *(P5)*
-- [ ] Store assets: screenshots, store text EN/AR, privacy statement. *(P5)*
-- [ ] VO recording specs: mic/performance/format/normalization requirements
-      (dialogue −16 LUFS, SFX peaks −3 dBFS) so SAPI TTS can be swapped for
-      human VO later. *(P5)*
+- [x] App icons (Windows + Android, all densities): emblem pipeline
+      `Art/Pipeline/ls_icon.py` (Blender EEVEE headless, STYLE_GUIDE palette)
+      renders `Art/Previews/icon_{1024,512,192,96}.png`; PlayerSettings
+      wiring steps are documented in the script header — the in-editor
+      assignment itself remains a human step (ProjectSettings untouched).
+      *(P5)*
+- [x] Store text EN/AR + privacy statement + age-rating questionnaire notes
+      (Docs/STORE_LISTING.md). *(P5)*
+- [ ] Store screenshots (EN + AR devices, per-store size sheets) — need
+      Unity runs. *(P5)*
+- [x] VO recording specs (Docs/VO_RECORDING_SPECS.md): per-character voice
+      profiles, dry 48 kHz/24-bit chain, dialogue −16 LUFS normalization,
+      `VO_<character>_<nodeId>_<lang>.wav` naming, and the per-speaker
+      line-count table grepped from the 44 SN_ assets (Nour 22, Mother 7,
+      Shadow 9, Memory 6 + 4 ending epilogues). *(P5)*
 - [ ] Optional signed AAB job for Google Play (requires owner signing
       config). *(P5)*
