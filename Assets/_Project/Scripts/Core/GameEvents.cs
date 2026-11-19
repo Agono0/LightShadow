@@ -39,8 +39,8 @@ namespace LightShadow.Core
         public static event Action EscapeStarted;
 
         // The Shadow changed FSM state. Payload: (int)LightShadow.Enemy.EnemyBehaviour.State
-        // (Patrol 0, Stalk 1, Chase 2, Repelled 3, Investigate 4). Raised from
-        // EnemyBehaviour.EnterState.
+        // (Patrol 0, Stalk 1, Chase 2, Repelled 3, Investigate 4, ForcedCooldown 5,
+        // Search 6). Raised from EnemyBehaviour.EnterState.
         public static event Action<int> EnemyStateChanged;
 
         // The player made a noise the Shadow may hear (P3 noise bus). Payload:
