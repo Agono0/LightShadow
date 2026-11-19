@@ -21,6 +21,7 @@ namespace LightShadow.Player
         public BrightIdeaMeter meter;
         public Light spotLight;
         public AudioClip toggleClip;
+        public FlashlightCrank crank;   // shares the desktop F key with Toggle
 
         [Header("Events")]
         public UnityEvent<float> OnBatteryChanged = new UnityEvent<float>();
@@ -40,6 +41,13 @@ namespace LightShadow.Player
         bool desktopFocusHeld;
         bool padFocusHeld;
 
+        // Desktop F is double-bound (P3 crank): tap = toggle, hold + circle =
+        // crank. The toggle waits for the release and is skipped when the crank
+        // consumed the press by actually turning, so starting a crank no longer
+        // switches the beam mid-gesture.
+        bool fTogglePending;
+        bool fPressCranked;
+
         public bool IsOn => switchedOn && battery > 0f;
         public bool IsFocused { get; private set; }
         public float Battery01 => battery;
@@ -55,6 +63,7 @@ namespace LightShadow.Player
         {
             if (config == null && GameManager.Instance != null) config = GameManager.Instance.config;
             if (toggleClip == null) toggleClip = ProceduralSfx.Click;
+            if (crank == null) crank = GetComponent<FlashlightCrank>();
             battery = 1f;
         }
 
@@ -80,7 +89,26 @@ namespace LightShadow.Player
         {
             // Desktop toggle key. On phones the HUD button calls Toggle(); on
             // gamepad the GamepadInput layer calls it. Locked during dialogue.
-            if (!PlayerController.ExternalInputLocked && Input.GetKeyDown(KeyCode.F)) Toggle();
+            // The press is decided on release: toggled unless the crank turned
+            // during the hold (FlashlightCrank holds F for its gesture).
+            if (!PlayerController.ExternalInputLocked)
+            {
+                if (Input.GetKeyDown(KeyCode.F))
+                {
+                    fTogglePending = true;
+                    fPressCranked = false;
+                }
+                if (fTogglePending && crank != null && crank.IsCranking) fPressCranked = true;
+                if (Input.GetKeyUp(KeyCode.F))
+                {
+                    if (fTogglePending && !fPressCranked) Toggle();
+                    fTogglePending = false;
+                }
+            }
+            else
+            {
+                fTogglePending = false;
+            }
 
             // Focus input: right mouse (desktop), gamepad Y, or the held LIGHT
             // touch button. Focus only counts while the beam is actually on.
