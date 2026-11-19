@@ -29,5 +29,15 @@ namespace LightShadow.Audio
 
         [Header("Ambience")]
         public AudioClip ambienceNight;
+
+        [Header("Music bed (Phase 1, Kevin MacLeod CC-BY)")]
+        [Tooltip("Explore/Stalk tension bed layered under the procedural AdaptiveMusic pads.")]
+        public AudioClip musicBedLongNoteOne;
+
+        [Header("Ending cues (Phase 1, Kevin MacLeod CC-BY)")]
+        [Tooltip("FullRecovery ending: warm, resolved (Frozen Star).")]
+        public AudioClip endingHopeGold;
+        [Tooltip("Dawnless ending: cold hollow drone (Anguish).")]
+        public AudioClip endingDawnlessGrey;
     }
 }

@@ -216,6 +216,23 @@ namespace LightShadow.Tools
             ending.dawnLight = dawnLight;
             ending.endingCamera = camera;
 
+            // Ending music cues (Phase 1): one-shot per ending id, wired from
+            // the audio library (Kevin MacLeod CC-BY). PartialMemory /
+            // HollowEscape have no cue yet and stay silent until the Pixabay
+            // primaries are downloaded (Docs/SOURCING_FONTS_MUSIC.md).
+            ending.musicSource = CreateAudioSource(ending.transform, "EndingMusicSource");
+            LightShadow.Audio.AudioLibrary audioLibrary =
+                AssetDatabase.LoadAssetAtPath<LightShadow.Audio.AudioLibrary>(
+                    "Assets/_Project/Audio/AudioLibrary.asset");
+            if (audioLibrary != null)
+            {
+                ending.endingMusic = new[]
+                {
+                    new EndingController.EndingMusic { endingId = "FullRecovery", clip = audioLibrary.endingHopeGold },
+                    new EndingController.EndingMusic { endingId = "Dawnless", clip = audioLibrary.endingDawnlessGrey },
+                };
+            }
+
             SaveScene(scene, EndingPath);
         }
 
