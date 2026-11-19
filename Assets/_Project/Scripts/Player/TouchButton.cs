@@ -8,12 +8,13 @@ namespace LightShadow.Player
     // no code changes needed to re-purpose a button in the mobile HUD.
     public class TouchButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives }
+        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives, CrankHold }
 
         [Header("Wiring")]
         public Kind kind;
         public PlayerController player;
         public FlashlightBattery flashlight;
+        public FlashlightCrank crank;
 
         void Awake()
         {
@@ -34,6 +35,10 @@ namespace LightShadow.Player
             if (flashlight == null && player != null)
             {
                 flashlight = player.GetComponent<FlashlightBattery>();
+            }
+            if (crank == null && player != null)
+            {
+                crank = player.GetComponent<FlashlightCrank>();
             }
         }
 
@@ -59,12 +64,16 @@ namespace LightShadow.Player
                 case Kind.Objectives:
                     if (HUDController.Instance != null) HUDController.Instance.ToggleObjectives();
                     break;
+                case Kind.CrankHold:
+                    if (crank != null) crank.SetHeld(true);
+                    break;
             }
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
             if (kind == Kind.SprintHold && player != null) player.SetSprint(false);
+            if (kind == Kind.CrankHold && crank != null) crank.SetHeld(false);
         }
     }
 }

@@ -72,6 +72,17 @@ namespace LightShadow.Core
         public float investigateSweepDegrees = 60f;
         public float investigateSweepSpeed = 1.5f;
 
+        [Header("Crank Minigame (Plan 4.6, P3)")]
+        // Emergency hand-crank: hold (F / gamepad RT / the touch CRANK button)
+        // and turn in circles. Charge is a battery fraction per second of
+        // actual turning; cranking never charges past crankMaxCharge percent.
+        // Loud, never calming: each ratchet tick also emits crankNoiseRange.
+        public float crankChargePerSecond = 0.02f;
+        public float crankMaxCharge = 15f;
+        public float crankRatchetSeconds = 0.45f;
+        public float crankGestureResetSeconds = 0.35f;
+        public float crankGestureDeadZone = 4f;
+
         [Header("Penalties (Doc 4.3)")]
         public float caughtMeterPenalty = 15f;
 
