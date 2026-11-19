@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 2
   explanation: A square has four equal sides, so 5 + 5 + 5 + 5 = 20 cm.
   factSource: NEEDS-FACT-CHECK
+  questionAr: مربع طول ضلعه 5cm؛ ما محيطه؟
+  optionsAr:
+  - 10 cm
+  - 15 cm
+  - 20 cm
+  - 25 cm
+  explanationAr: للمربع أربعة أضلاع متساوية، فمحيطه 5+5+5+5=20cm.

@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: Fighting in World War II ended in 1945.
   factSource: NEEDS-FACT-CHECK
+  questionAr: في أي عام انتهت الحرب العالمية الثانية؟
+  optionsAr:
+  - 1918
+  - 1939
+  - 1945
+  - 1950
+  explanationAr: توقف القتال في الحرب العالمية الثانية عام 1945.

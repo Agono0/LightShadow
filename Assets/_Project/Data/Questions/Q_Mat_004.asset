@@ -24,3 +24,10 @@ MonoBehaviour:
   difficulty: 3
   explanation: 12 pens are four groups of 3, so four times 10 makes 40.
   factSource: NEEDS-FACT-CHECK
+  questionAr: متجر يبيع الأقلام بثلاثة أقلام بعشرة؛ بالنسبة نفسها كم تكلفة 12 قلمًا؟
+  optionsAr:
+  - 30
+  - 36
+  - 40
+  - 44
+  explanationAr: 12 قلمًا هي أربع مجموعات كل منها 3، فأربع مرات من 10 تجعل 40.

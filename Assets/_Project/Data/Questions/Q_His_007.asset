@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: The Berlin Wall split the city during the Cold War until it was opened
     in November 1989.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي سور هو الذي قسّم مدينة برلين من 1961 إلى 1989؟
+  optionsAr:
+  - سور الصين العظيم
+  - سور برلين
+  - سور هادريان
+  - الستار الحديدي
+  explanationAr: قسّم سور برلين المدينة في سنوات الحرب الباردة حتى فُتح في نوفمبر 1989.
