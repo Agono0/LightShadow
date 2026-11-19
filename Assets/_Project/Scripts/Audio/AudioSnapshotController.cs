@@ -3,6 +3,7 @@ using LightShadow.Core;
 using LightShadow.Enemy;
 using LightShadow.Gameplay;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace LightShadow.Audio
 {

@@ -4,6 +4,8 @@ using System.IO;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Audio;
+using LightShadow.Audio;
 
 namespace LightShadow.Tools
 {

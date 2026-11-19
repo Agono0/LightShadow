@@ -6,6 +6,7 @@ using LightShadow.Enemy;
 using LightShadow.Gameplay;
 using LightShadow.Player;
 using LightShadow.UI;
+using UnityEngine.Audio;
 using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
