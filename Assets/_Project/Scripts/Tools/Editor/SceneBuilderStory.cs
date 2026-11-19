@@ -953,7 +953,9 @@ namespace LightShadow.Tools
 
         static Font StoryFont
         {
-            get { return Localization.EnglishFont; }
+            // Bundled OFL set (Inter with LegacyRuntime fallback) so story UI
+            // matches the rest of the interface; fonts wire identically here.
+            get { return SceneBuilderUI.UIFont; }
         }
 
         static RectTransform MakeStoryRect(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax,

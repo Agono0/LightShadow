@@ -14,6 +14,10 @@ namespace LightShadow.Tools
     public static class SceneBuilderUI
     {
         static Font _font;
+        static Font _titleFont;
+        static Font _arabicBodyFont;
+        static Font _arabicTitleFont;
+        static Font _noteFont;
         // False when the menu scene ships the live 3D corridor diorama: the
         // canvas then draws only a translucent scrim over the real school.
         public static bool UseLiveBackdrop = true;
@@ -65,14 +69,72 @@ namespace LightShadow.Tools
             }
         }
 
+        // Bundled OFL font set (Assets/_Project/Fonts, licensed texts in
+        // Fonts/Licenses — see Docs/ASSET_LICENSES.md). Direct AssetDatabase
+        // references only: no Resources folder. Every getter keeps the
+        // LegacyRuntime.ttf fallback so a fresh clone without the fonts still
+        // builds scenes exactly as before.
+        const string FontsFolder = "Assets/_Project/Fonts";
+
+        static Font LoadFont(string fileName)
+        {
+            return AssetDatabase.LoadAssetAtPath<Font>(FontsFolder + "/" + fileName);
+        }
+
         public static Font UIFont
         {
             get
             {
                 if (_font != null) return _font;
-                _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                _font = LoadFont("T_Inter-Regular.ttf");            // Latin body/UI
+                if (_font == null) _font = LoadFont("T_Cairo-Regular.ttf"); // Cairo fallback
+                if (_font == null) _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 if (_font == null) _font = UnityEngine.Font.CreateDynamicFontFromOSFont("Arial", 16);
                 return _font;
+            }
+        }
+
+        // Latin titles (Cairo Bold). Arabic titles use Noto Naskh Bold, not
+        // Cairo/Reem Kufi: those lack the Presentation Forms-B glyphs the
+        // ArabicSupport shaper emits (Docs/SOURCING_FONTS_MUSIC.md Part 1).
+        public static Font TitleFont
+        {
+            get
+            {
+                if (_titleFont != null) return _titleFont;
+                _titleFont = LoadFont("T_Cairo-Bold.ttf");
+                return _titleFont;
+            }
+        }
+
+        public static Font ArabicBodyFont
+        {
+            get
+            {
+                if (_arabicBodyFont != null) return _arabicBodyFont;
+                _arabicBodyFont = LoadFont("T_NotoNaskhArabic-Regular.ttf");
+                return _arabicBodyFont;
+            }
+        }
+
+        public static Font ArabicTitleFont
+        {
+            get
+            {
+                if (_arabicTitleFont != null) return _arabicTitleFont;
+                _arabicTitleFont = LoadFont("T_NotoNaskhArabic-Bold.ttf");
+                return _arabicTitleFont;
+            }
+        }
+
+        // Typewriter notes/props (Special Elite, Latin-only single weight).
+        public static Font NoteFont
+        {
+            get
+            {
+                if (_noteFont != null) return _noteFont;
+                _noteFont = LoadFont("T_SpecialElite-Regular.ttf");
+                return _noteFont;
             }
         }
 
@@ -718,7 +780,19 @@ namespace LightShadow.Tools
 
             RectTransform rect = go.GetComponent<RectTransform>();
             Stretch(rect);
-            go.AddComponent<UIFontBinder>();
+
+            // Wire the bundled font set onto every canvas binder (idempotent
+            // per canvas). The serialized references ride inside the built
+            // scenes, so the player resolves the OFL fonts without any
+            // Resources folder; the OS fallback stays intact when they are
+            // missing (Localization.SetFonts ignores null fields).
+            UIFontBinder binder = go.GetComponent<UIFontBinder>();
+            if (binder == null) binder = go.AddComponent<UIFontBinder>();
+            binder.latinFont = UIFont;
+            binder.arabicFont = ArabicBodyFont;
+            binder.titleFont = TitleFont;
+            binder.titleArabicFont = ArabicTitleFont;
+            binder.noteFont = NoteFont;
             return canvas;
         }
 
