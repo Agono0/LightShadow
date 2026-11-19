@@ -54,5 +54,19 @@ namespace LightShadow.Core
 
         [Header("Dawn Chase (Doc 3.7)")]
         public float dawnStalkRadius = 20f;
+
+        [Header("Audio Mixer (D15 follow-up)")]
+        // Snapshot transition times in seconds (AGENT_REPORT_AUDIO_MIXER §4.3):
+        // the mixer asset owns the duck/low-pass VALUES, these own the SPEEDS.
+        public float snapshotTransitionExplore = 0.75f;
+        public float snapshotTransitionStalk = 0.5f;
+        public float snapshotTransitionChase = 0.15f;
+        public float snapshotTransitionRelease = 0.6f;
+        public float snapshotTransitionHide = 0.8f;
+        public float snapshotTransitionHideRelease = 0.5f;
+        public float snapshotTransitionMemoryFlash = 0.35f;
+        public float snapshotTransitionMemoryFlashRelease = 1.2f;
+        public float snapshotTransitionDawn = 2.5f;
+        public float memoryFlashSeconds = 6f;
     }
 }
