@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Reflection;
 using UnityEditor;
@@ -480,7 +481,7 @@ namespace LightShadow.Tools
 
         static object Call(object target, string method, params object[] args)
         {
-            MethodInfo info = target.GetType().GetMethod(method, Any, null, null, null);
+            MethodInfo info = FindMethod(target.GetType(), method, args);
             if (info == null)
             {
                 throw new MissingMethodException(target.GetType().FullName, method);
@@ -491,13 +492,41 @@ namespace LightShadow.Tools
 
         static object CallStatic(Type type, string method, params object[] args)
         {
-            MethodInfo info = type.GetMethod(method, Any, null, null, null);
+            MethodInfo info = FindMethod(type, method, args);
             if (info == null)
             {
                 throw new MissingMethodException(type.FullName, method);
             }
 
             return info.Invoke(null, args);
+        }
+
+        // CoreCLR's GetMethod(name, flags, binder, types, modifiers) throws on a null
+        // Type[] — resolve by name + arity, then by argument compatibility for overloads.
+        static MethodInfo FindMethod(Type type, string method, object[] args)
+        {
+            MethodInfo[] candidates = type.GetMethods(Any)
+                .Where(m => m.Name == method && m.GetParameters().Length == args.Length)
+                .ToArray();
+            if (candidates.Length == 1) return candidates[0];
+
+            foreach (MethodInfo candidate in candidates)
+            {
+                ParameterInfo[] parameters = candidate.GetParameters();
+                bool matches = true;
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    if (args[i] == null) continue;
+                    if (!parameters[i].ParameterType.IsInstanceOfType(args[i]))
+                    {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (matches) return candidate;
+            }
+
+            return candidates.Length > 0 ? candidates[0] : null;
         }
 
         static void EnsureFolder(string folder)
