@@ -313,8 +313,14 @@ namespace LightShadow.Tools
                 if (pathBase.IsAssignableFrom(field.FieldType)) return field.Name;
             }
 
+            // Diagnose the actual struct shape for this Unity version.
+            var described = new System.Text.StringBuilder();
+            foreach (FieldInfo field in fields)
+            {
+                described.Append(field.FieldType.FullName).Append(' ').Append(field.Name).Append("; ");
+            }
             throw new MissingMemberException(
-                entry.GetType().FullName, "no class-type path field (Unity internals drifted)");
+                entry.GetType().FullName, "no AudioParameterPath-typed field. Fields: " + described);
         }
 
         static void RenameExposedParameters(object controller, Dictionary<object, string> desiredByGroup)
