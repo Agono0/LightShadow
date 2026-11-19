@@ -1,40 +1,3 @@
-        // Unity 6000.4 flattened ExposedAudioParameter to { GUID guid; string name; }
-        // (no path object) — match entries by boxed-GUID equality and set the name.
-        static void RenameExposedParameters(object controller, Dictionary<object, string> desiredByGuid, object cutoffGuid)
-        {
-            Array exposed = (Array)GetMember(controller, "exposedParameters");
-            int renamed = 0;
-
-            for (int i = 0; i < exposed.Length; i++)
-            {
-                object entry = exposed.GetValue(i);
-                object entryGuid = GetMember(entry, "guid");
-
-                string desired = null;
-                if (desiredByGuid.TryGetValue(entryGuid, out string groupParam))
-                {
-                    desired = groupParam;
-                }
-                else if (cutoffGuid != null && entryGuid.Equals(cutoffGuid))
-                {
-                    desired = LowpassParam;
-                }
-
-                if (desired == null) continue;
-                SetMember(entry, "name", desired);
-                exposed.SetValue(entry, i);
-                renamed++;
-            }
-
-            SetMember(controller, "exposedParameters", exposed);
-
-            if (renamed != desiredByGuid.Count + 1) // + the low-pass
-            {
-                throw new InvalidOperationException(
-                    "Renamed " + renamed + " exposed parameters, expected " + (desiredByGuid.Count + 1));
-            }
-        }
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -333,34 +296,9 @@ namespace LightShadow.Tools
                 + SnapshotNames.Length + " snapshots, 14 exposed parameters)";
         }
 
-        // ExposedAudioParameter's path field was renamed across Unity versions —
-        // find it dynamically: the struct holds exactly one class-type field (the
-        // AudioParameterPath) next to the string name.
-        static string PathMemberName(object entry)
-        {
-            const string preferred = "parameterPath";
-            FieldInfo[] fields = entry.GetType().GetFields(Any);
-            foreach (FieldInfo field in fields)
-            {
-                if (field.Name == preferred) return preferred;
-            }
-            Type pathBase = EditorType("UnityEditor.Audio.AudioParameterPath");
-            foreach (FieldInfo field in fields)
-            {
-                if (pathBase.IsAssignableFrom(field.FieldType)) return field.Name;
-            }
-
-            // Diagnose the actual struct shape for this Unity version.
-            var described = new System.Text.StringBuilder();
-            foreach (FieldInfo field in fields)
-            {
-                described.Append(field.FieldType.FullName).Append(' ').Append(field.Name).Append("; ");
-            }
-            throw new MissingMemberException(
-                entry.GetType().FullName, "no AudioParameterPath-typed field. Fields: " + described);
-        }
-
-        static void RenameExposedParameters(object controller, Dictionary<object, string> desiredByGroup)
+        // Unity 6000.4 flattened ExposedAudioParameter to { GUID guid; string name; }
+        // (no path object) — match entries by boxed-GUID equality and set the name.
+        static void RenameExposedParameters(object controller, Dictionary<object, string> desiredByGuid, object cutoffGuid)
         {
             Array exposed = (Array)GetMember(controller, "exposedParameters");
             int renamed = 0;
@@ -368,13 +306,16 @@ namespace LightShadow.Tools
             for (int i = 0; i < exposed.Length; i++)
             {
                 object entry = exposed.GetValue(i);
-                object path = GetMember(entry, PathMemberName(entry));
+                object entryGuid = GetMember(entry, "guid");
 
                 string desired = null;
-                if (path.GetType() == EffectParameterPathType) desired = LowpassParam;
-                else if (GetMember(path, "group") is object group && desiredByGroup.TryGetValue(group, out string name))
+                if (desiredByGuid.TryGetValue(entryGuid, out string groupParam))
                 {
-                    desired = name;
+                    desired = groupParam;
+                }
+                else if (cutoffGuid != null && entryGuid.Equals(cutoffGuid))
+                {
+                    desired = LowpassParam;
                 }
 
                 if (desired == null) continue;
@@ -385,10 +326,10 @@ namespace LightShadow.Tools
 
             SetMember(controller, "exposedParameters", exposed);
 
-            if (renamed != desiredByGroup.Count + 1) // + the low-pass
+            if (renamed != desiredByGuid.Count + 1) // + the low-pass
             {
                 throw new InvalidOperationException(
-                    "Renamed " + renamed + " exposed parameters, expected " + (desiredByGroup.Count + 1));
+                    "Renamed " + renamed + " exposed parameters, expected " + (desiredByGuid.Count + 1));
             }
         }
 
