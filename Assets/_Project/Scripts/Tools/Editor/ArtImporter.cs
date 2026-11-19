@@ -530,9 +530,14 @@ namespace LightShadow.Tools
             var uvBuffer = new List<Vector2>();
             foreach (UnityEngine.Object candidate in AssetDatabase.LoadAllAssetsAtPath(path))
             {
-                if (candidate is Mesh mesh && mesh.GetUVs(1, uvBuffer) && uvBuffer.Count > 0)
+                if (candidate is Mesh mesh)
                 {
-                    return true;
+                    uvBuffer.Clear();
+                    mesh.GetUVs(1, uvBuffer);
+                    if (uvBuffer.Count > 0)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
