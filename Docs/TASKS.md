@@ -83,6 +83,13 @@ before merge (AGENTS.md, Git workflow).
 - [x] Haptics: light on correct answers, heavy on caught (Android). *(P3)*
 - [x] Dev console: set flags/stats, teleport, skip to act, toggle AI (editor
       builds only). *(P3)*
+- [x] Reverb zones + occlusion (premium-pass brief §8.3, deferred from the
+      mixer PR): builder-generated `AudioReverbZone` per interior room
+      (Library/PhysicsLab/Classroom/Garden/StaffRoom = Room, Corridor/Entrance
+      = MediumRoom, MainHall = ConcertHall; distances from the room bounds)
+      and `AudioOcclusionProbe` on the player camera — interval linecasts
+      muffle blocked 3D sources (lazy low-pass 2400 Hz + −6 dB dip,
+      GameConfig fields). *(P3)*
 
 ## P4 — Arabic content + credits
 
