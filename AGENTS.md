@@ -24,6 +24,42 @@ Fast orientation for humans and AI agents. Verify cheaply; never re-derive from 
 6. Log every AI-assisted change in `AI_DEV_LOG.md` (template at top of that file).
 7. Commit .meta files next to assets; never commit `Library/ Temp/ Logs/ Builds/ UserSettings/`.
 8. No jumping; walk/sprint/crouch only. The Shadow is "enemy behaviour" (FSM), never "AI".
+9. **PR-only:** never push directly to `main`. All changes land through pull requests that
+   are green and conflict-free (see Git workflow below).
+
+## Git workflow (PR-only — every agent, no exceptions)
+
+`main` is the protected source of truth. The only way in is a pull request.
+
+1. Branch off latest `origin/main`: `git fetch origin && git switch -c <type>/<topic> origin/main`
+   — prefixes `feat/` `fix/` `docs/` `perf/` `chore/`.
+2. Commit granularly with conventional messages (`fix(loading): …`); `.meta` files always
+   committed next to their assets (rule 7).
+3. Open the PR early: `gh pr create --fill`; extend the body with what changed and how it
+   was verified.
+4. Before merging, verify — all three must hold:
+   - Working tree clean and everything pushed.
+   - Tests pass for the touched area (see Verification below): runtime/editor scripts →
+     `ValidateBatch` (grep `RESULT: PASS`); scene/prefab layout changed → `BuildAllBatch`
+     first, then `ValidateBatch`; docs/workflow-only → the CI fast-checks are the gate.
+   - PR is `MERGEABLE` (no conflicts with `origin/main`); if not, `git switch <branch> &&
+     git merge origin/main`, resolve, re-push.
+5. **While CI runs, keep working on the project** — poll `gh pr checks --watch` between
+   tasks; never idle while waiting.
+6. Merge only when every GitHub check is green AND the PR is mergeable:
+   `gh pr merge --squash --delete-branch`, then `git fetch origin && git switch main &&
+   git pull --ff-only`. If a check is red, fix on the same branch and push — never bypass.
+
+## Code quality bar (a merge blocker, same as failing tests)
+
+- Fits the existing architecture: config-driven (rule 2), event-driven (`GameEvents`),
+  builder-generated scenes (rule 1). A new singleton needs a justification in the PR body.
+- Compiles warning-clean; no `Debug.Log` spam, no commented-out code, no dead files.
+- Runtime code never references `UnityEditor` outside `#if UNITY_EDITOR`; editor-only code
+  lives in `Scripts/Tools/Editor/`.
+- All user-facing strings go through `Localization` with EN and AR both filled.
+- Every runtime tunable is a `GameConfig` field — no literals (rule 2).
+- Keep PRs small and reviewable; no drive-by refactors mixed into feature work.
 
 ## Verification (run from repo root; one Unity instance at a time)
 
