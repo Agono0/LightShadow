@@ -396,3 +396,36 @@ The game itself contains **no AI features** — this log is about the developmen
   new lockers bake into the NavMesh) then `ValidateBatch` → `RESULT: PASS` with the new
   Hide spots / MenaceDirector / player-component checks; NOT yet run by the agent
   (no Unity.exe per task rules).
+
+### 2026-11-19 — P3 horror-systems review fixes (feat/horror-systems, worktree LS-p3) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) fixing the quality-review findings on the same
+  stacked branch; Lead runs the Unity batches and git push.
+- What AI provided: the nine review fixes, each its own conventional commit —
+  (1) `HidingSystem.ResetState()` (clears IsHidden/CurrentSpot/EnteredUnderWatch, resets the
+  breath meter, releases the input lock, NO teleport) called from `PlayerController.RespawnReset`
+  and `GameManager.WakeAtCheckpoint`, plus a `!HidingSystem.IsHidden` exclusion on the
+  EnemyBehaviour catch check so the Shadow can no longer grab a hidden player through the spot
+  wall (Search's witnessed-entry found-path is untouched); (2) FlashlightBattery's desktop F
+  toggle now waits for key release and is skipped when `FlashlightCrank.IsCranking` consumed the
+  press, so tap = toggle / hold = crank no longer fight on one key; (3) TouchButton's
+  hold-to-focus honours `ExternalInputLocked` (no new focus while locked, press dropped and
+  started focus released when the lock engages); (4) `EnemySight.HasLineOfSightCached()`
+  frame-stamped lazy cache shared by EnemyBehaviour and MenaceDirector — one sight Linecast per
+  frame instead of two (witnessed-entry check keeps the uncached call on purpose); (5)
+  CalmEffectsController.OnDestroy detaches and destroys the runtime VolumeProfile it created in
+  Awake (was leaked every scene load); (6) GameEvents.EnemyStateChanged comment now lists the
+  full state payload (ForcedCooldown 5, Search 6); (7) RecapScreen per-export Debug.Log removed;
+  (8) FlashlightCrank ratchet clock resets to 0 when idle — no instant ratchet on re-engage;
+  (9) defensive port from main: `VolumeCategories.SetMixer` runs `ApplyAll()` after group
+  resolution so sources registered before mixer activation land on their buses.
+- What I changed myself: deviated from the reviewer's literal fix for finding 2 — gating the F
+  toggle on `FlashlightCrank.IsHeld` as suggested would have killed the desktop flashlight
+  toggle entirely, because `IsHeld` includes `KeyboardHeld` (GetKey F), which is already true on
+  the GetKeyDown frame and F is the only desktop toggle (gamepad X / touch button cover the
+  other platforms). Implemented the hold-vs-tap split instead, matching the LIGHT touch button's
+  existing pattern; no new GameConfig fields were needed (no new tunables introduced anywhere).
+- Teach-back check: pending — walk a teammate through why the hiding statics must be cleared on
+  the respawn path (EnemySight reads the static) and the F tap-vs-crank decision tree.
+- Test result: pending Lead batch run — expected `BuildAllBatch` + `ValidateBatch` →
+  `RESULT: PASS` (validation asserts the touched systems: player components, MenaceDirector,
+  hide spots); NOT run by the agent (no Unity.exe per task rules).
