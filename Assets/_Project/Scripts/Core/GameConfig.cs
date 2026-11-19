@@ -192,5 +192,16 @@ namespace LightShadow.Core
         public float snapshotTransitionMemoryFlashRelease = 1.2f;
         public float snapshotTransitionDawn = 2.5f;
         public float memoryFlashSeconds = 6f;
+
+        [Header("Audio Occlusion (premium pass 8.3)")]
+        // Listener-side occlusion (AudioOcclusionProbe on the player camera):
+        // every occlusionIntervalSeconds a linecast runs listener -> source and
+        // blocked sources get a lazy AudioLowPassFilter (occlusionCutoffHz) plus
+        // a volume dip (occlusionVolumeDb, dB -> linear) until the line clears.
+        // Reverb zones are structural (SceneBuilderScenes attaches one per room,
+        // distances computed from the room bounds) and carry no tuning fields.
+        public float occlusionIntervalSeconds = 0.25f;
+        public float occlusionCutoffHz = 2400f;
+        public float occlusionVolumeDb = -6f;
     }
 }

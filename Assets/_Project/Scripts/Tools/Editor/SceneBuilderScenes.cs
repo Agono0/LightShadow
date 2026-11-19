@@ -315,6 +315,12 @@ namespace LightShadow.Tools
             BuildStoryPlaques(level.transform);
             BuildHideSpots(level.transform, palette);
 
+            // Premium pass §8.3: one reverb zone per interior room (structural —
+            // the distances are computed from the room bounds, no GameConfig
+            // fields). Added before the bake: the zone colliders are triggers on
+            // the Default layer, so the Level-layer bake mask never collects them.
+            AttachReverbZones(level.transform);
+
             BakeNavMesh(surface);
 
             // Player and enemy are spawned after the bake so their colliders can
@@ -1168,6 +1174,85 @@ namespace LightShadow.Tools
                 controller = parent.gameObject.AddComponent<LightShadow.Audio.AudioSnapshotController>();
             }
             controller.mixer = AssetDatabase.LoadAssetAtPath<AudioMixer>(AudioMixerTool.MixerPath);
+        }
+
+        // ------------------------------------------------------- reverb zones --
+
+        // Interior rooms and their floor bounds, mirroring the shell walls laid
+        // out in BuildSchoolShell (same literals: the wall spans define the x/z
+        // extents, the height comes from the matching Ceiling call). Presets are
+        // the premium-pass brief §8.3 acoustic tiers: small dry rooms, medium
+        // circulation spaces, one long assembly hall.
+        struct ReverbRoom
+        {
+            public string name;
+            public float minX, maxX, minZ, maxZ;
+            public float height;
+            public AudioReverbPreset preset;
+        }
+
+        static readonly ReverbRoom[] ReverbRooms =
+        {
+            // Small/dry: shelved, furnished or outdoor rooms barely ring.
+            new ReverbRoom { name = "Library",    minX = -22f,  maxX = -2.65f, minZ = -22f, maxZ = -8f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            new ReverbRoom { name = "PhysicsLab", minX = 2.65f, maxX = 22f,    minZ = -22f, maxZ = -8f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            new ReverbRoom { name = "Classroom",  minX = -22f,  maxX = -2.65f, minZ = 4f,   maxZ = 18f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            new ReverbRoom { name = "Garden",     minX = 2.65f, maxX = 22f,    minZ = 4f,   maxZ = 18f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            new ReverbRoom { name = "StaffRoom",  minX = -22f,  maxX = -2.65f, minZ = 20f,  maxZ = 26f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            // Medium: circulation spaces (StoneCorridor is the report §5 medium
+            // preset; Unity's enum has no "MediumRoom" member).
+            new ReverbRoom { name = "Corridor",   minX = -2.65f, maxX = 2.65f, minZ = -27f, maxZ = 27f,  height = 3.3f, preset = AudioReverbPreset.StoneCorridor },
+            new ReverbRoom { name = "Entrance",   minX = -7f,    maxX = 7f,    minZ = -33f, maxZ = -27f, height = 3.3f, preset = AudioReverbPreset.StoneCorridor },
+            // Long: the assembly hall rings like an empty concert space
+            // (Unity spells the preset "Concerthall").
+            new ReverbRoom { name = "MainHall",   minX = -14f,   maxX = 14f,   minZ = 27f,  maxZ = 41f,  height = 4.8f, preset = AudioReverbPreset.Concerthall },
+        };
+
+        // Attaches one AudioReverbZone per interior room. Idempotent: an existing
+        // ReverbZone child is left alone (same guard style as AttachAudioSnapshot).
+        // Falloff comes from the room bounds: minDistance = half of the smaller
+        // floor extent (the fully-wet radius fits inside the room in both
+        // directions), maxDistance = the full floor diagonal. The zone collider
+        // is a trigger on the Default layer — NOT LevelLayer — so the NavMesh
+        // bake (layerMask 1 << LevelLayer, physics colliders) never collects it,
+        // and every project query (interaction ray, EnemySight, the occlusion
+        // probe) passes QueryTriggerInteraction.Ignore, so it blocks no gameplay
+        // ray. Overlapping zones blend, which smooths doorway transitions.
+        static void AttachReverbZones(Transform levelRoot)
+        {
+            for (int i = 0; i < ReverbRooms.Length; i++)
+            {
+                ReverbRoom room = ReverbRooms[i];
+                Transform roomRoot = levelRoot.Find(room.name);
+                if (roomRoot == null)
+                {
+                    // The corridor is shell geometry with no room builder; the
+                    // zone gets its own group so the graph stays named like the
+                    // other rooms.
+                    roomRoot = Group(room.name, levelRoot).transform;
+                }
+
+                if (roomRoot.Find("ReverbZone") != null) continue;
+
+                var zoneGo = new GameObject("ReverbZone");
+                zoneGo.transform.SetParent(roomRoot, false);
+                zoneGo.layer = 0; // Default: see the method comment (bake safety)
+
+                float extentX = room.maxX - room.minX;
+                float extentZ = room.maxZ - room.minZ;
+                zoneGo.transform.localPosition =
+                    new Vector3((room.minX + room.maxX) * 0.5f, 0f, (room.minZ + room.maxZ) * 0.5f);
+
+                BoxCollider bounds = zoneGo.AddComponent<BoxCollider>();
+                bounds.isTrigger = true;
+                bounds.center = new Vector3(0f, room.height * 0.5f, 0f);
+                bounds.size = new Vector3(extentX, room.height, extentZ);
+
+                AudioReverbZone reverb = zoneGo.AddComponent<AudioReverbZone>();
+                reverb.reverbPreset = room.preset;
+                reverb.minDistance = Mathf.Min(extentX, extentZ) * 0.5f;
+                reverb.maxDistance = Mathf.Sqrt(extentX * extentX + extentZ * extentZ);
+            }
         }
     }
 }

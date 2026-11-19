@@ -571,3 +571,39 @@ The game itself contains **no AI features** — this log is about the developmen
   untouched at the base ref, new 60 carry all EN+AR fields (4 options each), factSource
   untouched, no duplicate prompts." Unity ValidateBatch to be run by the lead (no Unity run in
   this task); human fact-check of all 120 still required before release.
+
+### 2026-11-19 — Deferred audio item: reverb zones + occlusion (feat/audio-reverb-occlusion, worktree LS-p3) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) implementing AGENT_REPORT_AUDIO_MIXER §5 (the
+  premium-pass brief §8.3 audio item deferred from the mixer PR); Lead runs the Unity
+  batches and git push.
+- What AI provided: (1) `SceneBuilderScenes.AttachReverbZones` — a builder table of the
+  eight interior rooms (bounds mirroring the shell-wall literals) attaching an
+  idempotent `AudioReverbZone` child per room with preset tiers Library/PhysicsLab/
+  Classroom/Garden/StaffRoom = `Room`, Corridor/Entrance = `MediumRoom`, MainHall =
+  `ConcertHall`; minDistance = half the smaller floor extent, maxDistance = the floor
+  diagonal, both computed from the bounds; zone colliders are triggers on the Default
+  layer so the Level-layer NavMesh bake and every gameplay query (all use
+  `QueryTriggerInteraction.Ignore`) never see them. (2) `AudioOcclusionProbe` (new,
+  on the player camera next to the AudioListener, attached by SceneBuilderPrefabs):
+  every `occlusionIntervalSeconds` (0.25) it linecasts listener -> source for each
+  active 3D source and muffles blocked ones with a lazily added `AudioLowPassFilter`
+  (`occlusionCutoffHz` 2400) plus a −6 dB volume dip, restoring on a clear line;
+  cached per-source state, no per-frame work. (3) GameConfig occlusion fields
+  (interval/cutoff/dip); (4) `SceneBuilderValidation` checks (≥ 6 zones with colliders
+  and sane falloffs, probe on the player camera); (5) Docs/TASKS.md P3 line.
+- What I changed myself: resolved the spec's volume-dip conflict with the per-frame
+  envelope writers (ShadowAudio growl, AdaptiveMusic) via an ownership arbitration —
+  the probe re-scales `source.volume` only when the current value is exactly the one
+  it wrote last tick, so it can never divide a stale dip factor out of another
+  writer's fresh value (which would boost the source past its envelope); confirmed the
+  low-pass/snapshot orthogonality (per-source filter vs mixer-level duck gains, they
+  chain and never share a parameter, so `AssertNotSnapshotOwned` is untouched); chose
+  "add filter once, toggle enabled" over add/destroy to avoid churn when hugging a
+  wall; skipped 2D sources (music/ambience are omniscient by design).
+- Teach-back check: pending — walk a teammate through the three-writer volume
+  arbitration (probe vs VolumeCategories vs envelope owners) and why the reverb zone
+  colliders must not be on the Level layer (NavMesh bake).
+- Test result: pending Lead batch run — expected `BuildAllBatch` (scenes/prefabs
+  rebuilt: zones + probe attached) then `ValidateBatch` → `RESULT: PASS` with the new
+  "Reverb zones: 8 (need at least 6)" and occlusion-probe checks; NOT run by the agent
+  (no Unity.exe per task rules).

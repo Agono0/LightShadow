@@ -107,6 +107,13 @@ namespace LightShadow.Tools
                 {
                     problems.Add("School: player camera has no CalmEffectsController.");
                 }
+
+                // Premium pass §8.3: the occlusion probe rides the camera next
+                // to the AudioListener.
+                if (player.GetComponentInChildren<LightShadow.Audio.AudioOcclusionProbe>() == null)
+                {
+                    problems.Add("School: player camera has no AudioOcclusionProbe.");
+                }
             }
 
             EnemyBehaviour shadow = Object.FindAnyObjectByType<EnemyBehaviour>();
@@ -157,6 +164,27 @@ namespace LightShadow.Tools
             if (zones != 5) problems.Add("School: expected 5 lit zones, found " + zones + ".");
             if (gates != 1) problems.Add("School: expected 1 exit gate, found " + gates + ".");
             if (hideSpots < 6) problems.Add("School: expected at least 6 hide spots, found " + hideSpots + ".");
+
+            // Premium pass §8.3: every interior room gets a reverb zone with a
+            // usable collider and falloff range (8 expected: Library, PhysicsLab,
+            // Classroom, Garden, StaffRoom, Corridor, Entrance, MainHall).
+            AudioReverbZone[] reverbZones = Object.FindObjectsByType<AudioReverbZone>(FindObjectsInactive.Include);
+            report.AppendLine("Reverb zones: " + reverbZones.Length + " (need at least 6)");
+            if (reverbZones.Length < 6)
+            {
+                problems.Add("School: expected at least 6 reverb zones, found " + reverbZones.Length + ".");
+            }
+            foreach (AudioReverbZone zone in reverbZones)
+            {
+                if (zone.GetComponent<Collider>() == null)
+                {
+                    problems.Add("School: reverb zone '" + zone.name + "' has no collider.");
+                }
+                if (zone.maxDistance <= zone.minDistance)
+                {
+                    problems.Add("School: reverb zone '" + zone.name + "' maxDistance must exceed minDistance.");
+                }
+            }
 
             // P3 menace director: the Shadow pacing gauge lives on the Systems.
             if (Object.FindAnyObjectByType<MenaceDirector>() == null)
