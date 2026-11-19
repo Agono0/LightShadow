@@ -242,14 +242,17 @@ namespace LightShadow.Tools
 
             // ---- expose the 14 parameters (7 user + 6 duck + low-pass) and
             //      rewrite the "MyExposedParam" defaults in place (§2.2). ----
+            // Key by the group's volume GUID (boxed struct): the exposed parameter
+            // paths carry GUIDs, not references to the group controllers, and
+            // ValueType.Equals makes boxed GUID dict lookups field-wise exact.
             var desiredByGroup = new Dictionary<object, string>();
             foreach (KeyValuePair<string, string> pair in GroupToUserParam)
             {
-                desiredByGroup[groups[pair.Key]] = pair.Value;
+                desiredByGroup[Call(groups[pair.Key], "GetGUIDForVolume")] = pair.Value;
             }
             foreach (KeyValuePair<string, string> pair in DuckToParam)
             {
-                desiredByGroup[groups[pair.Key]] = pair.Value;
+                desiredByGroup[Call(groups[pair.Key], "GetGUIDForVolume")] = pair.Value;
             }
 
             object volumeGuid = Call(masterGroup, "GetGUIDForVolume");
@@ -304,9 +307,10 @@ namespace LightShadow.Tools
             {
                 if (field.Name == preferred) return preferred;
             }
+            Type pathBase = EditorType("UnityEditor.Audio.AudioParameterPath");
             foreach (FieldInfo field in fields)
             {
-                if (field.FieldType != typeof(string)) return field.Name;
+                if (pathBase.IsAssignableFrom(field.FieldType)) return field.Name;
             }
 
             throw new MissingMemberException(
