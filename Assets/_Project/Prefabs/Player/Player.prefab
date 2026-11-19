@@ -135,6 +135,8 @@ GameObject:
   - component: {fileID: 2007219468771795231}
   - component: {fileID: 4530654461375078326}
   - component: {fileID: 3082945631185035270}
+  - component: {fileID: 838806522983962569}
+  - component: {fileID: 53349221439324061}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -276,6 +278,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Player.CameraShake
   shakeRoot: {fileID: 6694394613275254526}
   frequency: 30
+--- !u!114 &838806522983962569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3221021158559851488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e7585eb923a3d44a8431d974b054fae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.CalmEffectsController
+  config: {fileID: 0}
+  cameraShake: {fileID: 0}
+--- !u!114 &53349221439324061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3221021158559851488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7c61a9a07ded5a330fae759d1db13b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Audio.AudioOcclusionProbe
+  config: {fileID: 11400000, guid: 2d2a6b50004cd7f479be0a650e8322ce, type: 2}
 --- !u!1 &3575098495220679204
 GameObject:
   m_ObjectHideFlags: 0
@@ -472,6 +501,9 @@ GameObject:
   - component: {fileID: 7021125449248537519}
   - component: {fileID: 803076237674159404}
   - component: {fileID: 1528278433230672133}
+  - component: {fileID: 1569924196825912055}
+  - component: {fileID: 7301719531857771472}
+  - component: {fileID: 4581083061276058922}
   - component: {fileID: 8051704996475956180}
   - component: {fileID: 4663795448564609091}
   m_Layer: 8
@@ -553,6 +585,7 @@ MonoBehaviour:
   meter: {fileID: 2517693562513790507}
   spotLight: {fileID: 55323762774328146}
   toggleClip: {fileID: 0}
+  crank: {fileID: 0}
   OnBatteryChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -714,6 +747,50 @@ MonoBehaviour:
   sprintVolume: 0.75
   crouchVolume: 0.25
   pitchJitter: 0.08
+--- !u!114 &1569924196825912055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4231040394811358274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 051c1a4d136d6ab4ea603a18f9390a54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Player.NoiseEmitter
+  config: {fileID: 11400000, guid: 2d2a6b50004cd7f479be0a650e8322ce, type: 2}
+  player: {fileID: 8217966041710530103}
+--- !u!114 &7301719531857771472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4231040394811358274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a43ce5d191303c4284202bad1931eb6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Player.FlashlightCrank
+  config: {fileID: 11400000, guid: 2d2a6b50004cd7f479be0a650e8322ce, type: 2}
+  battery: {fileID: 4823817335918462706}
+  noise: {fileID: 1569924196825912055}
+--- !u!114 &4581083061276058922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4231040394811358274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 832641fe3878ff948a275b8d68d5ee89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.Player.HidingSystem
+  config: {fileID: 11400000, guid: 2d2a6b50004cd7f479be0a650e8322ce, type: 2}
+  player: {fileID: 8217966041710530103}
+  noise: {fileID: 1569924196825912055}
 --- !u!82 &8051704996475956180
 AudioSource:
   m_ObjectHideFlags: 0
