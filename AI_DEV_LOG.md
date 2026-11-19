@@ -378,3 +378,31 @@ The game itself contains **no AI features** — this log is about the developmen
   empty); empty-field grep = 0; factSource stays NEEDS-FACT-CHECK on all 60 (never claimed
   review). Unity ValidateBatch to be run by the lead (no Unity run in this task). Human/native
   Arabic review still required before release.
+
+### 2026-11-19 - Task P4 follow-up: question bank expansion 60 -> 120 - Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) - P4 follow-up item in Docs/TASKS.md.
+- What AI provided: 60 new school-level questions (Q_<Cat>_011+, Sci/Mat/His/Geo/Lan/Hea) each
+  with EN prompt, 4 EN options, correctIndex, mother-voice EN explanation, and the full Arabic
+  set (questionAr/optionsAr/explanationAr, Egyptian-flavored MSA, single-token Latin islands for
+  the ArabicSupport shim); the authoring script Art/pipeline/add_120_questions.py (writes assets
+  in the exact serialized QuestionData format, gates wing quotas, numbering continuity, display
+  safety and duplicate prompts, refuses to touch existing files) and the verifier extension
+  Art/pipeline/verify_arabic_questions.py (120 files; legacy 60 byte-identical to the branch
+  base, new 60 fully fielded).
+- What I changed myself: assigned the wing mapping and the 4 easy / 5 standard / 3 hard quota per
+  wing (MASTER_PLAN section 4.5: Library, Science wing, Courtyard, Assembly hall, Staff room);
+  verified every fact against general knowledge and reworded His_016's prompt after the
+  duplicate-prompt gate flagged a collision with His_004; kept every factSource at
+  NEEDS-FACT-CHECK (rule 5), recorded the source=curriculum designation in the authoring table
+  because QuestionData has no serialized `source` field, and authored no .meta files (Unity
+  generates them on import; QuestionDatabase relinks via GenerateQuestionsSilent on the next
+  editor run - SceneBuilder.cs calls it before building the school).
+- Teach-back check: pending - walk a teammate through the wing-to-id mapping table in
+  add_120_questions.py and the append-only guarantee (git diff shows 0 deletions on the legacy
+  assets).
+- Test result: python -I add_120_questions.py --apply created 60 assets (folder count 120), each
+  round-tripped via YAML (EN+AR fields, 4 options, correctIndex, category, difficulty);
+  python -I verify_arabic_questions.py -> "RESULT: PASS - 120-question bank intact: legacy 60
+  untouched at the base ref, new 60 carry all EN+AR fields (4 options each), factSource
+  untouched, no duplicate prompts." Unity ValidateBatch to be run by the lead (no Unity run in
+  this task); human fact-check of all 120 still required before release.
