@@ -182,6 +182,17 @@ namespace LightShadow.Tools
             // camera itself (its own high-priority post volume override).
             cameraGo.AddComponent<CalmEffectsController>();
 
+            // Premium pass §8.3: listener-side occlusion probe on the camera —
+            // this is the object carrying the AudioListener, so its transform is
+            // the ray origin. Idempotent attach (AttachAudioSnapshot pattern).
+            LightShadow.Audio.AudioOcclusionProbe occlusion =
+                cameraGo.GetComponent<LightShadow.Audio.AudioOcclusionProbe>();
+            if (occlusion == null)
+            {
+                occlusion = cameraGo.AddComponent<LightShadow.Audio.AudioOcclusionProbe>();
+            }
+            occlusion.config = config;
+
             // Low-poly hand holding the flashlight under the camera. FirstPersonHands
             // adds breathing, walk bob and a crouch dip; the visuals carry no
             // colliders, and the interaction ray already excludes the player layer.
