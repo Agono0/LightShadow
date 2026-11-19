@@ -460,6 +460,12 @@ namespace LightShadow.Story
             ChangeCalm(state.calm + delta);
         }
 
+        // P3 dev console: set a story flag by name (dev-only).
+        public void SetFlag(string flag)
+        {
+            if (!string.IsNullOrEmpty(flag)) flags.Add(flag);
+        }
+
         // The ONE place calm is written: clamp, then publish on the bus so the
         // calm FX (vignette/heartbeat/tremor) and any future listeners track.
         void ChangeCalm(float newValue)
