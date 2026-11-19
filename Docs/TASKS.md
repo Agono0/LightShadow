@@ -65,23 +65,23 @@ before merge (AGENTS.md, Git workflow).
 
 ## P3 — Horror & interaction systems
 
-- [ ] Noise bus: `NoiseEmitter` events (sprint/walk/crouch/door/drop/wrong
+- [x] Noise bus: `NoiseEmitter` events (sprint/walk/crouch/door/drop/wrong
       buzzer) with per-action hearing radii feeding the Shadow's hearing. *(P3)*
-- [ ] Shadow `Investigate` state: go to the last heard noise, then resume
+- [x] Shadow `Investigate` state: go to the last heard noise, then resume
       patrol; tunes with the noise bus. *(P3)*
-- [ ] Crank minigame: hold + circular swipe emergency charge capped low and
+- [x] Crank minigame: hold + circular swipe emergency charge capped low and
       loud (radii above), per plan §4.6. *(P3)*
-- [ ] Menace director: gauge 0–100 that paces sightings and forces a
+- [x] Menace director: gauge 0–100 that paces sightings and forces a
       cool-down exit at 100; guarantees calm after chases (plan §4.12). *(P3)*
-- [ ] Hiding v1: hide spots (lockers/desks/curtains) with hold-breath when the
+- [x] Hiding v1: hide spots (lockers/desks/curtains) with hold-breath when the
       Shadow is close; Search checks 1–2 spots. *(P3)*
-- [ ] Banish rebalance: hold the focused beam 2 s with charge ≥ 25 → 20 s
+- [x] Banish rebalance: hold the focused beam 2 s with charge ≥ 25 → 20 s
       retreat (GameConfig fields, no literals). *(P3)*
-- [ ] Calm FX: heartbeat, vignette and beam-tremor driven by the calm stat. *(P3)*
-- [ ] 360° inspect view for story items (Inspectable close-up). *(P3)*
-- [ ] Study-recap PNG export (shareable/printable from the recap screen). *(P3)*
-- [ ] Haptics: light on correct answers, heavy on caught (Android). *(P3)*
-- [ ] Dev console: set flags/stats, teleport, skip to act, toggle AI (editor
+- [x] Calm FX: heartbeat, vignette and beam-tremor driven by the calm stat. *(P3)*
+- [x] 360° inspect view for story items (Inspectable close-up). *(P3)*
+- [x] Study-recap PNG export (shareable/printable from the recap screen). *(P3)*
+- [x] Haptics: light on correct answers, heavy on caught (Android). *(P3)*
+- [x] Dev console: set flags/stats, teleport, skip to act, toggle AI (editor
       builds only). *(P3)*
 
 ## P4 — Arabic content + credits

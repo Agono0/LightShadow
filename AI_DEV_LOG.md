@@ -357,3 +357,42 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: pending Lead batch run — expected `AudioMixerTool.EnsureBatch` → `RESULT: PASS`
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
+
+### 2026-11-19 — Phase 3 horror systems — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) implementing Docs/TASKS.md P3 + Docs/MASTER_PLAN.md
+  §4.6/§4.7/§4.11/§4.12 on branch `feat/horror-systems` (stacked PR; Lead runs the Unity batches
+  and git push).
+- What AI provided: `NoiseEmitter` + `GameEvents.NoiseEmitted` (per-action hearing radii:
+  sprint 10 / walk 4 / crouch 1 / crank 12 / wrong-answer 6 m) and the Shadow `Investigate`
+  state (walk to the noise, sweep look-around, resume Patrol — replaces the old stop-and-face
+  sprint hack); `FlashlightCrank` (hold + circular-gesture accumulator over mouse/touch/left
+  stick, charge capped at crankMaxCharge, ratchet SFX + 12 m noise per tick, SFX_Crank
+  library-first with a synthesised fallback); `MenaceDirector` (gauge 0–100, forced
+  ForcedCooldown 45–60 s at the cap, 30 s post-chase grace consumed by the Chase decision,
+  dawn multiplier); hiding v1 (`HideSpot` registry + `HidingSystem` enter/exit hop, hold-breath
+  meter draining story Calm, breath/release noises, `Search` state that checks 1–2 random spots
+  and never the occupied one on the first pass, `EnemySight` hidden check with the
+  watched-entry exemption); banish rebalance (focused beam hold 2 s at meter ≥ 25 → 20 s
+  retreat costing 25 meter; old instant-repel fields deprecated); `CalmEffectsController`
+  (high-priority runtime Volume override vignette + heartbeat pacer + `CameraShake.SetTremor`
+  floor, fed by the new `GameEvents.CalmChanged` raised from StoryDirector's single
+  `ChangeCalm` funnel); `InspectViewController` (self-building 360° close-up, drag/swipe orbit,
+  auto-close); RecapScreen SAVE PNG export; `HapticsService` (Handheld.Vibrate wrappers,
+  light/heavy hooks); `DevConsole` (backquote + DEBUG chip behind the new LS_DebugMode flag;
+  setflag/givemeter/teleport/skipact/toggleai/timescale); scene-builder wiring for all of it
+  (player prefab components, MenaceDirector on Systems, CRANK/BREATH touch buttons, SAVE PNG
+  button, 6 hide spots + 2 corridor lockers) and ValidateBatch additions.
+- What I changed myself: kept `sprintNoiseRange`/`repelRecoil`/`repelCooldown`/
+  `repelMeterThreshold` serialized but deprecated (existing GameConfig assets keep loading) and
+  used new spec-valued fields instead; mapped the plan's "hold-breath drains Calm 2/s" (0–100
+  scale) onto the implemented -1..1 story stat as `breathCalmPerSecond = 0.05` with the unit
+  mismatch documented in GameConfig comments; routed Investigate/Search into the existing Stalk
+  audio snapshot; made the desk hide plates full height so the exit ray works at standing eye
+  height; added ExitCurrent input paths for all three input families (touch Interact reroute,
+  gamepad A poll, desktop E) because the interact ray cannot see the spot from inside the prop.
+- Teach-back check: pending — walk a teammate through the noise bus contract
+  (NoiseEmitter → GameEvents → FSM) and the banish hold-vs-tap input split on the LIGHT button.
+- Test result: pending Lead batch run — expected `BuildAllBatch` (scenes/prefabs rebuilt:
+  new lockers bake into the NavMesh) then `ValidateBatch` → `RESULT: PASS` with the new
+  Hide spots / MenaceDirector / player-component checks; NOT yet run by the agent
+  (no Unity.exe per task rules).
