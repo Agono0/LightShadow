@@ -9,6 +9,7 @@ using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.AI;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;

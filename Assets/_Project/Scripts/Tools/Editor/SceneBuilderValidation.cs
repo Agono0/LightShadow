@@ -261,7 +261,7 @@ namespace LightShadow.Tools
                 {
                     if (mixer.FindSnapshot(name) == null) problems.Add("Mixer: missing snapshot " + name + ".");
                 }
-                AudioMixerSnapshot start = mixer.startSnapshot;
+                AudioMixerSnapshot start = LightShadow.Tools.AudioMixerTool.ReadStartSnapshot(mixer);
                 if (start == null || start.name != LightShadow.Audio.AudioSnapshotController.SnapshotExplore)
                 {
                     problems.Add("Mixer: startSnapshot must be Snapshot_Explore.");

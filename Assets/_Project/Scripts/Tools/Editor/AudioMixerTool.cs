@@ -369,7 +369,7 @@ namespace LightShadow.Tools
                 if (mixer.FindSnapshot(name) == null) problems.Add("Missing snapshot: " + name);
             }
 
-            AudioMixerSnapshot start = mixer.startSnapshot;
+            AudioMixerSnapshot start = GetMember(mixer, "startSnapshot") as AudioMixerSnapshot;
             if (start == null || start.name != StartSnapshot)
             {
                 problems.Add("startSnapshot should be " + StartSnapshot
@@ -391,6 +391,14 @@ namespace LightShadow.Tools
             foreach (string name in DuckGroupNames) names.Add(DuckToParam[name]);
             names.Add(LowpassParam);
             return names.ToArray();
+        }
+
+        /// <summary>Reflection read of the mixer controller's start snapshot
+        /// (startSnapshot lives on the internal AudioMixerController, not the
+        /// public AudioMixer surface).</summary>
+        public static AudioMixerSnapshot ReadStartSnapshot(AudioMixer mixer)
+        {
+            return GetMember(mixer, "startSnapshot") as AudioMixerSnapshot;
         }
 
         /// <summary>Full validation report ending in RESULT: PASS / RESULT: FAIL
