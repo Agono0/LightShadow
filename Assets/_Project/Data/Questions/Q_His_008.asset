@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: George Washington served as the first U.S. President from 1789 to
     1797.
   factSource: NEEDS-FACT-CHECK
+  questionAr: من أول رئيس للولايات المتحدة الأمريكية؟
+  optionsAr:
+  - توماس جيفرسون
+  - جورج واشنطن
+  - أبراهام لينكولن
+  - جون آدامز
+  explanationAr: تولى جورج واشنطن أول رئاسة للولايات المتحدة من 1789 إلى 1797.

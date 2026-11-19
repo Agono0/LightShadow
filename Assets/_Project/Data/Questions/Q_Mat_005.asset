@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: Seven groups of eight make 56.
   factSource: NEEDS-FACT-CHECK
+  questionAr: كم يساوي 7 مضروبًا في 8؟
+  optionsAr:
+  - 54
+  - 56
+  - 63
+  - 72
+  explanationAr: سبع مجموعات من ثمانية تجعل 56.

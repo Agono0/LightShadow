@@ -25,3 +25,10 @@ MonoBehaviour:
   explanation: Skipping meals can drop blood glucose, and the brain needs glucose
     to focus.
   factSource: NEEDS-FACT-CHECK
+  questionAr: طالبة تتخلى عن الفطور فتشعر قرب منتصف الصباح بدوخة وعجز عن التركيز؛ ما السبب الأرجح؟
+  optionsAr:
+  - شرب الماء كثيرًا
+  - انخفاض سكر الدم لأنها لم تأكل
+  - الإفراط في وقت الشاشات
+  - النوم الكثير
+  explanationAr: ترك الوجبات قد يخفض جلوكوز الدم، والدماغ يحتاج الجلوكوز لكي يركّز.

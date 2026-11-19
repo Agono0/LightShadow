@@ -38,6 +38,9 @@ namespace LightShadow.UI
         {
             if (!Input.GetKeyDown(KeyCode.Escape)) return;
 
+            // P3 inspect view consumes Esc first (close the item close-up).
+            if (InspectViewController.IsOpen) return;
+
             // Settings sits above the pause card and consumes Esc first.
             if (settings != null && settings.IsOpen)
             {

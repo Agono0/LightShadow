@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_His_016
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: Which of these four events happened earliest?
+  options:
+  - The fall of Constantinople
+  - Columbus reaching the Americas
+  - The Mongol sack of Baghdad
+  - The French Revolution
+  correctIndex: 2
+  category: 2
+  difficulty: 3
+  explanation: 'Order: Baghdad fell to the Mongols in 1258, Constantinople fell in 1453, Columbus sailed in 1492, the French Revolution began in 1789.'
+  factSource: NEEDS-FACT-CHECK
+  questionAr: أي من هذه الأحداث وقع أولًا؟
+  optionsAr:
+  - سقوط القسطنطينية
+  - وصول كولومبوس إلى أمريكا
+  - اجتياح بغداد على يد المغول
+  - الثورة الفرنسية
+  explanationAr: 'الترتيب: اجتياح بغداد 1258، ثم القسطنطينية 1453، ثم رحلة كولومبوس 1492، ثم الثورة الفرنسية 1789.'

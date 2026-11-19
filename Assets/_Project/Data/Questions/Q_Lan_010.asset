@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: A simile says one thing is like another ("as brave as a lion"); a
     metaphor states it directly.
   factSource: NEEDS-FACT-CHECK
+  questionAr: التشبيه يقارن بين شيئين مستعينًا بأي كلمات؟
+  optionsAr:
+  - «is» أو «was»
+  - «like» أو «as»
+  - «and» أو «but»
+  - «not» أو «never»
+  explanationAr: التشبيه يقول إن شيئًا يشبه الآخر مستعينًا بـ«like» أو «as»، أما الاستعارة فتذكره مباشرة.
