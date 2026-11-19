@@ -72,8 +72,15 @@ namespace LightShadow.Tools
                 return;
             }
 
-            string result = BuildWindowsPlayer();
-            EditorUtility.DisplayDialog("LightShadow - Windows Build", result, "OK");
+            try
+            {
+                string result = BuildWindowsPlayer();
+                EditorUtility.DisplayDialog("LightShadow - Windows Build", result, "OK");
+            }
+            catch (Exception exception)
+            {
+                EditorUtility.DisplayDialog("LightShadow - Windows Build Failed", exception.Message, "OK");
+            }
         }
 
         [MenuItem("LightShadow/5. Validate Content", priority = 5)]
@@ -91,8 +98,15 @@ namespace LightShadow.Tools
                 return;
             }
 
-            string result = BuildAndroidPlayer();
-            EditorUtility.DisplayDialog("LightShadow - Android Build", result, "OK");
+            try
+            {
+                string result = BuildAndroidPlayer();
+                EditorUtility.DisplayDialog("LightShadow - Android Build", result, "OK");
+            }
+            catch (Exception exception)
+            {
+                EditorUtility.DisplayDialog("LightShadow - Android Build Failed", exception.Message, "OK");
+            }
         }
 
         // Called by Unity in batch mode: -executeMethod LightShadow.Tools.SceneBuilder.BuildAllBatch
@@ -138,6 +152,52 @@ namespace LightShadow.Tools
             {
                 Debug.LogException(exception);
                 EditorApplication.Exit(1);
+            }
+        }
+
+        // CI entry points: one separate APK per Android ABI. One editor process per
+        // architecture avoids domain-reload state issues between sequential builds.
+
+        // Called by Unity in batch mode: -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidArm64Batch
+        public static void BuildAndroidArm64Batch()
+        {
+            RunAndroidAbiBatch(AndroidArchitecture.ARM64);
+        }
+
+        // Called by Unity in batch mode: -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidArmV7Batch
+        public static void BuildAndroidArmV7Batch()
+        {
+            RunAndroidAbiBatch(AndroidArchitecture.ARMv7);
+        }
+
+        // No X86_64 entry point: Unity 6000.4 deprecates it (Magic Leap legacy) and
+        // BuildPlayer throws UnityException when it is the only target architecture.
+
+        static void RunAndroidAbiBatch(AndroidArchitecture architecture)
+        {
+            try
+            {
+                string result = BuildAndroidPlayer(architecture, "Builds/Android/" + AbiDirectoryName(architecture));
+                Debug.Log("[LightShadow] " + result);
+                EditorApplication.Exit(0);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                EditorApplication.Exit(1);
+            }
+        }
+
+        static string AbiDirectoryName(AndroidArchitecture architecture)
+        {
+            switch (architecture)
+            {
+                case AndroidArchitecture.ARM64:
+                    return "arm64-v8a";
+                case AndroidArchitecture.ARMv7:
+                    return "armeabi-v7a";
+                default:
+                    throw new Exception("Unsupported Android architecture: " + architecture);
             }
         }
 
@@ -333,10 +393,13 @@ namespace LightShadow.Tools
             BuildReport report = BuildPipeline.BuildPlayer(options);
             BuildSummary summary = report.summary;
 
+            // Throw (not return) so batch mode exits non-zero on failure; menus catch
+            // and show the message in a dialog instead.
             if (summary.result != BuildResult.Succeeded)
             {
-                return "Windows build " + summary.result + " with " + summary.totalErrors + " error(s).\n"
-                    + "See the Console for details.";
+                throw new Exception(
+                    "Windows build " + summary.result + " with " + summary.totalErrors + " error(s).\n"
+                    + "See the Console for details.");
             }
 
             return "Windows build succeeded.\n"
@@ -347,19 +410,30 @@ namespace LightShadow.Tools
 
         static string BuildAndroidPlayer()
         {
+            return BuildAndroidPlayer(AndroidArchitecture.ARM64, "Builds/Android");
+        }
+
+        // One architecture per editor invocation keeps Gradle/IL2CPP state clean and
+        // lets CI build separate APKs in parallel matrix jobs.
+        static string BuildAndroidPlayer(AndroidArchitecture architecture, string outputDirectory)
+        {
             if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Android, BuildTarget.Android))
             {
-                return "Android Build Support is not installed.\n"
-                    + "Install the Android module in Unity Hub (Windows module is unaffected).";
+                throw new Exception(
+                    "Android Build Support is not installed.\n"
+                    + "Install the Android module in Unity Hub (Windows module is unaffected).");
             }
 
+            EditorUserBuildSettings.buildAppBundle = false; // APK, never AAB
+            PlayerSettings.Android.targetArchitectures = architecture;
+
             EnsureFolder("Builds");
-            EnsureFolder("Builds/Android");
+            EnsureFolder(outputDirectory);
 
             var options = new BuildPlayerOptions
             {
                 scenes = new[] { BootstrapPath, MainMenuPath, SchoolPath, EndingPath },
-                locationPathName = "Builds/Android/LightShadow.apk",
+                locationPathName = outputDirectory + "/LightShadow.apk",
                 target = BuildTarget.Android,
                 options = BuildOptions.None
             };
@@ -367,16 +441,19 @@ namespace LightShadow.Tools
             BuildReport report = BuildPipeline.BuildPlayer(options);
             BuildSummary summary = report.summary;
 
+            // Throw (not return) so batch mode exits non-zero on failure; menus catch
+            // and show the message in a dialog instead.
             if (summary.result != BuildResult.Succeeded)
             {
-                return "Android build " + summary.result + " with " + summary.totalErrors + " error(s).\n"
-                    + "Check the SDK/NDK/JDK paths in Unity Hub > Installs > Add modules.";
+                throw new Exception(
+                    "Android build " + summary.result + " with " + summary.totalErrors + " error(s).\n"
+                    + "Check the SDK/NDK/JDK paths in Unity Hub > Installs > Add modules.");
             }
 
-            return "Android build succeeded.\n"
-                + "Location: Builds/Android/LightShadow.apk\n"
+            return "Android build succeeded (" + architecture + ").\n"
+                + "Location: " + outputDirectory + "/LightShadow.apk\n"
                 + "Size: " + (summary.totalSize / (1024f * 1024f)).ToString("0.0") + " MB\n"
-                + "Minimum API: Android 10 (API 29), ARM64, IL2CPP";
+                + "Minimum API: Android 10 (API 29), IL2CPP";
         }
 
         // ------------------------------------------------------------- palette
