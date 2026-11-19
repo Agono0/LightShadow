@@ -17,6 +17,15 @@ namespace LightShadow.Enemy
         {
             if (head == null || target == null) return false;
 
+            // P3 hiding: a hidden Nour cannot be seen - unless the Shadow
+            // watched her duck into the spot, in which case hiding does not
+            // blind a witness (HidingSystem.EnteredUnderWatch).
+            if (LightShadow.Player.HidingSystem.IsHidden
+                && !LightShadow.Player.HidingSystem.EnteredUnderWatch)
+            {
+                return false;
+            }
+
             Vector3 origin = head.position;
             Vector3 destination = target.position;
             if ((destination - origin).magnitude > range) return false;

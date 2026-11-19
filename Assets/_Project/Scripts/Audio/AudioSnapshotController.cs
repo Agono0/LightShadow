@@ -191,7 +191,8 @@ namespace LightShadow.Audio
                 case EnemyBehaviour.State.Chase: return SnapshotChase;
                 case EnemyBehaviour.State.Stalk:
                 case EnemyBehaviour.State.Repelled:
-                case EnemyBehaviour.State.Investigate: return SnapshotStalk;
+                case EnemyBehaviour.State.Investigate:
+                case EnemyBehaviour.State.Search: return SnapshotStalk;
                 default: return SnapshotExplore;
             }
         }
@@ -214,7 +215,8 @@ namespace LightShadow.Audio
                 case EnemyBehaviour.State.Chase: return TransitionChase;
                 case EnemyBehaviour.State.Stalk:
                 case EnemyBehaviour.State.Repelled:
-                case EnemyBehaviour.State.Investigate: return TransitionStalk;
+                case EnemyBehaviour.State.Investigate:
+                case EnemyBehaviour.State.Search: return TransitionStalk;
                 default: return TransitionExplore;
             }
         }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using LightShadow.Core;
 using LightShadow.Gameplay;
 using LightShadow.Player;
@@ -13,14 +14,15 @@ namespace LightShadow.Enemy
     //        Patrol  --player near in the dark-->  Stalk  --line of sight-->  Chase
     //           ^                                     |   <-- light returns -->
     //           +-------------------------------------+
-    //  Patrol/Stalk --fresh noise in range-->  Investigate  --search done-->  Patrol
+    //  Patrol/Stalk --fresh noise in range-->  Investigate  --found nothing-->  Search
+    //        Chase lost ---------------------->  Search (checks 1-2 hide spots)
     //        Any state --beam at close range with meter>30-->  Repelled --> Stalk
     //        Gauge 100 (MenaceDirector) -->  ForcedCooldown  --timer done-->  Patrol
     //
     [RequireComponent(typeof(NavMeshAgent))]
     public class EnemyBehaviour : MonoBehaviour
     {
-        public enum State { Patrol, Stalk, Chase, Repelled, Investigate, ForcedCooldown }
+        public enum State { Patrol, Stalk, Chase, Repelled, Investigate, ForcedCooldown, Search }
 
         [Header("Wiring")]
         public GameConfig config;
@@ -58,6 +60,13 @@ namespace LightShadow.Enemy
         float forcedCooldownTimer;
         float forcedCooldownSeconds;
 
+        // Search (P3 hiding): after a lost chase or a fruitless investigate the
+        // Shadow checks a few random hide spots around the last known point.
+        readonly List<Vector3> searchPath = new List<Vector3>();
+        int searchStageIndex;
+        float searchTimer;
+        float searchDwell;
+
         public State CurrentState => state;
         public bool IsAggressive => aggressive;
 
@@ -80,6 +89,10 @@ namespace LightShadow.Enemy
         float InvestigateArriveDistance => config != null ? config.investigateArriveDistance : 0.9f;
         float InvestigateSweepDegrees => config != null ? config.investigateSweepDegrees : 60f;
         float InvestigateSweepSpeed => config != null ? config.investigateSweepSpeed : 1.5f;
+        float SearchSeconds => config != null ? config.searchSeconds : 60f;
+        int SearchHideSpotsChecked => config != null ? config.searchHideSpotsChecked : 2;
+        float SearchExcludeRadius => config != null ? config.searchHideSpotExcludeRadius : 2f;
+        float SearchSpotDwellSeconds => config != null ? config.searchSpotDwellSeconds : 2.5f;
 
         void Awake()
         {
@@ -176,10 +189,11 @@ namespace LightShadow.Enemy
             bool sighted = distance <= SightRange && (sight == null || sight.HasLineOfSight());
 
             // Sweaty-palm hearing (P3): a fresh noise inside its radius pulls
-            // the Shadow off patrol/stalk to Investigate. It walks to where the
-            // sound came from and searches - it does not magically know where
-            // Nour is standing now.
-            if (!sighted && (state == State.Patrol || state == State.Stalk) && FreshNoiseHeard())
+            // the Shadow off patrol/stalk (or interrupts a search) to
+            // Investigate. It walks to where the sound came from and searches -
+            // it does not magically know where Nour is standing now.
+            if (!sighted && (state == State.Patrol || state == State.Stalk || state == State.Search)
+                && FreshNoiseHeard())
             {
                 EnterState(State.Investigate);
                 return;
@@ -214,6 +228,7 @@ namespace LightShadow.Enemy
                 case State.Repelled: UpdateRepelled(); break;
                 case State.Investigate: UpdateInvestigate(dt, playerPosition, distance, effectiveLight, sighted); break;
                 case State.ForcedCooldown: UpdateForcedCooldown(dt); break;
+                case State.Search: UpdateSearch(dt, playerPosition, sighted); break;
             }
         }
 
@@ -294,7 +309,86 @@ namespace LightShadow.Enemy
                 return;
             }
 
-            if (investigateTimer >= InvestigateSearchSeconds) EnterState(State.Patrol);
+            if (investigateTimer >= InvestigateSearchSeconds) BeginSearch(lastNoisePosition);
+        }
+
+        // ------------------------- Search -------------------------
+        // Plan 4.12: after a lost chase (or a fruitless investigate) the Shadow
+        // checks up to searchHideSpotsChecked random hide spots around the last
+        // known point - never the one Nour currently occupies on the first
+        // pass. Sighting still escalates; running out of time or spots ends
+        // back at Patrol.
+        void BeginSearch(Vector3 lastKnown)
+        {
+            searchTimer = 0f;
+            searchDwell = 0f;
+            searchPath.Clear();
+            searchPath.Add(lastKnown);
+
+            // Candidate spots: exclude the one Nour is occupying right now
+            // (first pass never checks the occupied spot - plan 4.12).
+            List<Vector3> candidates = new List<Vector3>();
+            for (int i = 0; i < HideSpot.All.Count; i++)
+            {
+                HideSpot spot = HideSpot.All[i];
+                if (spot == null) continue;
+                if (HidingSystem.IsHidden && player != null
+                    && Vector3.Distance(spot.transform.position, player.position) <= SearchExcludeRadius)
+                {
+                    continue;
+                }
+                candidates.Add(spot.transform.position);
+            }
+
+            // Sample distinct random candidates in random order.
+            int wanted = Mathf.Max(0, SearchHideSpotsChecked);
+            while (searchPath.Count < wanted + 1 && candidates.Count > 0)
+            {
+                int index = Random.Range(0, candidates.Count);
+                searchPath.Add(candidates[index]);
+                candidates.RemoveAt(index);
+            }
+
+            EnterState(State.Search);
+        }
+
+        void UpdateSearch(float dt, Vector3 playerPosition, bool sighted)
+        {
+            searchTimer += dt;
+
+            if (sighted && !MenaceDirector.ChaseBlocked)
+            {
+                EnterState(State.Chase);
+                return;
+            }
+
+            if (searchStageIndex >= searchPath.Count)
+            {
+                // Every stop checked: give up.
+                EnterState(State.Patrol);
+                return;
+            }
+
+            Vector3 target = searchPath[searchStageIndex];
+            if (!agent.hasPath || agent.remainingDistance <= InvestigateArriveDistance)
+            {
+                // Dwell at the stop and look it over, then move to the next.
+                agent.isStopped = true;
+                FaceTowards(searchStageIndex == 0 ? playerPosition : target);
+                searchDwell += dt;
+                if (searchDwell >= SearchSpotDwellSeconds)
+                {
+                    searchDwell = 0f;
+                    searchStageIndex++;
+                }
+            }
+            else
+            {
+                agent.isStopped = false;
+                SetDestination(target);
+            }
+
+            if (searchTimer >= SearchSeconds) EnterState(State.Patrol);
         }
 
         // ------------------------- ForcedCooldown -------------------------
@@ -366,7 +460,9 @@ namespace LightShadow.Enemy
 
         // ------------------------- Chase -------------------------
         // Full speed straight at the player's last known position. Ends when the
-        // player out-runs it, breaks line of sight long enough, or repels it.
+        // player out-runs it, breaks line of sight long enough, or repels it -
+        // and a lost chase hands over to the hide-spot Search instead of
+        // straight patrol (plan 4.12).
         void UpdateChase(float dt, Vector3 playerPosition, float distance, bool sighted)
         {
             if (sighted)
@@ -383,8 +479,7 @@ namespace LightShadow.Enemy
             bool lost = sightLostTimer > SightLostGrace;
             if (escaped || lost)
             {
-                // Still close by? Lurk. Far away? Give up and patrol.
-                EnterState(distance <= EngageRadius ? State.Stalk : State.Patrol);
+                BeginSearch(playerPosition);
             }
         }
 
@@ -446,6 +541,14 @@ namespace LightShadow.Enemy
                     PickFarWaypoint();
                     SetBreathing(false);
                     break;
+                case State.Search:
+                    // Check the picked spots with a stalker's pace.
+                    agent.speed = StalkSpeed;
+                    agent.isStopped = false;
+                    searchStageIndex = 0;
+                    searchDwell = 0f;
+                    SetBreathing(true);
+                    break;
             }
         }
 
@@ -477,6 +580,8 @@ namespace LightShadow.Enemy
             sightLostTimer = 0f;
             investigateTimer = 0f;
             forcedCooldownTimer = 0f;
+            searchStageIndex = 0;
+            searchPath.Clear();
             EnterState(State.Patrol);
         }
 
@@ -489,6 +594,8 @@ namespace LightShadow.Enemy
             sightLostTimer = 0f;
             investigateTimer = 0f;
             forcedCooldownTimer = 0f;
+            searchStageIndex = 0;
+            searchPath.Clear();
 
             if (agent != null && agent.isOnNavMesh)
             {

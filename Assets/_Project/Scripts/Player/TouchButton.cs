@@ -8,13 +8,14 @@ namespace LightShadow.Player
     // no code changes needed to re-purpose a button in the mobile HUD.
     public class TouchButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives, CrankHold }
+        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives, CrankHold, BreathHold }
 
         [Header("Wiring")]
         public Kind kind;
         public PlayerController player;
         public FlashlightBattery flashlight;
         public FlashlightCrank crank;
+        public HidingSystem hiding;
 
         void Awake()
         {
@@ -40,6 +41,10 @@ namespace LightShadow.Player
             {
                 crank = player.GetComponent<FlashlightCrank>();
             }
+            if (hiding == null && player != null)
+            {
+                hiding = player.GetComponent<HidingSystem>();
+            }
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -56,6 +61,9 @@ namespace LightShadow.Player
                     if (flashlight != null) flashlight.Toggle();
                     break;
                 case Kind.Interact:
+                    // While hidden the interact button means "leave the spot"
+                    // (the ray cannot see the spot from inside the prop).
+                    if (HidingSystem.IsHidden) { HidingSystem.ExitCurrent(); break; }
                     if (InteractionRaycaster.Instance != null) InteractionRaycaster.Instance.PressInteract();
                     break;
                 case Kind.Pause:
@@ -67,6 +75,9 @@ namespace LightShadow.Player
                 case Kind.CrankHold:
                     if (crank != null) crank.SetHeld(true);
                     break;
+                case Kind.BreathHold:
+                    if (hiding != null) hiding.SetBreathHold(true);
+                    break;
             }
         }
 
@@ -74,6 +85,7 @@ namespace LightShadow.Player
         {
             if (kind == Kind.SprintHold && player != null) player.SetSprint(false);
             if (kind == Kind.CrankHold && crank != null) crank.SetHeld(false);
+            if (kind == Kind.BreathHold && hiding != null) hiding.SetBreathHold(false);
         }
     }
 }

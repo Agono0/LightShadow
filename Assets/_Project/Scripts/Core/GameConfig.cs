@@ -101,6 +101,30 @@ namespace LightShadow.Core
         public float forcedCooldownMaxSeconds = 60f;
         public float chaseGraceSeconds = 30f;
 
+        [Header("Hiding And Search (Plan 4.12, P3)")]
+        // Hiding v1: the breath meter lasts breathHoldSeconds, recovers over
+        // breathRecoverSeconds, and re-holding is allowed past
+        // breathReholdFraction. Unheld breathing carries breathNoiseRange every
+        // hiddenBreathIntervalSeconds while hidden; releasing the hold early
+        // (or empty lungs) rings breathReleaseNoiseRange. Holding costs calm in
+        // story-calm units (-1..1 scale; the plan's "drains Calm 2/s" assumes
+        // the 0-100 scale, which the story stat does not use).
+        public float breathHoldSeconds = 6f;
+        public float breathRecoverSeconds = 4f;
+        public float breathReholdFraction = 0.5f;
+        public float breathNoiseRange = 3f;
+        public float breathReleaseNoiseRange = 6f;
+        public float hiddenBreathIntervalSeconds = 2f;
+        public float breathCalmPerSecond = 0.05f;
+        // Search: after a chase is lost or an investigate finds nothing, the
+        // Shadow checks up to searchHideSpotsChecked random hide spots around
+        // the last known point for searchSeconds; the spot Nour currently
+        // occupies is excluded on the first pass within this radius.
+        public float searchSeconds = 60f;
+        public int searchHideSpotsChecked = 2;
+        public float searchHideSpotExcludeRadius = 2f;
+        public float searchSpotDwellSeconds = 2.5f;
+
         [Header("Penalties (Doc 4.3)")]
         public float caughtMeterPenalty = 15f;
 

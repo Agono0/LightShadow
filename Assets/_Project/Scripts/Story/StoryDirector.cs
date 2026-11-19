@@ -445,6 +445,14 @@ namespace LightShadow.Story
 
         static float ClampStat(float value) => Mathf.Clamp(value, -1f, 1f);
 
+        // P3 hiding: gameplay systems nudge calm directly (hold-breath drains
+        // it). The story graph keeps ownership of its own effect lines; this is
+        // the one sanctioned outside entry point.
+        public void AddCalm(float delta)
+        {
+            state.calm = ClampStat(state.calm + delta);
+        }
+
         // ------------------------------------------------------------ endings --
 
         // D13 formula. Constants live in SO_StoryConfig; the order of checks is
