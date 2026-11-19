@@ -53,6 +53,13 @@ namespace LightShadow.Core
             sfxSource.PlayOneShot(clip);
         }
 
+        // Volume-scaled one-shot (P3 calm FX heartbeat fades with intensity).
+        public void PlaySfx(AudioClip clip, float volume)
+        {
+            if (clip == null || sfxSource == null) return;
+            sfxSource.PlayOneShot(clip, Mathf.Clamp01(volume));
+        }
+
         // Positional one-shot through a pooled child source instead of
         // AudioSource.PlayClipAtPoint: PlayClipAtPoint creates a temp
         // "OneShot Audio" source that bypasses VolumeCategories and any mixer

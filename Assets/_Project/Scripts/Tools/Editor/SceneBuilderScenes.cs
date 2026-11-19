@@ -313,6 +313,7 @@ namespace LightShadow.Tools
             BuildEntrance(level.transform, prefabs, palette, database);
             BuildGate(level.transform, zones, prefabs, palette, database);
             BuildStoryPlaques(level.transform);
+            BuildHideSpots(level.transform, palette);
 
             BakeNavMesh(surface);
 
@@ -378,6 +379,12 @@ namespace LightShadow.Tools
 
             // The brightness option acts through URP post-exposure and ambient lift.
             systems.AddComponent<BrightnessController>();
+
+            // P3 menace director: the Shadow pacing gauge (plan 4.12).
+            MenaceDirector menace = systems.AddComponent<MenaceDirector>();
+            menace.config = config;
+            menace.enemy = behaviour;
+            menace.player = player.transform;
 
             // Real-audio pass: register the imported CC0 clip library (idempotent;
             // consumers keep synthesised fallbacks when a clip is missing).
@@ -918,7 +925,66 @@ namespace LightShadow.Tools
                 new Color(0.80f, 0.74f, 0.60f));
         }
 
-        // ------------------------------------------------------------ furniture
+        // ------------------------------------------------- hiding (P3, plan 4.12)
+
+        // P3 hiding v1 (plan 4.12): six hide spots. Two lockers lean on the
+        // east corridor wall (new greybox props, baked into the NavMesh), two
+        // hide under the existing teacher desks (classroom + staff room), two
+        // peek from the main-hall stage curtains. Each spot is a thin solid
+        // plate the interact ray can hit plus a hidePoint with capsule
+        // clearance; EnemySight treats a hidden player as unseen.
+        static void BuildHideSpots(Transform parent, Palette palette)
+        {
+            var spots = Group("HideSpots", parent);
+            Transform t = spots.transform;
+
+            // The two corridor lockers themselves (Level layer: the NavMesh
+            // bake routes the Shadow around them).
+            Box(t, "Locker_Corridor_1", new Vector3(2.1f, 1.1f, -5f), new Vector3(0.7f, 2.2f, 1.0f), palette.metal);
+            Box(t, "Locker_Corridor_2", new Vector3(2.1f, 1.1f, 8f), new Vector3(0.7f, 2.2f, 1.0f), palette.metal);
+
+            // (position, yaw, interact plate centre, plate size, hidePoint local, display name)
+            CreateHideSpot(t, "Hide_Locker_1", new Vector3(1.73f, 0f, -5f), 0f,
+                new Vector3(0f, 1.05f, 0f), new Vector3(0.1f, 2.1f, 1.0f),
+                new Vector3(-0.45f, 0f, 0f), "the corridor locker");
+            CreateHideSpot(t, "Hide_Locker_2", new Vector3(1.73f, 0f, 8f), 0f,
+                new Vector3(0f, 1.05f, 0f), new Vector3(0.1f, 2.1f, 1.0f),
+                new Vector3(-0.45f, 0f, 0f), "the corridor locker");
+            CreateHideSpot(t, "Hide_Desk_Classroom", new Vector3(-12f, 0f, 15.76f), 0f,
+                new Vector3(0f, 1.0f, 0.05f), new Vector3(2.4f, 2.0f, 0.12f),
+                new Vector3(0f, 0f, -0.42f), "the teacher's desk");
+            CreateHideSpot(t, "Hide_Desk_Staff", new Vector3(-12f, 0f, 22.26f), 0f,
+                new Vector3(0f, 1.0f, 0.05f), new Vector3(3.6f, 2.0f, 0.12f),
+                new Vector3(0f, 0f, -0.45f), "the staff-room desk");
+            CreateHideSpot(t, "Hide_Curtain_Left", new Vector3(-6.5f, 0.3f, 40.5f), 180f,
+                new Vector3(0f, 1.8f, 0.12f), new Vector3(2.6f, 3.6f, 0.14f),
+                new Vector3(0f, 0f, -0.62f), "the stage curtain");
+            CreateHideSpot(t, "Hide_Curtain_Right", new Vector3(6.5f, 0.3f, 40.5f), 180f,
+                new Vector3(0f, 1.8f, 0.12f), new Vector3(2.6f, 3.6f, 0.14f),
+                new Vector3(0f, 0f, -0.62f), "the stage curtain");
+        }
+
+        static void CreateHideSpot(Transform parent, string name, Vector3 position, float yaw,
+            Vector3 plateCenter, Vector3 plateSize, Vector3 hidePointLocal, string displayName)
+        {
+            GameObject spot = new GameObject(name);
+            spot.transform.SetParent(parent, false);
+            spot.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
+
+            // Solid thin plate: the interact ray (triggers ignored) needs it,
+            // and it doubles as sight cover hugging the prop's face.
+            BoxCollider plate = spot.AddComponent<BoxCollider>();
+            plate.center = plateCenter;
+            plate.size = plateSize;
+
+            HideSpot hide = spot.AddComponent<HideSpot>();
+            hide.displayName = displayName;
+
+            GameObject point = new GameObject("HidePoint");
+            point.transform.SetParent(spot.transform, false);
+            point.transform.localPosition = hidePointLocal;
+            hide.hidePoint = point.transform;
+        }
 
         static GameObject Table(Transform parent, string name, Vector3 position, Vector3 size, Material material)
         {

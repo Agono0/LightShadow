@@ -13,9 +13,25 @@ namespace LightShadow.Enemy
         public LayerMask obstacleMask = ~0;
         public float range = 15f;
 
+        // Per-frame cache for the every-frame pollers (EnemyBehaviour,
+        // MenaceDirector): one Linecast per frame no matter which Update runs
+        // first. One-off checks that need a fresh answer at a specific moment
+        // (HidingSystem's witnessed-entry test) still call HasLineOfSight.
+        int cachedSightFrame = -1;
+        bool cachedSightResult;
+
         public bool HasLineOfSight()
         {
             if (head == null || target == null) return false;
+
+            // P3 hiding: a hidden Nour cannot be seen - unless the Shadow
+            // watched her duck into the spot, in which case hiding does not
+            // blind a witness (HidingSystem.EnteredUnderWatch).
+            if (LightShadow.Player.HidingSystem.IsHidden
+                && !LightShadow.Player.HidingSystem.EnteredUnderWatch)
+            {
+                return false;
+            }
 
             Vector3 origin = head.position;
             Vector3 destination = target.position;
@@ -28,6 +44,15 @@ namespace LightShadow.Enemy
                 return false;
             }
             return true;
+        }
+
+        // Cached once-per-frame answer for the per-frame pollers.
+        public bool HasLineOfSightCached()
+        {
+            if (cachedSightFrame == Time.frameCount) return cachedSightResult;
+            cachedSightResult = HasLineOfSight();
+            cachedSightFrame = Time.frameCount;
+            return cachedSightResult;
         }
     }
 }
