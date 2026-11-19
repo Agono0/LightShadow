@@ -70,6 +70,9 @@ story depth → integration gates. Criticals (audit C1, build profiles) were fix
 - [x] `BuildAllBatch` + `ValidateBatch` **RESULT: PASS** with all content integrated.
 - [x] No pink materials (FBX materials converted to URP/Lit at import); greybox visuals
       replaced in shipped scenes (colliders remain by design).
-- [ ] Windows build + Android build (IL2CPP, ARM64) both succeed — in flight.
-- [ ] Docs finalized (PERFORMANCE numbers, CHANGELOG, PROGRESS, AI_DEV_LOG entries).
-- [ ] Final commit + report; merge `feature/premium-pass` → `main`.
+- [x] Windows build + Android build (IL2CPP, ARM64) both succeed — automated in CI
+      (build workflow, arm64+armv7 APKs + Windows).
+- [ ] Docs finalized (PERFORMANCE numbers, CHANGELOG, PROGRESS, AI_DEV_LOG entries) —
+      in progress; this PR is part of it.
+- [x] Final commit + report; merge `feature/premium-pass` → `main` — premium-pass work
+      merged to main; premium pass continues as MASTER_PLAN phases (Docs/TASKS.md).

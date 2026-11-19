@@ -139,11 +139,11 @@ jobs:
           pattern: LightShadow-*
           path: artifacts
 
-      # The three APKs are all named LightShadow.apk inside their per-ABI
-      # artifacts — rename them so release assets are distinguishable.
+      # Both APKs are named LightShadow.apk inside their per-ABI artifacts —
+      # rename them so release assets are distinguishable.
       - name: Rename APKs per ABI and zip the Windows player folder
         run: |
-          for abi in arm64-v8a armeabi-v7a x86_64; do
+          for abi in arm64-v8a armeabi-v7a; do
             mv "artifacts/LightShadow-android-$abi/LightShadow.apk" "artifacts/LightShadow-$abi.apk"
           done
           cd artifacts/LightShadow-windows
@@ -160,4 +160,3 @@ jobs:
             artifacts/LightShadow-windows.zip
             artifacts/LightShadow-arm64-v8a.apk
             artifacts/LightShadow-armeabi-v7a.apk
-            artifacts/LightShadow-x86_64.apk
