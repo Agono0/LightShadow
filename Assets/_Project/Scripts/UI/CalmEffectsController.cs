@@ -83,6 +83,18 @@ namespace LightShadow.UI
             if (cameraShake != null) cameraShake.SetTremor(0f);
         }
 
+        void OnDestroy()
+        {
+            // Awake built a runtime profile instance for the local Volume:
+            // detach and destroy it so the ScriptableObject does not outlive
+            // the scene. The scene's shared post assets are never touched
+            // (they belong to their own assets).
+            if (volume != null) volume.sharedProfile = null;
+            if (profile != null) Destroy(profile);
+            profile = null;
+            vignette = null;
+        }
+
         void Start()
         {
             // First paint from wherever the calm stat already is.
