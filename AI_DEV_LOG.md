@@ -253,3 +253,18 @@ The game itself contains **no AI features** — this log is about the developmen
 7. **Validation tooling** — `LightShadow ▸ 5. Validate Content` is an extra non-shipping check
    that asserts scene/object counts, wiring, the 60-question bank and the baked NavMesh. It is
    the evidence used for the test results in the entries above.
+
+### 2026-11-19 — AGENTS.md PR-only workflow + GitHub CI fast-checks — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent)
+- What AI provided: the "Git workflow (PR-only)" and "Code quality bar" sections and hard
+  rule 9 in `AGENTS.md`; new `.github/workflows/validate.yml` (CI gate: asset `.meta`
+  pairing, merge-conflict marker scan, required-files/editor-version pin).
+- What I changed myself: scoped the meta check to skip `.gitkeep` placeholders; kept full
+  Unity validation (`ValidateBatch`) as a local pre-merge gate rather than CI (no Unity
+  license secret configured for Actions); chose squash-merge to keep `main` linear.
+- Teach-back check: pending — docs/workflow change only; explain the PR-only gate to the
+  next human or agent collaborator before their first contribution.
+- Test result: CI check logic dry-ran locally against `main` (20 `.gitkeep` files excluded,
+  0 conflict markers, required files present, editor pin matches 6000.4.0f1); the same
+  checks run as GitHub Actions on this PR.
+
