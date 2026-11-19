@@ -39,11 +39,10 @@ namespace LightShadow.Player
         float angleAccumulator;
         float ratchetClock;
 
-        public bool IsHeld => touchHeld || KeyboardHeld || PadHeld;
+        public bool IsHeld => touchHeld || KeyboardHeld || padHeld;
         public bool IsCranking => IsHeld && idleTime < GestureResetSeconds;
 
-        // Gamepad RT holds the crank (matches GamepadInput's Input System polling).
-        bool PadHeld => Gamepad.current != null && Gamepad.current.rightTrigger.ReadValue() > 0.4f;
+        bool KeyboardHeld => !Application.isMobilePlatform && Input.GetKey(KeyCode.F);
 
         // Config shortcuts with safe fallbacks (same pattern as EnemyBehaviour).
         float ChargePerSecond => config != null ? config.crankChargePerSecond : 0.02f;
