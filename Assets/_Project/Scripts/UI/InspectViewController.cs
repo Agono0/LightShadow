@@ -267,10 +267,10 @@ namespace LightShadow.UI
         {
             Image background = MakeImage(parent, name, anchorMin, anchorMax, offsetMin, offsetMax,
                 new Color(0.16f, 0.15f, 0.14f, 0.98f));
-            Text label = MakeText(background.transform, "Label", label, 24,
+            Text labelText = MakeText(background.transform, "Label", label, 24,
                 new Color(0.95f, 0.89f, 0.77f), TextAnchor.MiddleCenter,
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, FontStyle.Bold);
-            label.fontSize = 24;
+            labelText.fontSize = 24;
             Button button = background.gameObject.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.highlightedColor = new Color(0.36f, 0.25f, 0.13f, 1f);

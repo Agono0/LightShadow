@@ -1,5 +1,6 @@
 using LightShadow.Core;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
@@ -41,7 +42,8 @@ namespace LightShadow.Player
         public bool IsHeld => touchHeld || KeyboardHeld || PadHeld;
         public bool IsCranking => IsHeld && idleTime < GestureResetSeconds;
 
-        bool KeyboardHeld => !Application.isMobilePlatform && Input.GetKey(KeyCode.F);
+        // Gamepad RT holds the crank (matches GamepadInput's Input System polling).
+        bool PadHeld => Gamepad.current != null && Gamepad.current.rightTrigger.ReadValue() > 0.4f;
 
         // Config shortcuts with safe fallbacks (same pattern as EnemyBehaviour).
         float ChargePerSecond => config != null ? config.crankChargePerSecond : 0.02f;
