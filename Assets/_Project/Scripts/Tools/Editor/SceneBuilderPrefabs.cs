@@ -162,6 +162,26 @@ namespace LightShadow.Tools
             Footsteps footsteps = root.AddComponent<Footsteps>();
             footsteps.player = player;
 
+            // P3 horror systems: the noise bus (hearing radii), the crank
+            // minigame and hiding v1 all ride the player rig.
+            NoiseEmitter noise = root.AddComponent<NoiseEmitter>();
+            noise.config = config;
+            noise.player = player;
+
+            FlashlightCrank crank = root.AddComponent<FlashlightCrank>();
+            crank.config = config;
+            crank.battery = battery;
+            crank.noise = noise;
+
+            HidingSystem hiding = root.AddComponent<HidingSystem>();
+            hiding.config = config;
+            hiding.player = player;
+            hiding.noise = noise;
+
+            // P3 calm FX: the vignette/heartbeat/tremor driver lives on the
+            // camera itself (its own high-priority post volume override).
+            cameraGo.AddComponent<CalmEffectsController>();
+
             // Low-poly hand holding the flashlight under the camera. FirstPersonHands
             // adds breathing, walk bob and a crouch dip; the visuals carry no
             // colliders, and the interaction ray already excludes the player layer.

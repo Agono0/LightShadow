@@ -92,6 +92,15 @@ namespace LightShadow.Tools
                 if (player.GetComponent<InteractionRaycaster>() == null) problems.Add("School: player has no InteractionRaycaster.");
                 if (player.GetComponentInChildren<Camera>() == null) problems.Add("School: player has no camera.");
                 if (player.GetComponentInChildren<Light>() == null) problems.Add("School: player has no flashlight light.");
+
+                // P3 horror systems ride the player rig.
+                if (player.GetComponent<NoiseEmitter>() == null) problems.Add("School: player has no NoiseEmitter.");
+                if (player.GetComponent<FlashlightCrank>() == null) problems.Add("School: player has no FlashlightCrank.");
+                if (player.GetComponent<HidingSystem>() == null) problems.Add("School: player has no HidingSystem.");
+                if (player.GetComponentInChildren<CalmEffectsController>() == null)
+                {
+                    problems.Add("School: player camera has no CalmEffectsController.");
+                }
             }
 
             EnemyBehaviour shadow = Object.FindAnyObjectByType<EnemyBehaviour>();
@@ -125,6 +134,7 @@ namespace LightShadow.Tools
             int boards = Object.FindObjectsByType<QuizBoard>(FindObjectsInactive.Include).Length;
             int gates = Object.FindObjectsByType<ExitGate>(FindObjectsInactive.Include).Length;
             int zones = Object.FindObjectsByType<LitZone>(FindObjectsInactive.Include).Length;
+            int hideSpots = Object.FindObjectsByType<HideSpot>(FindObjectsInactive.Include).Length;
 
             report.AppendLine("Fuse boxes: " + fuses + " (need 3)");
             report.AppendLine("Fragments: " + fragments + " (need 6)");
@@ -132,6 +142,7 @@ namespace LightShadow.Tools
             report.AppendLine("Quiz boards: " + boards + " (need at least 6)");
             report.AppendLine("Lit zones: " + zones + " (need 5)");
             report.AppendLine("Exit gates: " + gates + " (need 1)");
+            report.AppendLine("Hide spots: " + hideSpots + " (need 6)");
 
             if (fuses != 3) problems.Add("School: expected 3 fuse boxes, found " + fuses + ".");
             if (fragments != 6) problems.Add("School: expected 6 fragments, found " + fragments + ".");
@@ -139,6 +150,13 @@ namespace LightShadow.Tools
             if (boards < 6) problems.Add("School: expected at least 6 quiz boards, found " + boards + ".");
             if (zones != 5) problems.Add("School: expected 5 lit zones, found " + zones + ".");
             if (gates != 1) problems.Add("School: expected 1 exit gate, found " + gates + ".");
+            if (hideSpots < 6) problems.Add("School: expected at least 6 hide spots, found " + hideSpots + ".");
+
+            // P3 menace director: the Shadow pacing gauge lives on the Systems.
+            if (Object.FindAnyObjectByType<MenaceDirector>() == null)
+            {
+                problems.Add("School: Systems has no MenaceDirector.");
+            }
 
             NavMeshSurface surface = Object.FindAnyObjectByType<NavMeshSurface>();
             if (surface == null) problems.Add("School: no NavMeshSurface.");
@@ -199,7 +217,10 @@ namespace LightShadow.Tools
             RecapScreen recap = Object.FindAnyObjectByType<RecapScreen>();
             if (ending == null) problems.Add("Ending: no EndingController.");
             if (recap == null) problems.Add("Ending: no RecapScreen.");
-            else if (recap.recapText == null || recap.quitButton == null) problems.Add("Ending: recap is not wired.");
+            else if (recap.recapText == null || recap.quitButton == null || recap.savePngButton == null)
+            {
+                problems.Add("Ending: recap is not wired (including the SAVE PNG button).");
+            }
             if (ending != null)
             {
                 if (ending.sun == null) problems.Add("Ending: the sun is not wired.");

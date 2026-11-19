@@ -380,6 +380,12 @@ namespace LightShadow.Tools
             // The brightness option acts through URP post-exposure and ambient lift.
             systems.AddComponent<BrightnessController>();
 
+            // P3 menace director: the Shadow pacing gauge (plan 4.12).
+            MenaceDirector menace = systems.AddComponent<MenaceDirector>();
+            menace.config = config;
+            menace.enemy = behaviour;
+            menace.player = player.transform;
+
             // Real-audio pass: register the imported CC0 clip library (idempotent;
             // consumers keep synthesised fallbacks when a clip is missing).
             LightShadow.Audio.AudioLibrary audioLibrary =
