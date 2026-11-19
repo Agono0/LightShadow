@@ -25,6 +25,7 @@ namespace LightShadow.Core
         static AudioClip pickup;
         static AudioClip power;
         static AudioClip crank;
+        static AudioClip heartbeat;
 
         public static AudioClip Correct
         {
@@ -80,6 +81,17 @@ namespace LightShadow.Core
             {
                 if (crank == null) crank = Resolve("SFX_Crank", () => MakeSequence("SFX_Crank", new[] { 1500f, 900f }, 0.09f, 0.30f));
                 return crank;
+            }
+        }
+
+        // P3 calm FX (plan 4.7): a low lub-dub thump the heartbeat pacer plays
+        // as calm drops. Library-first id "SFX_Heartbeat".
+        public static AudioClip Heartbeat
+        {
+            get
+            {
+                if (heartbeat == null) heartbeat = Resolve("SFX_Heartbeat", () => MakeSequence("SFX_Heartbeat", new[] { 62f, 44f }, 0.4f, 0.9f));
+                return heartbeat;
             }
         }
 

@@ -48,6 +48,11 @@ namespace LightShadow.Core
         // decides what to do; NoiseEmitter is the usual raiser.
         public static event Action<float> NoiseEmitted;
 
+        // Calm moved (P3, plan 4.7). Payload: normalized 0-1 where 0 is the
+        // worst calm and 1 the best; the story stat lives on the -1..1 scale
+        // and maps (calm + 1) / 2. Raised by StoryDirector on every change.
+        public static event Action<float> CalmChanged;
+
         // ---- Raise helpers -----------------------------------------------------
         // Each one-liner guards its event so callers never need to.
 
@@ -104,6 +109,11 @@ namespace LightShadow.Core
         public static void RaiseNoiseEmitted(float radius)
         {
             NoiseEmitted?.Invoke(radius);
+        }
+
+        public static void RaiseCalmChanged(float normalized)
+        {
+            CalmChanged?.Invoke(normalized);
         }
     }
 }

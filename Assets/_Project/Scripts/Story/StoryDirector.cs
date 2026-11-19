@@ -62,6 +62,8 @@ namespace LightShadow.Story
         public float Boldness => state.boldness;
         public float Trust => state.trust;
         public float Calm => state.calm;
+        // P3 calm FX payload: the -1..1 story stat mapped to 0-1 (0 = worst).
+        public float NormalizedCalm => Mathf.Clamp01((state.calm + 1f) / 2f);
         public float Accuracy => state.asked > 0 ? (float)state.correct / state.asked : 0f;
 
         // Fallback spawner so pressing Play in any scene never hard-crashes.
@@ -307,7 +309,7 @@ namespace LightShadow.Story
             }
             if (node.enterBoldness != 0f) state.boldness = ClampStat(state.boldness + node.enterBoldness);
             if (node.enterTrust != 0f) state.trust = ClampStat(state.trust + node.enterTrust);
-            if (node.enterCalm != 0f) state.calm = ClampStat(state.calm + node.enterCalm);
+            if (node.enterCalm != 0f) ChangeCalm(state.calm + node.enterCalm);
 
             // Narration uses the logical (unshaped) string; StoryTeller picks the
             // right voice for Arabic by itself and respects the narrator toggle.
@@ -362,7 +364,7 @@ namespace LightShadow.Story
                 if (timedOut)
                 {
                     StoryEvents.RaiseChoiceTimedOut(node, offeredIndex);
-                    if (config != null) state.calm = ClampStat(state.calm - config.timeoutCalmPenalty);
+                    if (config != null) ChangeCalm(state.calm - config.timeoutCalmPenalty);
                     next = Resolve(choice.timeoutNextId);
                 }
                 else
@@ -378,7 +380,7 @@ namespace LightShadow.Story
                     }
                     state.boldness = ClampStat(state.boldness + choice.boldness);
                     state.trust = ClampStat(state.trust + choice.trust);
-                    state.calm = ClampStat(state.calm + choice.calm);
+                    ChangeCalm(state.calm + choice.calm);
 
                     StoryEvents.RaiseChoiceMade(node, offeredIndex);
 
@@ -450,7 +452,17 @@ namespace LightShadow.Story
         // the one sanctioned outside entry point.
         public void AddCalm(float delta)
         {
-            state.calm = ClampStat(state.calm + delta);
+            ChangeCalm(state.calm + delta);
+        }
+
+        // The ONE place calm is written: clamp, then publish on the bus so the
+        // calm FX (vignette/heartbeat/tremor) and any future listeners track.
+        void ChangeCalm(float newValue)
+        {
+            float clamped = ClampStat(newValue);
+            if (Mathf.Approximately(clamped, state.calm)) return;
+            state.calm = clamped;
+            GameEvents.RaiseCalmChanged(NormalizedCalm);
         }
 
         // ------------------------------------------------------------ endings --

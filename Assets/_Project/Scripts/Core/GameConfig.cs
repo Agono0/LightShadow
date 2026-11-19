@@ -75,6 +75,21 @@ namespace LightShadow.Core
         // this focus the beam, shorter taps toggle it.
         public float flashlightTapSeconds = 0.25f;
 
+        [Header("Calm FX (Plan 4.7, P3)")]
+        // Vignette/heartbeat/tremor driven by the calm stat. Payloads arrive
+        // normalized 0-1 (0 = worst calm); FX ramp up as calm drops below
+        // calmFxFloor, peaking at 0. vignetteBaseline mirrors the night post
+        // profile's vignette intensity (the override volume takes over the
+        // parameter when it is present, so it repaints the baseline too).
+        public float calmFxFloor = 0.45f;
+        public float calmFxVignetteBaseline = 0.34f;
+        public float calmFxVignetteMax = 0.45f;
+        public float calmFxHeartbeatMinBpm = 55f;
+        public float calmFxHeartbeatMaxBpm = 150f;
+        public float calmFxHeartbeatGain = 0.55f;
+        public float calmFxTremorMax = 0.004f;
+        public float calmFxSmoothSpeed = 2f;
+
         [Header("Noise And Hearing (Plan 4.12, P3)")]
         // Hearing radii in metres: how far each player noise carries to the
         // Shadow. Sprint is 10 m per plan 4.12 (the old sprintNoiseRange was 8).
