@@ -73,9 +73,11 @@ U="C:/Program Files/Unity/Hub/Editor/6000.4.0f1/Editor/Unity.exe"
 "$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidBatch -logFile Logs/android.log  # universal ARM64 APK → Builds/Android/LightShadow.apk
 "$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidArm64Batch -logFile Logs/android-arm64.log  # per-ABI APK → Builds/Android/arm64-v8a/
 "$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidArmV7Batch -logFile Logs/android-armv7.log  # per-ABI APK → Builds/Android/armeabi-v7a/
-"$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidX64Batch -logFile Logs/android-x64.log      # per-ABI APK → Builds/Android/x86_64/
 "$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.BuildProfileTool.EnsureBatch -logFile Logs/profiles.log   # repair build profiles if boot aborts
 ```
+
+No x86_64 Android build: Unity 6000.4 deprecates that architecture (Magic Leap legacy)
+and `BuildPlayer` throws when it is targeted.
 
 Grep logs for `RESULT:|error CS|Exception` — never read a full Unity log. Exit code 0 = success
 (player builds throw and exit 1 on a failed `BuildPlayer` since the CI/CD pass).

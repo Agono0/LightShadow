@@ -170,11 +170,8 @@ namespace LightShadow.Tools
             RunAndroidAbiBatch(AndroidArchitecture.ARMv7);
         }
 
-        // Called by Unity in batch mode: -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidX64Batch
-        public static void BuildAndroidX64Batch()
-        {
-            RunAndroidAbiBatch(AndroidArchitecture.X86_64);
-        }
+        // No X86_64 entry point: Unity 6000.4 deprecates it (Magic Leap legacy) and
+        // BuildPlayer throws UnityException when it is the only target architecture.
 
         static void RunAndroidAbiBatch(AndroidArchitecture architecture)
         {
@@ -199,8 +196,6 @@ namespace LightShadow.Tools
                     return "arm64-v8a";
                 case AndroidArchitecture.ARMv7:
                     return "armeabi-v7a";
-                case AndroidArchitecture.X86_64:
-                    return "x86_64";
                 default:
                     throw new Exception("Unsupported Android architecture: " + architecture);
             }

@@ -1,8 +1,9 @@
 # Player build CI/CD for LIGHT SHADOW — see AGENTS.md "Git workflow".
-# Produces a Windows player and SEPARATE Android APKs per ABI (arm64-v8a,
-# armeabi-v7a, x86_64 — no universal APK). Unity Personal license must be
-# configured as repo secrets: UNITY_LICENSE (+ optional UNITY_EMAIL /
-# UNITY_PASSWORD). See game.ci/docs/github/activation.
+# Produces a Windows player and SEPARATE Android APKs per ABI (arm64-v8a and
+# armeabi-v7a — no universal APK). x86_64 is not offered: Unity 6.4 deprecates
+# it (Magic Leap legacy) and throws UnityException when it is targeted.
+# Unity Personal license must be configured as repo secrets: UNITY_LICENSE +
+# UNITY_EMAIL + UNITY_PASSWORD. See game.ci/docs/github/activation.
 name: build
 
 on:
@@ -30,8 +31,6 @@ jobs:
             method: BuildAndroidArm64Batch
           - abi: armeabi-v7a
             method: BuildAndroidArmV7Batch
-          - abi: x86_64
-            method: BuildAndroidX64Batch
     steps:
       - name: Free runner disk space (GameCI android image + project do not fit otherwise)
         uses: jlumbroso/free-disk-space@main

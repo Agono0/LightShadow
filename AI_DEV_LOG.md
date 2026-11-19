@@ -272,17 +272,20 @@ The game itself contains **no AI features** — this log is about the developmen
 - Tool used: ZCode (AI coding agent, GLM) with web research on GameCI / GitHub Actions.
 - What AI provided: `.github/workflows/build.yml` — parallel jobs building a Windows player
   (StandaloneWindows64 via `unityci/editor:ubuntu-6000.4.0f1-windows-mono-4.0.0`) and separate
-  APKs per ABI (arm64-v8a / armeabi-v7a / x86_64, one matrix job each via
+  APKs per ABI (arm64-v8a / armeabi-v7a, one matrix job each via
   `game-ci/unity-builder@v4` + `buildMethod`), per-job `Library` caches, artifacts, and a
   tag-triggered `release` job. Also fixed `SceneBuilder.cs` batch builds exiting 0 on failed
-  `BuildPlayer` (now throw → exit 1; menu dialogs catch) and added the three per-ABI batch
-  entry points (`BuildAndroidArm64Batch` etc. → `Builds/Android/<abi>/LightShadow.apk`).
+  `BuildPlayer` (now throw → exit 1; menu dialogs catch) and added per-ABI batch entry
+  points (`BuildAndroidArm64Batch`, `BuildAndroidArmV7Batch` → `Builds/Android/<abi>/LightShadow.apk`).
 - What I changed myself: chose GitHub-hosted runners (public repo = free unlimited minutes);
   approved the strict merge gate (all build checks required per PR); supplied the Personal
   license as the `UNITY_LICENSE` secret from this machine's `Unity_lic.ulf`.
 - Teach-back check: pending — explain the pipeline (matrix per ABI, one editor invocation per
   ABI, Library cache keys) to the next collaborator.
-- Test result: local `ValidateBatch` compiles the new entry points (`RESULT: PASS`); the
-  `build` workflow's first run on this PR is the end-to-end test (4 artifacts expected).
+- Test result: local `ValidateBatch` compiles the new entry points (`RESULT: PASS`). First CI
+  run: Windows + arm64-v8a + armeabi-v7a all built green (player 129.7 MB, APKs ~64 MB each);
+  the initial x86_64 job failed with `UnityException: x86-64 (Magic Leap) support is now
+  limited` — Unity 6000.4 deprecates that target, so the x86_64 matrix entry and batch method
+  were removed and the pipeline corrected on this branch.
 
 
