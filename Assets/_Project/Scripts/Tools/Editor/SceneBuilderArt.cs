@@ -46,6 +46,25 @@ namespace LightShadow.Tools
         const string ModelLightpost = "lightpost-single";
         const string ModelFence = "iron-fence";
 
+        // P2 hero props: Blender FBX exports under _Project/Models/Hero
+        // (Art/pipeline). Real-world metres, Unity axes, bottom-centre origins.
+        // Placed uniformly (never stretched) and rebound onto the canonical
+        // art materials by name via ArtImporter.HeroRemapMaterial.
+        const string HeroModelFolder = "Assets/_Project/Models/Hero";
+        const string HeroModelMemoryBox = "SM_Story_MemoryBox";
+        const string HeroModelCard = "SM_Story_Card";
+        const string HeroModelBookmark = "SM_Story_Bookmark";
+        const string HeroModelExamPaper = "SM_Story_ExamPaper";
+        const string HeroModelPrism = "SM_Story_Prism";
+        const string HeroModelPhotograph = "SM_Story_Photograph";
+        const string HeroModelProgramme = "SM_Story_Programme";
+        const string HeroModelMug = "SM_Story_Mug";
+        const string HeroModelFlashlight = "SM_Player_Flashlight";
+        const string HeroModelDoorGrille = "SM_Arch_DoorGrille";
+        const string HeroModelChalkboard = "SM_Arch_Chalkboard";
+        const string HeroModelGateCrank = "SM_Arch_GateCrank";
+        const string HeroModelIronGate = "SM_Arch_IronGate";
+
         // Target real-world sizes (metres) for the swapped models. They come
         // from the greybox dimensions the SceneBuilder builds, not from taste.
         const float DeskTargetHeight = 0.78f;
@@ -63,6 +82,25 @@ namespace LightShadow.Tools
         const float FenceSegmentWidth = 2.4f;
         const float BoxTargetHeight = 0.32f;
         const float RugTargetHeight = 0.04f;
+
+        // Hero swap targets. Door/chalkboard match the greybox hosts they
+        // replace (both FBX models are authored at exactly these heights, so
+        // the normalisation lands on scale 1); the QuizBoard prefab board is
+        // 1.2 m tall like the portable chalkboard FBX.
+        const float DoorTargetHeight = 2.05f;
+        const float ChalkboardHostTargetHeight = 1.9f;
+        const float QuizBoardChalkboardTargetHeight = 1.2f;
+        const int IronGateSegmentsPerSide = 2;
+        const float StoryItemAnchorY = 0.4f; // fragment "Paper" placeholder centre
+
+        // Player-hand anchor for SM_Player_Flashlight. The FBX origin is the
+        // torch tail (bottom centre), so the anchor compensates for the half
+        // length the old centre-origin cylinder primitive implied, and the
+        // pitch turns the model's +Y axis into the hand's forward axis with
+        // the same 6-degree roll as the primitive. Public because
+        // ArtImporter's prefab restyle installs the identical child.
+        public static readonly Vector3 FlashlightHandAnchor = new Vector3(0.028f, 0.035f, -0.176f);
+        public static readonly Quaternion FlashlightHandRotation = Quaternion.Euler(90f, 0f, 6f);
 
         // Texture world-size (metres per full UV tile) per surface material.
         const float PlasterTileMeters = 3f;
@@ -583,7 +621,10 @@ namespace LightShadow.Tools
                 if (cached != null) return cached;
             }
 
-            string[] guids = AssetDatabase.FindAssets(modelName, new[] { ThirdPartyFolder });
+            // Hero FBX models (_Project/Models/Hero, Art/pipeline exports)
+            // resolve alongside the Kenney packs; the exact-filename check
+            // keeps the two namespaces apart.
+            string[] guids = AssetDatabase.FindAssets(modelName, new[] { HeroModelFolder, ThirdPartyFolder });
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -599,6 +640,94 @@ namespace LightShadow.Tools
             Debug.LogWarning("[LightShadow] Art pass: model not found: " + modelName);
             ModelAssetCache[modelName] = null;
             return null;
+        }
+
+        // -------------------------------------------------------- hero plumbing
+        // Every hero swap is optional: when the FBX has not shipped the
+        // greybox primitive (or its Kenney stand-in) stays, so the pass
+        // degrades gracefully, never breaks.
+
+        // Instantiates a hero FBX under host, uniformly scaled in WORLD space
+        // so its height matches targetHeight (0 = native authored size), with
+        // the given yaw and a metre-space local position. The model rides on
+        // an unscaled carrier because the greybox hosts are scaled cubes: a
+        // direct child would inherit their per-axis scale, and a yaw would
+        // then swap the compensation axes. Hosts must therefore be
+        // axis-aligned with identity rotation (all swap callers are). Returns
+        // the FBX instance, or null when the model is missing.
+        static GameObject AddHeroModelChild(GameObject host, string modelName, float targetHeight,
+            Quaternion localRotation, Vector3 localPositionMeters, string carrierName = null)
+        {
+            GameObject modelAsset = LoadModelAsset(modelName);
+            if (modelAsset == null)
+            {
+                ArtSkippedNoModel++;
+                return null;
+            }
+
+            var carrier = new GameObject(carrierName ?? ("ArtModel_" + modelName));
+            carrier.transform.SetParent(host.transform, false);
+            Vector3 lossy = host.transform.lossyScale;
+            Vector3 inverse = new Vector3(
+                Mathf.Abs(lossy.x) > 0.0001f ? 1f / lossy.x : 1f,
+                Mathf.Abs(lossy.y) > 0.0001f ? 1f / lossy.y : 1f,
+                Mathf.Abs(lossy.z) > 0.0001f ? 1f / lossy.z : 1f);
+            carrier.transform.localScale = inverse;
+            carrier.transform.localPosition = Vector3.Scale(localPositionMeters, inverse);
+            carrier.layer = host.layer;
+
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset, carrier.transform);
+            instance.name = modelName;
+            instance.transform.localPosition = Vector3.zero;
+            instance.transform.localRotation = localRotation;
+
+            // Imported models carry no colliders, but destroy defensively so
+            // the art pass can never alter physics or the NavMesh.
+            foreach (Collider collider in instance.GetComponentsInChildren<Collider>(true))
+            {
+                UnityEngine.Object.DestroyImmediate(collider, true);
+            }
+
+            // Keep every node on the host's layer so camera culling and the
+            // static-flag pass see one consistent set.
+            foreach (Transform node in instance.GetComponentsInChildren<Transform>(true))
+            {
+                node.gameObject.layer = host.layer;
+            }
+
+            RebindHeroMaterials(instance);
+
+            Vector3 rawSize = ArtImporter.ComputePrefabBounds(modelAsset).size;
+            float uniform = targetHeight > 0f ? targetHeight / Mathf.Max(0.05f, rawSize.y) : 1f;
+            instance.transform.localScale = new Vector3(uniform, uniform, uniform);
+            return instance;
+        }
+
+        // FBX material rebind: the importer writes one external .mat per FBX
+        // material next to the model; those generated twins must not ship.
+        // Every renderer under the instance moves onto the canonical art
+        // material with the same name (ArtImporter.HeroRemapMaterial); names
+        // that are not registered keep their twin, which the importer already
+        // converted to URP/Lit. Public because ArtImporter's prefab restyle
+        // installs hero meshes outside the scene swap table.
+        public static void RebindHeroMaterials(GameObject instance)
+        {
+            foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] materials = renderer.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    Material canonical = ArtImporter.HeroRemapMaterial(
+                        materials[i] != null ? materials[i].name : null);
+                    if (canonical == null) continue;
+                    materials[i] = canonical;
+                    changed = true;
+                }
+                if (!changed) continue;
+                renderer.sharedMaterials = materials;
+                EditorUtility.SetDirty(renderer);
+            }
         }
 
         // -------------------------------------------------- material plumbing
