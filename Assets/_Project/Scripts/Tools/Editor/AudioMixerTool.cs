@@ -293,6 +293,26 @@ namespace LightShadow.Tools
                 + SnapshotNames.Length + " snapshots, 14 exposed parameters)";
         }
 
+        // ExposedAudioParameter's path field was renamed across Unity versions —
+        // find it dynamically: the struct holds exactly one class-type field (the
+        // AudioParameterPath) next to the string name.
+        static string PathMemberName(object entry)
+        {
+            const string preferred = "parameterPath";
+            FieldInfo[] fields = entry.GetType().GetFields(Any);
+            foreach (FieldInfo field in fields)
+            {
+                if (field.Name == preferred) return preferred;
+            }
+            foreach (FieldInfo field in fields)
+            {
+                if (field.FieldType != typeof(string)) return field.Name;
+            }
+
+            throw new MissingMemberException(
+                entry.GetType().FullName, "no class-type path field (Unity internals drifted)");
+        }
+
         static void RenameExposedParameters(object controller, Dictionary<object, string> desiredByGroup)
         {
             Array exposed = (Array)GetMember(controller, "exposedParameters");
@@ -301,7 +321,7 @@ namespace LightShadow.Tools
             for (int i = 0; i < exposed.Length; i++)
             {
                 object entry = exposed.GetValue(i);
-                object path = GetMember(entry, "parameterPath");
+                object path = GetMember(entry, PathMemberName(entry));
 
                 string desired = null;
                 if (path.GetType() == EffectParameterPathType) desired = LowpassParam;
