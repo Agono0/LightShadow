@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_His_011
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: In which year did the First World War begin?
+  options:
+  - 1914
+  - 1918
+  - 1939
+  - 1945
+  correctIndex: 0
+  category: 2
+  difficulty: 1
+  explanation: The First World War began in 1914 and ended in 1918.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: في أي عام بدأت الحرب العالمية الأولى؟
+  optionsAr:
+  - 1914
+  - 1918
+  - 1939
+  - 1945
+  explanationAr: بدأت الحرب العالمية الأولى عام 1914 وانتهت عام 1918.
