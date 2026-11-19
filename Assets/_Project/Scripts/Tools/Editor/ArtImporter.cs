@@ -58,7 +58,12 @@ namespace LightShadow.Tools
         // is authored in Blender because Unity 6 removed the importer's
         // generateLightmapUVs flag - the HeroModelImport entry keeps the
         // flag to document the intent and to assert the FBX carries UV1.
-        const string HeroModelsFolder = "Assets/_Project/Models/Hero";
+        public const string HeroModelsFolder = "Assets/_Project/Models/Hero";
+
+        // Basenames of the two hero meshes embedded by the special prefabs
+        // (Shadow_Art's silhouette and the Player's hand torch).
+        const string WraithModelName = "SM_Wraith_HD";
+        const string PlayerFlashlightModelName = "SM_Player_Flashlight";
 
         sealed class HeroModelImport
         {
@@ -92,6 +97,15 @@ namespace LightShadow.Tools
             new HeroModelImport("SM_Arch_IronGate"),
         };
 
+        /// <summary>Basenames (without .fbx) of every hero FBX the pipeline
+        /// exports; the content validator asserts all of them are imported.</summary>
+        public static string[] HeroModelNames()
+        {
+            var names = new string[HeroModels.Length];
+            for (int i = 0; i < HeroModels.Length; i++) names[i] = HeroModels[i].Name;
+            return names;
+        }
+
         // Surface folders under Textures/Art and the material each becomes.
         // Every set ships albedo + OpenGL normal + roughness 2k JPGs.
         static readonly string[] SurfaceNames =
@@ -112,6 +126,14 @@ namespace LightShadow.Tools
         static readonly Color SmokeEdgeColor = new Color(0.16f, 0.18f, 0.24f, 0.95f);
         static readonly Color PuffColor = new Color(0.09f, 0.10f, 0.14f, 0.08f);
         static readonly Color DustColor = new Color(0.85f, 0.82f, 0.75f);
+
+        // P2 story materials (named 1:1 after the FBX-embedded slots, see the
+        // export manifest Art/pipeline/manifest.json): red marking pen on the
+        // exam paper, the flashlight lens glass, and its amber LED strip.
+        static readonly Color StoryRedInkColor = new Color(0.55f, 0.06f, 0.05f);
+        static readonly Color StoryGlassColor = new Color(0.78f, 0.88f, 0.95f, 0.32f);
+        static readonly Color StoryLedColor = new Color(0.90f, 0.45f, 0.10f);
+        static readonly Color StoryLedEmissionColor = new Color(1f, 0.55f, 0.16f);
 
         // Shadow silhouette target height in metres (matches the enemy's 1.8 m
         // capsule collider built by SceneBuilderPrefabs).
@@ -176,6 +198,7 @@ namespace LightShadow.Tools
             int converted = ConvertImportedMaterialsToUrp();
             int surfaces = BuildSurfaceMaterials();
             int specials = BuildSpecialMaterials();
+            int story = BuildStoryMaterials();
             string prefabs = BuildSpecialPrefabs();
             string dedupe = DedupeThirdPartyMaterials();
             string post = UpdatePostVolumes();
@@ -189,6 +212,7 @@ namespace LightShadow.Tools
                 + "\nPack materials converted to URP: " + converted
                 + "\nSurface materials ensured: " + surfaces
                 + "\nSpecial materials ensured: " + specials
+                + "\nStory materials ensured: " + story
                 + "\n" + prefabs
                 + "\n" + dedupe
                 + "\n" + post;
@@ -515,10 +539,11 @@ namespace LightShadow.Tools
         }
 
         // Unity's importer writes one .mat per FBX material into
-        // <pack>/Materials/. They come in on the built-in Standard shader,
-        // which is pink under URP - convert them in place, copying the
-        // diffuse colour across. These files are Unity-generated import
-        // output (not pack content); see the report for the reasoning.
+        // <pack>/Materials/ (and Hero/Materials/ for the P2 hero FBX). They
+        // come in on the built-in Standard shader, which is pink under URP -
+        // convert them in place, copying the diffuse colour across. These
+        // files are Unity-generated import output (not pack content); see the
+        // report for the reasoning.
         static int ConvertImportedMaterialsToUrp()
         {
             int count = 0;
@@ -531,26 +556,39 @@ namespace LightShadow.Tools
 
             foreach (string pack in PackFolders)
             {
-                string materialsPath = ThirdPartyFolder + "/" + pack + "/Materials";
-                if (!AssetDatabase.IsValidFolder(materialsPath)) continue;
+                count += ConvertMaterialsInFolderToUrp(ThirdPartyFolder + "/" + pack + "/Materials", lit);
+            }
 
-                string[] guids = AssetDatabase.FindAssets("t:Material", new[] { materialsPath });
-                foreach (string guid in guids)
-                {
-                    Material material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
-                    if (material == null || material.shader == lit) continue;
+            // Hero FBX models generate their external material twins next to
+            // the FBX (Hero/Materials). Convert them too so a renderer that
+            // keeps an unregistered material still renders instead of pink.
+            count += ConvertMaterialsInFolderToUrp(HeroModelsFolder + "/Materials", lit);
 
-                    Color color = material.HasProperty("_Color")
-                        ? material.GetColor("_Color")
-                        : Color.white;
+            return count;
+        }
 
-                    material.shader = lit;
-                    material.color = color;
-                    material.SetFloat("_Metallic", 0f);
-                    material.SetFloat("_Smoothness", 0.4f);
-                    EditorUtility.SetDirty(material);
-                    count++;
-                }
+        // Converts every non-URP material in a folder to URP/Lit in place,
+        // carrying the diffuse colour across. Returns the converted count.
+        static int ConvertMaterialsInFolderToUrp(string folderPath, Shader lit)
+        {
+            if (!AssetDatabase.IsValidFolder(folderPath)) return 0;
+            int count = 0;
+            string[] guids = AssetDatabase.FindAssets("t:Material", new[] { folderPath });
+            foreach (string guid in guids)
+            {
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
+                if (material == null || material.shader == lit) continue;
+
+                Color color = material.HasProperty("_Color")
+                    ? material.GetColor("_Color")
+                    : Color.white;
+
+                material.shader = lit;
+                material.color = color;
+                material.SetFloat("_Metallic", 0f);
+                material.SetFloat("_Smoothness", 0.4f);
+                EditorUtility.SetDirty(material);
+                count++;
             }
             return count;
         }
@@ -626,6 +664,103 @@ namespace LightShadow.Tools
             EditorUtility.SetDirty(torch);
 
             return count;
+        }
+
+        // -------------------------------------------------- hero material map
+        // The Blender exporter names the FBX-embedded materials exactly after
+        // the factory assets in Materials/Art (verified 1:1 against the export
+        // manifest Art/pipeline/manifest.json: DoorWood, MetalLocker,
+        // GateMetal, TorchMetal, PlasterWall, Fabric, Chalkboard, Stone and
+        // M_ShadowSmoke) plus the three P2 story materials below. The swap
+        // layer rebinds every renderer of an instantiated hero FBX through
+        // this map, so the importer's generated twins (written next to the
+        // FBX) never ship inside a scene or prefab. Register any material the
+        // exporter adds later here 1:1, or it will keep its generated twin.
+        static readonly Dictionary<string, string> HeroMaterialMap = new Dictionary<string, string>
+        {
+            { "Mat_Art_DoorWood", "Mat_Art_DoorWood" },
+            { "Mat_Art_MetalLocker", "Mat_Art_MetalLocker" },
+            { "Mat_Art_GateMetal", "Mat_Art_GateMetal" },
+            { "Mat_Art_TorchMetal", "Mat_Art_TorchMetal" },
+            { "Mat_Art_PlasterWall", "Mat_Art_PlasterWall" },
+            { "Mat_Art_Fabric", "Mat_Art_Fabric" },
+            { "Mat_Art_Chalkboard", "Mat_Art_Chalkboard" },
+            { "Mat_Art_Stone", "Mat_Art_Stone" },
+            { "M_ShadowSmoke", "M_ShadowSmoke" },
+            { "Mat_Story_RedInk", "Mat_Story_RedInk" },
+            { "Mat_Story_Glass", "Mat_Story_Glass" },
+            { "Mat_Story_LED", "Mat_Story_LED" },
+        };
+
+        /// <summary>Canonical art material for an FBX-embedded material name,
+        /// or null when the name is not registered (the generated twin stays).
+        /// Shared by the SceneBuilder hero swaps and the content validator.</summary>
+        public static Material HeroRemapMaterial(string fbxMaterialName)
+        {
+            if (string.IsNullOrEmpty(fbxMaterialName)) return null;
+            if (!HeroMaterialMap.TryGetValue(fbxMaterialName, out string canonicalName)) return null;
+            return AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/" + canonicalName + ".mat");
+        }
+
+        /// <summary>Every material name the exporter embeds in the hero FBX
+        /// files; the validator checks each resolves to a canonical asset.</summary>
+        public static string[] HeroMaterialNames()
+        {
+            var names = new string[HeroMaterialMap.Count];
+            int index = 0;
+            foreach (string name in HeroMaterialMap.Keys) names[index++] = name;
+            return names;
+        }
+
+        // -------------------------------------------------- story materials
+        // The three FBX-embedded slots the existing factory does not cover
+        // yet (see HeroMaterialMap): red marking pen, lens glass and the LED
+        // strip of the crank flashlight.
+        static int BuildStoryMaterials()
+        {
+            Shader lit = Shader.Find(UrpLitShaderName);
+            if (lit == null) return 0;
+            int count = 0;
+
+            Material redInk = GetOrCreateLitMaterial("Mat_Story_RedInk", lit);
+            redInk.SetColor("_BaseColor", StoryRedInkColor);
+            redInk.SetFloat("_Smoothness", 0.5f);
+            EditorUtility.SetDirty(redInk);
+            count++;
+
+            Material glass = GetOrCreateLitMaterial("Mat_Story_Glass", lit);
+            glass.SetColor("_BaseColor", StoryGlassColor);
+            glass.SetFloat("_Smoothness", 0.92f);
+            glass.SetFloat("_Metallic", 0f);
+            ConfigureTransparentLitMaterial(glass);
+            EditorUtility.SetDirty(glass);
+            count++;
+
+            Material led = GetOrCreateLitMaterial("Mat_Story_LED", lit);
+            led.SetColor("_BaseColor", StoryLedColor);
+            led.SetFloat("_Smoothness", 0.6f);
+            led.EnableKeyword("_EMISSION");
+            led.SetColor("_EmissionColor", StoryLedEmissionColor * 2.2f);
+            led.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            EditorUtility.SetDirty(led);
+            count++;
+
+            return count;
+        }
+
+        // URP/Lit transparent surface setup (alpha blend, no z-write) for the
+        // lens glass; the same property set the particle materials use,
+        // without the particle-specific bits.
+        static void ConfigureTransparentLitMaterial(Material material)
+        {
+            material.SetFloat("_Surface", 1f); // transparent
+            material.SetFloat("_Blend", 0f);   // alpha
+            material.SetFloat("_ZWrite", 0f);
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+            material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue = (int)RenderQueue.Transparent;
         }
 
         // -------------------------------------------------- special materials
