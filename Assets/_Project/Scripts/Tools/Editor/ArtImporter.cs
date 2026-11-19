@@ -921,17 +921,21 @@ namespace LightShadow.Tools
             return shadow + "\n" + hands + "\n" + dust + "\n" + restyle;
         }
 
-        // Shadow_Art.prefab: the Kenney blocky humanoid wrapped in the smoke
-        // shader plus a slow dark particle halo. ENG can drop this under any
-        // enemy visual root; TheShadow.prefab is rewired automatically below.
+        // Shadow_Art.prefab: the wraith silhouette wrapped in the smoke shader
+        // plus a slow dark particle halo. ENG can drop this under any enemy
+        // visual root; TheShadow.prefab is rewired automatically below.
         static string BuildShadowPrefab()
         {
-            // Rebuild (not skip) while the current prefab predates the wraith
-            // mesh: the marker child names the silhouette source.
+            // Rebuild (not skip) while the current prefab predates the hero
+            // wraith mesh: the marker child names the silhouette source.
             GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(ShadowArtPrefabPath);
-            if (existing != null && existing.transform.Find("Wraith") != null)
+            GameObject wraithFbx = AssetDatabase.LoadAssetAtPath<GameObject>(
+                HeroModelsFolder + "/" + WraithModelName + ".fbx");
+            bool heroInstalled = existing != null
+                && existing.transform.Find("ArtModel_" + WraithModelName) != null;
+            if (existing != null && (heroInstalled || wraithFbx == null))
             {
-                return "Shadow_Art.prefab: already present (wraith, idempotent skip)";
+                return "Shadow_Art.prefab: already present (idempotent skip)";
             }
             if (existing != null)
             {
@@ -943,22 +947,50 @@ namespace LightShadow.Tools
             if (smoke == null) return "Shadow_Art.prefab: SKIPPED - M_ShadowSmoke missing";
             if (puff == null) puff = smoke; // halo degrades to the smoke material
 
-            Mesh wraith = BuildWraithMesh();
-
             var root = new GameObject("Shadow_Art");
+            string silhouetteSource;
 
-            GameObject silhouette = new GameObject("Wraith");
-            silhouette.transform.SetParent(root.transform, false);
-            MeshFilter filter = silhouette.AddComponent<MeshFilter>();
-            filter.sharedMesh = wraith;
-            MeshRenderer renderer = silhouette.AddComponent<MeshRenderer>();
-            renderer.sharedMaterial = smoke;
-            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
+            if (wraithFbx != null)
+            {
+                // P2 hero silhouette: the Blender wraith FBX replaces the
+                // procedural mesh. The smoke material binding and the halo
+                // stay exactly as they were.
+                GameObject silhouette = (GameObject)PrefabUtility.InstantiatePrefab(wraithFbx, root.transform);
+                silhouette.name = "ArtModel_" + WraithModelName;
+                foreach (Collider collider in silhouette.GetComponentsInChildren<Collider>(true))
+                    UnityEngine.Object.DestroyImmediate(collider, true);
+                foreach (Renderer renderer in silhouette.GetComponentsInChildren<Renderer>(true))
+                {
+                    renderer.sharedMaterial = smoke;
+                    renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    renderer.receiveShadows = false;
+                }
 
-            // Normalize to the enemy's collider height.
-            float scale = ShadowTargetHeight / WraithHeight;
-            silhouette.transform.localScale = new Vector3(scale, scale, scale);
+                // Normalize to the enemy's collider height.
+                float scale = ShadowTargetHeight
+                    / Mathf.Max(0.05f, ComputePrefabBounds(wraithFbx).size.y);
+                silhouette.transform.localScale = new Vector3(scale, scale, scale);
+                silhouetteSource = "SM_Wraith_HD hero mesh";
+            }
+            else
+            {
+                // Fallback while the FBX has not shipped: the revolved
+                // procedural silhouette built below.
+                Mesh wraith = BuildWraithMesh();
+
+                GameObject silhouette = new GameObject("Wraith");
+                silhouette.transform.SetParent(root.transform, false);
+                MeshFilter filter = silhouette.AddComponent<MeshFilter>();
+                filter.sharedMesh = wraith;
+                MeshRenderer renderer = silhouette.AddComponent<MeshRenderer>();
+                renderer.sharedMaterial = smoke;
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+
+                float scale = ShadowTargetHeight / WraithHeight;
+                silhouette.transform.localScale = new Vector3(scale, scale, scale);
+                silhouetteSource = "procedural wraith silhouette";
+            }
 
             // Slow smoke halo: dark alpha-blended puffs in local space so they
             // drift with the enemy (no additive glow - it must stay a shadow).
@@ -970,7 +1002,7 @@ namespace LightShadow.Tools
 
             PrefabUtility.SaveAsPrefabAsset(root, ShadowArtPrefabPath);
             UnityEngine.Object.DestroyImmediate(root);
-            return "Shadow_Art.prefab: rebuilt with procedural wraith silhouette";
+            return "Shadow_Art.prefab: rebuilt with " + silhouetteSource;
         }
 
         // The wraith silhouette: a revolved profile (hooded head, shoulder
@@ -1310,12 +1342,55 @@ namespace LightShadow.Tools
                             hands.transform.localRotation = Quaternion.identity;
                         }
 
-                        foreach (string blockName in new[] { "Palm", "Thumb", "Forearm", "TorchBody" })
+                        foreach (string blockName in new[] { "Palm", "Thumb", "Forearm", "TorchBody", "TorchHead" })
                         {
                             Transform block = hand.Find(blockName);
                             if (block == null) continue;
                             Renderer renderer = block.GetComponent<Renderer>();
                             if (renderer != null) renderer.enabled = false;
+                        }
+
+                        // P2 hero prop: the Blender crank flashlight replaces the
+                        // procedural torch tubes at the same hand anchor (see
+                        // SceneBuilder.FlashlightHandAnchor for the tail-origin
+                        // offset). The beam cone and cookie stay on the Flashlight
+                        // light object and are untouched; without the FBX the
+                        // procedural torches remain the fallback visual.
+                        Transform heroFlashlight = hand.Find("ArtModel_" + PlayerFlashlightModelName);
+                        if (heroFlashlight == null)
+                        {
+                            GameObject flashlightFbx = AssetDatabase.LoadAssetAtPath<GameObject>(
+                                HeroModelsFolder + "/" + PlayerFlashlightModelName + ".fbx");
+                            if (flashlightFbx != null)
+                            {
+                                GameObject flashlightInstance = (GameObject)PrefabUtility.InstantiatePrefab(flashlightFbx, hand);
+                                flashlightInstance.name = "ArtModel_" + PlayerFlashlightModelName;
+                                foreach (Collider collider in flashlightInstance.GetComponentsInChildren<Collider>(true))
+                                    UnityEngine.Object.DestroyImmediate(collider, true);
+                                foreach (Transform node in flashlightInstance.GetComponentsInChildren<Transform>(true))
+                                    node.gameObject.layer = SceneBuilder.PlayerLayer;
+                                SceneBuilder.RebindHeroMaterials(flashlightInstance);
+                                flashlightInstance.transform.localPosition = SceneBuilder.FlashlightHandAnchor;
+                                flashlightInstance.transform.localRotation = SceneBuilder.FlashlightHandRotation;
+                                flashlightInstance.transform.localScale = Vector3.one;
+                                heroFlashlight = flashlightInstance.transform;
+                            }
+                        }
+
+                        if (heroFlashlight != null)
+                        {
+                            // The procedural tubes inside Hands_Art step aside.
+                            Transform handsArt = hand.Find("Hands_Art");
+                            if (handsArt != null)
+                            {
+                                foreach (string tubeName in new[] { "TorchBody", "TorchHead" })
+                                {
+                                    Transform tube = handsArt.Find("Hand/" + tubeName);
+                                    if (tube == null) continue;
+                                    Renderer tubeRenderer = tube.GetComponent<Renderer>();
+                                    if (tubeRenderer != null) tubeRenderer.enabled = false;
+                                }
+                            }
                         }
 
                         PrefabUtility.SaveAsPrefabAsset(contents, PlayerPrefabPath);

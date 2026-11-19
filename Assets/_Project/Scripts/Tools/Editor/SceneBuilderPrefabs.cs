@@ -189,6 +189,18 @@ namespace LightShadow.Tools
             Collider torchCollider = torch.GetComponent<Collider>();
             if (torchCollider != null) Object.DestroyImmediate(torchCollider);
 
+            // P2 hero prop: the Blender crank flashlight replaces the primitive
+            // tube at the same hand anchor (see FlashlightHandAnchor for the
+            // tail-origin offset). The beam cone and cookie stay on the
+            // Flashlight light object above and are untouched; without the
+            // FBX the primitive keeps its renderer as the fallback.
+            if (AddHeroModelChild(handRootGo, HeroModelFlashlight, 0f,
+                    FlashlightHandRotation, FlashlightHandAnchor) != null
+                && torchRenderer != null)
+            {
+                torchRenderer.enabled = false;
+            }
+
             FirstPersonHands hands = handRootGo.AddComponent<FirstPersonHands>();
             hands.handRoot = handRootGo.transform;
             hands.player = player;
@@ -255,6 +267,26 @@ namespace LightShadow.Tools
             motion.visual = visual.transform;
             motion.leftArm = visual.transform.Find("ArmL");
             motion.rightArm = visual.transform.Find("ArmR");
+
+            // Premium pass: the art silhouette ships with the prefab itself so
+            // a fresh Build Scenes never regresses to the greybox shapes (the
+            // smoke shader mesh, not the enemy behaviour - the ember eyes stay
+            // visible). ArtImporter's restyle does the same for older prefabs;
+            // both are marker-idempotent on the "Shadow_Art" child name.
+            GameObject shadowArtPrefab =
+                AssetDatabase.LoadAssetAtPath<GameObject>(ArtPrefabsFolder + "/Shadow_Art.prefab");
+            if (shadowArtPrefab != null)
+            {
+                GameObject silhouette = (GameObject)PrefabUtility.InstantiatePrefab(shadowArtPrefab, visual.transform);
+                silhouette.name = "Shadow_Art";
+                foreach (string shapeName in new[] { "Body", "Head", "ArmL", "ArmR" })
+                {
+                    Transform shape = visual.transform.Find(shapeName);
+                    if (shape == null) continue;
+                    Renderer shapeRenderer = shape.GetComponent<Renderer>();
+                    if (shapeRenderer != null) shapeRenderer.enabled = false;
+                }
+            }
 
             var head = new GameObject("Head");
             head.transform.SetParent(root.transform, false);
@@ -363,11 +395,24 @@ namespace LightShadow.Tools
             collider.size = new Vector3(2.4f, 1.42f, 0.22f);
             collider.center = new Vector3(0f, 0f, 0.04f);
 
-            Box(root.transform, "Board", Vector3.zero, new Vector3(2.3f, 1.2f, 0.08f), palette.chalkboard);
-            Box(root.transform, "FrameTop", new Vector3(0f, 0.64f, 0f), new Vector3(2.42f, 0.08f, 0.14f), palette.wood);
-            Box(root.transform, "FrameBottom", new Vector3(0f, -0.64f, 0f), new Vector3(2.42f, 0.08f, 0.14f), palette.wood);
-            Box(root.transform, "FrameLeft", new Vector3(-1.19f, 0f, 0f), new Vector3(0.08f, 1.32f, 0.14f), palette.wood);
-            Box(root.transform, "FrameRight", new Vector3(1.19f, 0f, 0f), new Vector3(0.08f, 1.32f, 0.14f), palette.wood);
+            GameObject board = Box(root.transform, "Board", Vector3.zero, new Vector3(2.3f, 1.2f, 0.08f), palette.chalkboard);
+            GameObject frameTop = Box(root.transform, "FrameTop", new Vector3(0f, 0.64f, 0f), new Vector3(2.42f, 0.08f, 0.14f), palette.wood);
+            GameObject frameBottom = Box(root.transform, "FrameBottom", new Vector3(0f, -0.64f, 0f), new Vector3(2.42f, 0.08f, 0.14f), palette.wood);
+            GameObject frameLeft = Box(root.transform, "FrameLeft", new Vector3(-1.19f, 0f, 0f), new Vector3(0.08f, 1.32f, 0.14f), palette.wood);
+            GameObject frameRight = Box(root.transform, "FrameRight", new Vector3(1.19f, 0f, 0f), new Vector3(0.08f, 1.32f, 0.14f), palette.wood);
+
+            // P2 hero prop: the Blender chalkboard (frame, tray, chalk sticks
+            // and eraser included) replaces the greybox boxes when the FBX
+            // has shipped. The prefab is rebuilt from code every run, so the
+            // swap needs no marker; the QUIZ label and the collider stay.
+            if (AddHeroModelChild(root, HeroModelChalkboard, QuizBoardChalkboardTargetHeight,
+                    Quaternion.Euler(0f, 180f, 0f), new Vector3(0f, -0.6f, 0f)) != null)
+            {
+                foreach (GameObject part in new[] { board, frameTop, frameBottom, frameLeft, frameRight })
+                {
+                    HideRenderer(part);
+                }
+            }
 
             CreateWorldText(root.transform, "Label", "QUIZ\n<size=26>press E</size>", new Vector3(0f, 0.18f, -0.08f),
                 Quaternion.identity, 0.08f, 64, new Color(0.92f, 0.94f, 0.86f));
