@@ -60,8 +60,10 @@ before merge (AGENTS.md, Git workflow).
 - [ ] Key architecture pass: replace remaining primitive architecture with
       modular kit pieces (green-dado walls, iron-grille windows, staircases,
       courtyard arches); tiled PBR stays on primitives elsewhere. *(P2)*
-- [ ] Rebuild scenes via the SceneBuilder partials after each art batch and
-      keep the 60 existing swaps intact (D3). *(P2)*
+- [x] Rebuild scenes via the SceneBuilder partials after each art batch and
+      keep the 60 existing swaps intact (D3). *(P2 — hero FBX swaps wired in
+      SceneBuilderArt/Prefabs + ArtImporter, greybox fallbacks everywhere,
+      ValidateBatch reports 14/14 hero FBX + per-model swap counts)*
 
 ## P3 — Horror & interaction systems
 

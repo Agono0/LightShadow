@@ -382,3 +382,41 @@ The game itself contains **no AI features** — this log is about the developmen
   verifies UV0+UV1 on every mesh, correct material names, upright axes, and the Crank pivot
   at (-0.03, 0, 0.135) with identity rotation; 8 turntable PNGs per prop in Art/Previews/;
   Unity runs intentionally left to the lead (no Unity.exe invoked).
+
+### 2026-11-19 — P2 hero-prop wiring (SceneBuilder partials + ArtImporter) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) — code-only pass, no Unity.exe runs (lead verifies).
+- What AI provided: the full swap wiring for the 14 Blender FBX models — `LoadModelAsset` now
+  resolves `Assets/_Project/Models/Hero` beside the Kenney packs; an `AddHeroModelChild` helper
+  that instantiates hero FBX on an unscaled carrier under scaled greybox hosts (uniform
+  world-space height, metre offsets, defensive collider removal, layer sync) and rebinds every
+  renderer onto the canonical `Mat_*`/`M_*` art materials through the new
+  `ArtImporter.HeroMaterialMap` (FBX-embedded names verified 1:1 against
+  `Art/pipeline/manifest.json`); `BuildStoryMaterials` for the three FBX slots that had no
+  factory asset (`Mat_Story_RedInk` red/smooth, `Mat_Story_Glass` transparent/smoothness 0.92,
+  `Mat_Story_LED` emissive amber with `_EMISSION`); scene swaps — MemoryBox →
+  `SM_Story_MemoryBox` + card on the lid, six fragment instances → their hero story items
+  (paper placeholder darkened, kept as fallback), `Door_Classroom`/`Door_Staff` decor hosts →
+  `SM_Arch_DoorGrille`, classroom chalkboard host → `SM_Arch_Chalkboard`, ExitGate console →
+  `SM_Arch_GateCrank` with the wheel hub on the interact point, forecourt fence gap extended
+  with `SM_Arch_IronGate` sections; prefab swaps — `SM_Wraith_HD` inside Shadow_Art (marker
+  `ArtModel_SM_Wraith_HD`, procedural mesh kept as fallback, M_ShadowSmoke + SmokeHalo
+  untouched), `SM_Player_Flashlight` at the shared hand anchor (`FlashlightHandAnchor`
+  compensates the tail origin), QuizBoard board → hero chalkboard; `ValidateBatch` now reports
+  14/14 hero FBX assets, per-model swap counts, null material slots, and the story-material
+  looks; AI_DEV_LOG + TASKS ticked.
+- What I changed myself: chose an unscaled carrier because a child of a scaled greybox cube
+  inherits its per-axis scale and a yaw would swap the compensation axes; derived every anchor
+  from the exporter conventions (`set_base_origin` bottom-centre, Blender (x,z,-y) → Unity
+  mapping, Forward -Z/Up Y) instead of eyeballing — e.g. the classroom chalkboard needs yaw
+  180 because the FBX chalk face points +Z while that wall faces -Z into the room, and the
+  gate crank needs yaw 90 so the wheel plane (axle along Blender X) faces the player with the
+  wall plate flush against the console front; kept the beam cone/cookie on the Flashlight
+  light object completely untouched; made every swap optional so a missing FBX degrades to the
+  existing primitive/Kenney stand-in; kept prefab GUIDs stable (Shadow_Art rebuild keeps the
+  marker-based skip; Hands_Art is not deleted — the restyle migrates it in place).
+- Teach-back check: pending — walk the lead through the swap table entries, the fallback
+  behaviour per hero model, and why `ImportAllBatch` must run before `BuildAllBatch` (fresh
+  prefab builds embed Shadow_Art/flashlight only when the assets already exist).
+- Test result: Roslyn (C# 9) parse check clean on all five edited editor scripts; Unity
+  intentionally not run — lead to run `ImportAllBatch` then `BuildAllBatch` then
+  `ValidateBatch` and grep for `RESULT: PASS` (see the wiring report for expected lines).
