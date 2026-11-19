@@ -232,6 +232,9 @@ namespace LightShadow.Core
             respawning = true;
             GameEvents.RaisePlayerCaught();
 
+            // P3 haptics: the catch lands with a heavy buzz (Android only).
+            LightShadow.Platform.HapticsService.Heavy();
+
             if (caughtClip == null) caughtClip = ProceduralSfx.Wrong;
             if (caughtClip != null && AudioManager.Instance != null)
             {

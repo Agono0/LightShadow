@@ -42,6 +42,9 @@ namespace LightShadow.Gameplay
             if (pickupClip == null) pickupClip = Core.ProceduralSfx.Pickup;
             if (pickupClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(pickupClip);
 
+            // P3 haptics: a light buzz when a memory is recovered (Android only).
+            LightShadow.Platform.HapticsService.Light();
+
             GameManager gm = GameManager.Instance;
             if (gm != null) gm.ShowMessage(fragmentText, memorySeconds);
 
