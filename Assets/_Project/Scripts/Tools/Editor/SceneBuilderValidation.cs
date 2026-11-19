@@ -154,6 +154,13 @@ namespace LightShadow.Tools
             DawnRiser riser = Object.FindAnyObjectByType<DawnRiser>(FindObjectsInactive.Include);
             if (riser == null) problems.Add("School: dawn chase has no DawnRiser.");
 
+            // D15 follow-up: the snapshot driver must sit on the school Systems
+            // with the mixer asset wired (direct-play support).
+            LightShadow.Audio.AudioSnapshotController snapshotDriver =
+                Object.FindAnyObjectByType<LightShadow.Audio.AudioSnapshotController>();
+            if (snapshotDriver == null) problems.Add("School: Systems has no AudioSnapshotController.");
+            else if (snapshotDriver.mixer == null) problems.Add("School: AudioSnapshotController has no mixer wired.");
+
             NavMeshTriangulation triangulation = NavMesh.CalculateTriangulation();
             int vertices = triangulation.vertices != null ? triangulation.vertices.Length : 0;
             report.AppendLine("NavMesh vertices: " + vertices);
@@ -228,6 +235,46 @@ namespace LightShadow.Tools
             if (duplicateKeys.Count > 0)
                 problems.Add("Localization.cs has duplicate English keys: " + string.Join(", ", duplicateKeys));
 
+            // ---- audio mixer (D15 follow-up, spec §7.1) -----------------------
+            report.AppendLine();
+            report.AppendLine(AudioMixerTool.ValidateMixer());
+            AudioMixer mixer = AssetDatabase.LoadAssetAtPath<AudioMixer>(AudioMixerTool.MixerPath);
+            if (mixer == null)
+            {
+                problems.Add("Missing audio mixer asset: " + AudioMixerTool.MixerPath + " (run AudioMixerTool.EnsureBatch).");
+            }
+            else
+            {
+                string[] categoryGroups = { "Master", "Music", "Ambience", "SFX", "Voice", "Shadow", "UI" };
+                string[] duckGroups = { "MusicDuck", "AmbienceDuck", "SfxDuck", "VoiceDuck", "ShadowDuck", "UiDuck" };
+                foreach (string name in categoryGroups)
+                {
+                    if (!HasGroupExact(mixer, name)) problems.Add("Mixer: missing group " + name + ".");
+                }
+                foreach (string name in duckGroups)
+                {
+                    if (!HasGroupExact(mixer, name)) problems.Add("Mixer: missing duck child " + name + ".");
+                }
+                string[] snapshotNames = LightShadow.Audio.AudioSnapshotController.SnapshotNames;
+                foreach (string name in snapshotNames)
+                {
+                    if (mixer.FindSnapshot(name) == null) problems.Add("Mixer: missing snapshot " + name + ".");
+                }
+                AudioMixerSnapshot start = mixer.startSnapshot;
+                if (start == null || start.name != LightShadow.Audio.AudioSnapshotController.SnapshotExplore)
+                {
+                    problems.Add("Mixer: startSnapshot must be Snapshot_Explore.");
+                }
+                string[] exposed = AudioMixerTool.ExposedParameterNames();
+                foreach (string parameter in exposed)
+                {
+                    if (!mixer.GetFloat(parameter, out _))
+                    {
+                        problems.Add("Mixer: exposed parameter missing: " + parameter + ".");
+                    }
+                }
+            }
+
             report.AppendLine();
             if (problems.Count == 0)
             {
@@ -240,6 +287,16 @@ namespace LightShadow.Tools
             }
 
             return report.ToString();
+        }
+
+        static bool HasGroupExact(AudioMixer mixer, string name)
+        {
+            AudioMixerGroup[] matches = mixer.FindMatchingGroups(name);
+            for (int i = 0; i < matches.Length; i++)
+            {
+                if (matches[i] != null && matches[i].name == name) return true;
+            }
+            return false;
         }
     }
 }

@@ -43,6 +43,14 @@ namespace LightShadow.Enemy
             stingerSource.maxDistance = maxHearDistance + 5f;
             stingerSource.rolloffMode = AudioRolloffMode.Linear;
 
+            // Mixer routing (D15 follow-up §4.5): the Shadow's own bus, so the
+            // snapshot choreography (stalk gain, memory-flash duck) reaches it
+            // even when the name-convention scan misses.
+            growlSource.outputAudioMixerGroup =
+                LightShadow.Audio.VolumeCategories.GroupFor(LightShadow.Audio.VolumeCategories.Category.Shadow);
+            stingerSource.outputAudioMixerGroup =
+                LightShadow.Audio.VolumeCategories.GroupFor(LightShadow.Audio.VolumeCategories.Category.Shadow);
+
             // Library-first: the imported CC0 moans (qubodup) give the Shadow a
             // real voice; the synthesised growl/stinger stay as fallback.
             patrolClip = LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_0");

@@ -531,6 +531,10 @@ namespace LightShadow.Tools
 
             if (systems.GetComponent<AdaptiveMusic>() == null) systems.AddComponent<AdaptiveMusic>();
 
+            // Snapshot driving survives story-scene rebuilds too (idempotent;
+            // D15 follow-up §4.5).
+            AttachAudioSnapshot(systems.transform);
+
             // Dialogue box on the school canvas.
             GameObject canvasGo = GameObject.Find("UI_School");
             if (canvasGo == null) return "school: UI_School canvas missing (run Build Scenes first) - director added, UI skipped";

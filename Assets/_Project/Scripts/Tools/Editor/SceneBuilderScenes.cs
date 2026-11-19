@@ -46,6 +46,11 @@ namespace LightShadow.Tools
             var bootstrap = new GameObject("Bootstrap");
             bootstrap.AddComponent<BootstrapLoader>();
 
+            // The mixer must be wired process-wide before the menu loads
+            // (D15 follow-up §4.2); snapshot driving starts here and the school
+            // Systems copy is the fallback for direct school-scene play.
+            AttachAudioSnapshot(bootstrap.transform);
+
             SaveScene(scene, BootstrapPath);
         }
 
@@ -366,6 +371,11 @@ namespace LightShadow.Tools
                 var bootstrap = systems.AddComponent<LightShadow.Audio.AudioLibraryBootstrap>();
                 bootstrap.library = audioLibrary;
             }
+
+            // Snapshot driving on the school Systems object (idempotent; direct
+            // play of the school scene works without the bootstrap).
+            AttachAudioSnapshot(systems.transform);
+
             CreatePostVolume(systems.transform, "GlobalVolume", PostNightPath);
 
             checkpoints.defaultSpawn = spawn.transform;
@@ -1045,6 +1055,24 @@ namespace LightShadow.Tools
             source.loop = false;
             source.spatialBlend = 0f;
             return source;
+        }
+
+        // ------------------------------------------------------- audio mixer --
+
+        // Idempotent attach of the runtime snapshot driver with the mixer asset
+        // wired (AGENT_REPORT_AUDIO_MIXER §4.2/§4.5). AudioSnapshotController
+        // guards duplicates itself (first instance wins), so attaching to both
+        // the bootstrap and the school Systems is safe.
+        static void AttachAudioSnapshot(Transform parent)
+        {
+            if (parent == null) return;
+            LightShadow.Audio.AudioSnapshotController controller =
+                parent.GetComponent<LightShadow.Audio.AudioSnapshotController>();
+            if (controller == null)
+            {
+                controller = parent.gameObject.AddComponent<LightShadow.Audio.AudioSnapshotController>();
+            }
+            controller.mixer = AssetDatabase.LoadAssetAtPath<AudioMixer>(AudioMixerTool.MixerPath);
         }
     }
 }

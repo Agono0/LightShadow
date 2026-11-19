@@ -39,9 +39,15 @@ namespace LightShadow.Audio
         [Header("Crossfade speed (volume units per second)")]
         public float fadeSpeed = 0.35f;
 
+        [Header("Real-music bed (Phase 1, library-first)")]
+        [Tooltip("Authored gain of the imported bed (MUS_Bed_LongNoteOne) played through the AudioManager music source; silent when the clip is absent.")]
+        public float bedBase = 0.55f;
+
         AudioSource calmSource;
         AudioSource tensionSource;
         AudioSource pulseSource;
+        AudioClip bedClip;
+        float bedVolume;
 
         float lastMeter = 1f;
         float lastCatchAt = -999f;
@@ -72,6 +78,10 @@ namespace LightShadow.Audio
             calmSource = BuildSource("Music_CalmPad", RenderCalmPad());
             tensionSource = BuildSource("Music_Tension", RenderTensionLayer());
             pulseSource = BuildSource("Music_Pulse", RenderPulseLayer());
+
+            // Library-first: the imported bed (Kevin MacLeod, CC-BY) layers under
+            // the procedural pads when present; missing clip = unchanged game.
+            bedClip = SfxRegistry.Clip("MUS_Bed_LongNoteOne");
 
             // These three sources are NOT registered with VolumeCategories (it
             // would fight this Update over .volume). The Music/Master sliders are
@@ -137,6 +147,35 @@ namespace LightShadow.Audio
             if (calmSource != null) calmSource.volume = MixVolume(calmBase, calmVolume);
             if (tensionSource != null) tensionSource.volume = MixVolume(tensionBase, tensionVolume);
             if (pulseSource != null) pulseSource.volume = MixVolume(pulseBase, pulseVolume);
+
+            UpdateBed();
+        }
+
+        // Phase 1: layer the real bed (MUS_Bed_LongNoteOne) through the
+        // AudioManager music source under the procedural pads. It carries the
+        // Explore/Stalk dread and fades out as the pulse layer rises (chase,
+        // gate surge, dawn), so the two music systems never compete. No clip in
+        // the library = the bed stays silent and the pads remain the whole mix.
+        void UpdateBed()
+        {
+            if (bedClip == null) return;
+
+            AudioManager manager = AudioManager.Instance;
+            AudioSource bed = manager != null ? manager.musicSource : null;
+            if (bed == null) return;
+
+            if (bed.clip != bedClip)
+            {
+                bed.clip = bedClip;
+                bed.loop = true;
+                bed.Play();
+            }
+
+            // The bed owns .volume the same way the three pads do; the source is
+            // scan-registered as Music, so a slider/scene-load re-apply is
+            // corrected on the next frame (one-frame event, same as the pads).
+            bedVolume = MoveToward(bedVolume, Mathf.Clamp01(1f - pulseVolume));
+            bed.volume = MixVolume(bedBase, bedVolume);
         }
 
         float MoveToward(float current, float target)
@@ -146,6 +185,10 @@ namespace LightShadow.Audio
 
         static float MixVolume(float layerBase, float envelope)
         {
+            // Mixer active: category x master live on the Music group gains, so
+            // this returns the authored base x envelope only (§4.5). Legacy path
+            // keeps the D15 per-source multiply.
+            if (VolumeCategories.MixerActive) return Mathf.Clamp01(layerBase * envelope);
             float category = VolumeCategories.CategoryVolume01(VolumeCategories.Category.Music);
             return Mathf.Clamp01(layerBase * envelope * category * VolumeCategories.MasterVolume01);
         }
@@ -160,6 +203,7 @@ namespace LightShadow.Audio
             source.clip = clip;
             source.volume = 0f;
             source.spatialBlend = 0f; // 2D bed
+            source.outputAudioMixerGroup = VolumeCategories.GroupFor(VolumeCategories.Category.Music);
             source.Play();
             return source;
         }

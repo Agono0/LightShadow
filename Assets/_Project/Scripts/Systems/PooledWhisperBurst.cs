@@ -27,6 +27,10 @@ namespace LightShadow.Systems
                 source.maxDistance = 18f;
                 source.rolloffMode = AudioRolloffMode.Linear;
             }
+            // Mixer routing (D15 follow-up §4.5): whispers are the Shadow's voice
+            // and must ride the Shadow bus (memory-flash duck, stalk gain).
+            source.outputAudioMixerGroup =
+                LightShadow.Audio.VolumeCategories.GroupFor(LightShadow.Audio.VolumeCategories.Category.Shadow);
             if (whisperClip == null) whisperClip = BuildWhisper("SFX_Whisper_Burst");
         }
 
