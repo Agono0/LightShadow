@@ -1,6 +1,7 @@
 # LIGHT SHADOW — Reconciled Task Backlog
 
-**Last updated:** 2026-11-19 · **Branch:** `chore/premium-pass-phase0`
+**Last updated:** 2026-11-19 · **Branch:** `feat/docs-final` (docs reconciliation, stacked on
+`feat/release-prep`, to fold into the single integration PR from `feat/premium-integration`)
 
 The live backlog reconciled from the adopted master plan
 (`Docs/MASTER_PLAN.md`): everything already shipped (see `Docs/PROJECT_STATE.md`,
@@ -8,7 +9,9 @@ The live backlog reconciled from the adopted master plan
 owning phase. `[x]` = done; `[ ]` = pending. Verification for every phase:
 `ValidateBatch` (`RESULT: PASS`) for runtime/editor changes, `BuildAllBatch`
 first when scene/prefab layout changes, and the PR `build` workflow green
-before merge (AGENTS.md, Git workflow).
+before merge (AGENTS.md, Git workflow). After the premium integration
+(2026-11-19) the remaining work splits into **human-only** and **deferred**
+items — both listed in "Open items" at the bottom.
 
 ## P0 — Housekeeping (branch `chore/premium-pass-phase0`)
 
@@ -22,7 +25,9 @@ before merge (AGENTS.md, Git workflow).
       TASKS / STYLE_GUIDE / CREDITS + README/ROADMAP updates). *(P0)*
       — covered by the premium-pass-phase0 PR 3.
 - [ ] README/ROADMAP hygiene: statuses accurate, stale claims removed, links
-      resolve. *(P0)*
+      resolve. *(P0)* — README/PROGRESS/PERFORMANCE/PROJECT_STATE/TASKS
+      refreshed to the integration state on 2026-11-19 (this pass);
+      **ROADMAP.md statuses are still stale** and remain to reconcile.
 
 ## P1 — Fonts, AudioMixer and music
 
@@ -51,15 +56,26 @@ before merge (AGENTS.md, Git workflow).
 
 ## P2 — Blender hero props + key architecture
 
-- [ ] Set up the planned repo-root `Art/` tree (Sources / Pipeline /
-      Previews) for Blender work outside `Assets/` (plan §6.1). *(P2)*
-- [ ] Blender hero props per the master-plan list (chalkboard, card catalogue,
-      optics bench, circuit puzzle, 3 fuse boxes, story items incl. the
-      memory box and the crank flashlight) using the §7.4 cleanup recipe
-      (tri budgets, UVs, LODs, naming). *(P2)*
+- [x] Set up the planned repo-root `Art/` tree (Sources / Pipeline /
+      Previews) for Blender work outside `Assets/` (plan §6.1). *(P2)* —
+      `Art/Sources/HeroProps.blend` (LFS), `Art/Pipeline` (ls_icon.py,
+      fill_arabic_questions.py), `Art/Previews` (8-frame turntables + icons).
+- [x] Blender hero props, first batch of 14 using the §7.4 cleanup recipe
+      (tri budgets, UV0+UV1, real-world scale, Mat_Art_* remap names): 8 story
+      items (SM_Story_{MemoryBox, Card, Bookmark, ExamPaper, Prism,
+      Photograph, Programme, Mug}), SM_Player_Flashlight, SM_Wraith_HD,
+      SM_Arch_{DoorGrille, Chalkboard, GateCrank, IronGate} — imported via the
+      `HeroModels` table with story materials (Mat_Story_RedInk/Glass/LED) and
+      wired through SceneBuilderArt/Prefabs swap tables; ValidateBatch asserts
+      14/14 FBX + 12/12 materials + swap counts. *(P2)*
+- [ ] Remaining master-plan props: optics bench, circuit puzzle, 3 fuse
+      boxes, card catalogue (still Kenney/primitive swaps). *(P2 — deferred)*
 - [ ] Key architecture pass: replace remaining primitive architecture with
       modular kit pieces (green-dado walls, iron-grille windows, staircases,
       courtyard arches); tiled PBR stays on primitives elsewhere. *(P2)*
+
+      courtyard arches); tiled PBR stays on primitives elsewhere. *(P2 —
+      deferred)*
 - [x] Rebuild scenes via the SceneBuilder partials after each art batch and
       keep the 60 existing swaps intact (D3). *(P2 — hero FBX swaps wired in
       SceneBuilderArt/Prefabs + ArtImporter, greybox fallbacks everywhere,
@@ -93,6 +109,12 @@ before merge (AGENTS.md, Git workflow).
       muffle blocked 3D sources (lazy low-pass 2400 Hz + −6 dB dip,
       GameConfig fields). *(P3)*
 
+All eleven P3 systems carry scene-builder wiring + validation plus **nine
+review fixes** (hiding-state reset on respawn, F tap-vs-crank split, touch
+hold vs input lock, shared sight Linecast cache, calm-FX volume teardown,
+crank ratchet clock, recap Debug.Log, EnemyStateChanged comment, defensive
+`VolumeCategories.SetMixer` routing) — see `AI_DEV_LOG.md` 2026-11-19.
+
 ## P4 — Arabic content + credits
 
 - [x] Fill Arabic question fields (`questionAr`/`optionsAr`/`explanationAr`)
@@ -114,14 +136,21 @@ before merge (AGENTS.md, Git workflow).
       (QuestionData has no serialized `source` field). Verifier extended to
       120: Art/pipeline/verify_arabic_questions.py -> RESULT: PASS. Human
       fact-check still required before release.
+
+      (SceneBuilderValidation "Question Arabic fields: 60/60"). Bank expansion
+      to 120 is in progress on a separate agent's branch — do not treat the
+      extra 60 as shipped.
 - [ ] Credits screen wired to `Docs/CREDITS.md` content (in-game screen, EN/AR
       chrome). *(P4)*
 
 ## P5 — Performance, release prep and VO specs
 
-- [ ] Performance doc refresh from CI build numbers + any device profiling
+- [x] Performance doc refresh from CI build numbers + any device profiling
       that lands (Docs/PERFORMANCE.md); on-device profiling remains
-      human-assisted. *(P5)*
+      human-assisted. *(P5)* — refreshed 2026-11-19 with CI artifact sizes
+      (arm64 88.0 MB / armv7 86.1 MB / Windows 152.0 MB, run 44608154090),
+      per-job build times and the honest delta vs the 73.7 MB baseline; the
+      integration PR's own sizes amend the table when its run completes.
 - [x] App icons (Windows + Android, all densities): emblem pipeline
       `Art/Pipeline/ls_icon.py` (Blender EEVEE headless, STYLE_GUIDE palette)
       renders `Art/Previews/icon_{1024,512,192,96}.png`; PlayerSettings
@@ -139,3 +168,39 @@ before merge (AGENTS.md, Git workflow).
       Shadow 9, Memory 6 + 4 ending epilogues). *(P5)*
 - [ ] Optional signed AAB job for Google Play (requires owner signing
       config). *(P5)*
+
+## Open items after the premium integration (2026-11-19)
+
+Everything in P0–P5 above is either `[x]` (landed on `feat/premium-integration`,
+single integration PR pending merge) or listed here. Two kinds:
+
+**Human-only** (cannot be done by an agent; each blocks a release claim, never
+a build):
+
+- Question fact-check — every question keeps `factSource = NEEDS-FACT-CHECK`
+  until a human verifies each against a real reference (the 60 shipped + the
+  120-bank expansion in progress).
+- Arabic native review — question fields 60/60 are AI-translated; a
+  native-speaker pass is required before any "reviewed" claim.
+- VO recording — per `Docs/VO_RECORDING_SPECS.md` (96 files EN+AR).
+- PlayerSettings icon assignment — PNGs rendered, wiring steps documented;
+  the in-editor step is human (ProjectSettings untouched on purpose).
+- Store screenshots — need Unity runs on device-sized windows.
+- On-device profiling — frame-rate/tier verification per the PERFORMANCE.md
+  methodology.
+- Signing & accounts — the optional signed AAB job needs the owner keystore;
+  Google Play credentials and release tagging are human-only.
+
+**Deferred** (agent-doable later, intentionally not started — no commits found
+as of 2026-11-19):
+
+- Audio reverb/occlusion pass — checked `feat/horror-systems` history: nothing
+  landed; remains an open stretch goal from the premium-pass brief.
+- Remaining P2 props (optics bench, circuit puzzle, 3 fuse boxes, card
+  catalogue) + the modular key-architecture pass.
+- GI lightmap bake — tooling-complete, needs a graphics-device editor run
+  (headless stalls; D11).
+- Pixabay music primaries — bot-protected downloads need a browser session.
+- ROADMAP.md status reconciliation (P0 hygiene item above).
+- Question-bank expansion to 120 — **in progress** by another agent on a
+  separate branch; its claims land with that agent's own commits.

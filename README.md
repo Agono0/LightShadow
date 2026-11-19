@@ -23,29 +23,44 @@ The full gameplay loop is implemented and playable from the generated scenes:
 
 
 - first-person walk / sprint / crouch, keyboard + mouse and a touch layer;
-- the hand-crank flashlight with battery drain, battery pickups and flashlight repulsion;
+- the hand-crank flashlight with battery drain, battery pickups and flashlight repulsion —
+  plus an emergency **crank minigame** (hold + circular swipe) when the battery dies;
 - the Bright Idea Meter (correct +25, wrong/timeout −10, passive drain, beam range 4–12 m);
-- the Shadow's four-state behaviour (patrol → stalk → chase → repelled), NavMesh, line of sight and lit-room exclusion — plus a synthesised growl/stinger voice that follows its state;
+- the Shadow's state machine (patrol → stalk → investigate → chase → search → repelled),
+  NavMesh, line of sight, lit-room exclusion, **hearing** (a noise bus with per-action
+  radii for sprinting, doors and wrong answers) and a **menace director** that paces
+  sightings and guarantees calm after chases — plus a synthesised growl/stinger voice
+  that follows its state;
+- **hiding v1** (hide spots with a hold-breath meter while the Shadow searches) and the
+  **banish hold** (keep the focused beam on it for 2 s to force a retreat);
 - three fuse boxes, six Knowledge Fragments, seven quiz boards, seven batteries and the powered gate;
 - lit-room checkpoints, bloodless caught/respawn, a scripted catch sequence (freeze, lunge, camera
-  shake, whisper), dawn chase, ending and study-recap screen;
+  shake, whisper), dawn chase, ending and study-recap screen (now exportable as a printable PNG);
 - a low-poly first-person hand with breathing, walk bob and crouch dip, plus small ambient motion
   on the pickups, lamps and the Shadow itself;
 - a three-dimensional dawn ending: the camera looks through the opened gate at a rising sun while the
   recap fades in over the set;
-- story plaques in every room (the night's history is read in the world, not in a cutscene);
-- **60 seeded questions** across Science, Math, History, Geography, Language and Health;
-- English/Arabic interface (all UI, no localization packages) and a settings card
-  (resolution, fullscreen, quality, v-sync, brightness, sensitivity, language, narrator);
-- a procedural ambience drone and synthesised interaction sounds (no audio assets required).
+- story plaques in every room (the night's history is read in the world, not in a cutscene), and a
+  **360° inspect view** for the story items you pick up;
+- **60 seeded questions** across Science, Math, History, Geography, Language and Health —
+  with Arabic question text filled for all 60 (AI translation, pending human review);
+- English/Arabic interface (all UI, no localization packages, bundled Arabic fonts) and a
+  settings card (resolution, fullscreen, quality, v-sync, brightness, sensitivity, language, narrator);
+- a real AudioMixer with six tension snapshots (Explore/Stalk/Chase/Hide/MemoryFlash/Dawn),
+  a licensed music bed with per-ending cues, real SFX/ambience packs and haptic feedback on
+  Android (correct answers tick, being caught thuds).
 
 The level now ships with a **premium art pass**: 60 real mesh swaps (Kenney CC0 furniture/foliage/
-fence/silhouette), Poly Haven PBR surfaces, a smoke-silhouette Shadow, gripped first-person hands,
-dust motes, light/reflection probes and scene fog — plus a **branching story system** (44-node graph,
-timed choices, stats, 4 endings), 3-slot saves, quality tiers (Low/Medium/High/Ultra with auto-detect),
-120 FPS targeting, gamepad support and accessibility options. Full records: [`Docs/`](Docs/).
-Every seeded question is still marked `NEEDS-FACT-CHECK` until a human verifies it against a real
-reference (doc §8.3); the GI lightmap bake is tooling-complete but pending an editor-UI run.
+fence/silhouette), Poly Haven PBR surfaces, gripped first-person hands, dust motes,
+light/reflection probes and scene fog — plus **14 Blender hero props** (the memory box and card,
+the exam paper, prism and photograph, the chalkboards, the gate crank, the iron-gate segments and
+the player's flashlight, with a higher-detail Wraith silhouette on the Shadow), a **branching story
+system** (44-node graph, timed choices, stats, 4 endings), 3-slot saves, quality tiers
+(Low/Medium/High/Ultra with auto-detect), 120 FPS targeting, gamepad support and accessibility
+options. Full records: [`Docs/`](Docs/).
+Every seeded question is still marked `NEEDS-FACT-CHECK` and the Arabic translations await a
+native-speaker review until a human signs them off (doc §8.3); the GI lightmap bake is
+tooling-complete but pending an editor-UI run.
 
 ## Engine version
 
@@ -77,9 +92,10 @@ The Settings card opens from the main menu and from the pause menu (Esc ▸ Sett
   silhouette still reads even with post-processing off (mobile preset);
 - **Mouse sensitivity** — multiplies the configured mouse turn rate;
 - **Language** — English or Arabic. All menus, the HUD, the quiz overlay, prompts, messages,
-  objectives, the ending and the study recap switch immediately, with right-to-left text and an
-  OS Arabic font at display time. Question text stays English unless an Arabic translation is
-  filled into the `questionAr`/`optionsAr`/`explanationAr` fields of a question asset;
+  objectives, the ending and the study recap switch immediately, with right-to-left text using
+  the bundled Arabic fonts (Noto Naskh Arabic / Cairo / Reem Kufi — no OS font install needed).
+  All 60 questions have Arabic question/option/explanation text filled in
+  (`questionAr`/`optionsAr`/`explanationAr`), AI-translated and pending a human native review;
 - **Narrator voice** — on Windows the run, fragment memories and the ending are read aloud by
   the operating system voice (SAPI, off the main thread); the option turns it off. Arabic text
   is only spoken when an Arabic voice is installed, so the language is never mispronounced.
@@ -87,11 +103,14 @@ The Settings card opens from the main menu and from the pause menu (Esc ▸ Sett
 ## Build
 
 - **Windows** — **LightShadow ▸ 4. Build Windows Player**, or File ▸ Build Profiles ▸ Windows.
-  Output: `Builds/Windows/LightShadow.exe` (rebuilt 23 Oct 2026, smoke-tested).
+  Output: `Builds/Windows/LightShadow.exe`. CI build artifacts: the Windows player folder
+  uploads at ~152 MB (fonts + music included; see `Docs/PERFORMANCE.md`).
 - **Android** — install the Android module (SDK & NDK Tools, OpenJDK), then
   **LightShadow ▸ 6. Build Android APK**. The project is already set to IL2CPP / ARM64 /
   API 29 / landscape, ASTC. If the module is missing the menu item says so instead of failing.
-  Output: `Builds/Android/LightShadow.apk` (45.7 MB, produced 23 Oct 2026).
+  Output: `Builds/Android/LightShadow.apk`. CI per-ABI artifacts (zipped): arm64-v8a
+  ~88 MB, armeabi-v7a ~86 MB after the premium audio/font pass — the integration PR's own
+  build may shift these; measured numbers live in `Docs/PERFORMANCE.md`.
 
 Command-line equivalents (used by the automated verification):
 
@@ -162,16 +181,28 @@ the asset at runtime.
 ## Status & limitations
 
 - **Premium-pass art is integrated:** 60 Kenney mesh swaps plus Poly Haven PBR
-  surface sets are live in the shipped scenes; primitive architecture keeps its
-  tiled PBR, and the Blender hero-prop pass is in progress (see
-  [`Docs/TASKS.md`](Docs/TASKS.md), phase P2).
+  surface sets are live in the shipped scenes, and the **14 Blender hero props**
+  are wired (story items, chalkboards, gate crank, iron-gate segments, the
+  player flashlight and the Wraith HD silhouette). The modular key-architecture
+  pass and the remaining master-plan props (optics bench, circuit puzzle, fuse
+  boxes, card catalogue) are deferred (see [`Docs/TASKS.md`](Docs/TASKS.md)).
+- **The horror-systems layer is landed** — noise/hearing with an Investigate
+  state, crank minigame, menace director, hiding v1, banish hold, calm FX,
+  360° inspect view, recap PNG export, Android haptics and an editor-builds dev
+  console — carried by the single integration PR from
+  `feat/premium-integration` (supersedes the closed PRs #5/#6).
 - **The branching story shipped:** a 44-node graph with 12 authored choice
   moments, timed choices, 4 endings and 3-slot disk saves (details in
   [`Docs/PROJECT_STATE.md`](Docs/PROJECT_STATE.md)).
-- **Questions remain `NEEDS-FACT-CHECK`** pending human review, and the Arabic
-  question fields are awaiting the translation pass (phase P4).
+- **Audio and typography are premium now:** a real AudioMixer with six tension
+  snapshots, licensed music cues, SFX/ambience packs and bundled OFL fonts, so
+  Arabic renders offline.
+- **Questions remain `NEEDS-FACT-CHECK`** pending human review; the Arabic
+  question fields are filled 60/60 by AI translation and await a native-speaker
+  review — nothing here claims human sign-off (AGENTS.md rule 5).
 - **Builds are automated in CI** — Android arm64/armv7 APKs and the Windows
-  player build on every PR, with artifacts/releases; on-device performance
-  profiling is still pending.
+  player build on every PR, with artifacts/releases; measured sizes and build
+  times are in [`Docs/PERFORMANCE.md`](Docs/PERFORMANCE.md); on-device
+  performance profiling is still pending.
 - Full detail lives in [`Docs/`](Docs/): [`PROJECT_STATE.md`](Docs/PROJECT_STATE.md),
   [`TASKS.md`](Docs/TASKS.md), [`PERFORMANCE.md`](Docs/PERFORMANCE.md).
