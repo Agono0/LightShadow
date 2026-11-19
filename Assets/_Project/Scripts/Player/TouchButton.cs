@@ -38,6 +38,18 @@ namespace LightShadow.Player
         void Update()
         {
             if (kind != Kind.Flashlight || !flashDown) return;
+
+            // The input lock (dialogue, hiding, quiz) owns the screen: a hold
+            // caught mid-press must not start or keep a focus the player is
+            // not driving. OnPointerUp still cleans up after itself on release.
+            if (PlayerController.ExternalInputLocked)
+            {
+                if (flashFocusStarted && flashlight != null) flashlight.SetFocus(false);
+                flashDown = false;
+                flashFocusStarted = false;
+                return;
+            }
+
             if (flashFocusStarted) return;
             if (flashlight == null || !flashlight.IsOn) return;
             if (Time.unscaledTime - flashDownTime >= TapSeconds)
