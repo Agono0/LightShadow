@@ -6,16 +6,15 @@ namespace LightShadow.Platform
     // vibration without a native plugin - Handheld.Vibrate() (~0.5 s pulse).
     // Both intensities use the same primitive today; the split exists so a
     // native plugin can upgrade Heavy() later without touching call sites.
-    // No-ops in the editor and on desktop.
+    // IMPORTANT: Handheld exists only in the mobile build profiles — the call
+    // is compiled out everywhere else via defines (a runtime isMobilePlatform
+    // check alone cannot save compilation on Windows Standalone).
     public static class HapticsService
     {
         // Light: correct answers, fragment pickups.
         public static void Light()
         {
-#if UNITY_EDITOR
-            return;
-#else
-            if (!Application.isMobilePlatform) return;
+#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
             Handheld.Vibrate();
 #endif
         }
@@ -23,10 +22,7 @@ namespace LightShadow.Platform
         // Heavy: being caught.
         public static void Heavy()
         {
-#if UNITY_EDITOR
-            return;
-#else
-            if (!Application.isMobilePlatform) return;
+#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
             Handheld.Vibrate();
 #endif
         }
