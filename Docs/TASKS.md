@@ -86,9 +86,13 @@ before merge (AGENTS.md, Git workflow).
 
 ## P4 — Arabic content + credits
 
-- [ ] Fill Arabic question fields (`questionAr`/`optionsAr`/`explanationAr`)
+- [x] Fill Arabic question fields (`questionAr`/`optionsAr`/`explanationAr`)
       for all 60 questions; display path unchanged (Localization +
-      ArabicSupport). *(P4)*
+      ArabicSupport). *(P4)* - AI translation (Egyptian-flavored MSA, mother's
+      voice), pending human/native review; factSource stays NEEDS-FACT-CHECK.
+      Filled in place by Art/pipeline/fill_arabic_questions.py (append-only
+      YAML edit, GUIDs/meta untouched); ValidateBatch now asserts the fields
+      (SceneBuilderValidation "Question Arabic fields: 60/60").
 - [ ] Credits screen wired to `Docs/CREDITS.md` content (in-game screen, EN/AR
       chrome). *(P4)*
 

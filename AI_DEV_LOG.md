@@ -357,3 +357,24 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: pending Lead batch run — expected `AudioMixerTool.EnsureBatch` → `RESULT: PASS`
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
+
+### 2026-11-19 - Task P4: Arabic question content for all 60 questions - Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) - task P4 of Docs/TASKS.md.
+- What AI provided: full Arabic translation table (questionAr/optionsAr/explanationAr for all 60
+  Q_*.asset questions) in Egyptian-flavored MSA with the mother's voice for explanations; the fill
+  script `Art/pipeline/fill_arabic_questions.py` (append-only YAML edit after `factSource`, asserts
+  correctIndex and untouched EN bytes, mimics Unity's YAML quoting, refuses strings that the
+  ArabicSupport display shim would word-reverse - e.g. multi-word English runs or a number last
+  inside parentheses); a ValidateBatch assertion counting Arabic-complete questions
+  (SceneBuilderValidation: "Question Arabic fields: 60/60").
+- What I changed myself: kept every correctIndex and all EN bytes untouched (git diff: 420
+  insertions, 0 deletions, GUIDs/.meta identical); adapted the Language items whose on-screen
+  display would break - Lan_002/Lan_004 prompts re-anchored to Arabic sentences (same grammar
+  skill, same correctIndex), Lan_003/Lan_009 options kept pure-English so the shim skips them;
+  flagged those adaptations for teacher review.
+- Teach-back check: pending - walk a teammate through one .asset diff (7 appended lines per file)
+  and the ArabicSupport token-order rule the script enforces.
+- Test result: script re-parses all 60 assets with YAML and round-trips every Arabic field (0
+  empty); empty-field grep = 0; factSource stays NEEDS-FACT-CHECK on all 60 (never claimed
+  review). Unity ValidateBatch to be run by the lead (no Unity run in this task). Human/native
+  Arabic review still required before release.
