@@ -104,6 +104,29 @@ namespace LightShadow.Player
             touchBreathHeld = held;
         }
 
+        // Recovery-path reset (catch / checkpoint respawn): clears the hidden
+        // state and releases the input lock WITHOUT the exit choreography -
+        // no release noise and no hop back to the entry pose, because the
+        // caller (RespawnReset / WakeAtCheckpoint) teleports Nour to the
+        // checkpoint itself. Without this a catch interrupted mid-hide leaves
+        // IsHidden stuck on: the Shadow goes permanently blind (EnemySight)
+        // and the next E teleport hops her back into the old spot.
+        public static void ResetState()
+        {
+            IsHidden = false;
+            CurrentSpot = null;
+            EnteredUnderWatch = false;
+            if (instance != null)
+            {
+                instance.breath = 1f;
+                instance.holdingBreath = false;
+                instance.gasping = false;
+                instance.touchBreathHeld = false;
+                instance.breathNoiseClock = 0f;
+            }
+            PlayerController.ExternalInputLocked = false;
+        }
+
         void EnterInternal(HideSpot spot)
         {
             if (controller == null && player != null) controller = player.GetComponent<CharacterController>();

@@ -208,10 +208,13 @@ namespace LightShadow.Enemy
             }
 
             // Caught: close enough while unlit. The GameManager handles the fade,
-            // the meter penalty and the checkpoint return (Doc 4.3). The forced
-            // cool-down exempt: the Shadow is leaving the wing on purpose.
+            // the meter penalty and the checkpoint return (Doc 4.3). Exempt:
+            // the forced cool-down (the Shadow is leaving the wing on purpose)
+            // and a hidden Nour - the Shadow cannot grab through the spot wall;
+            // Search still FINDS a witnessed hider through sight (UpdateSearch).
             if (state != State.Repelled && state != State.ForcedCooldown && catchCooldownTimer <= 0f
-                && distance <= CatchDistance && !LitZone.PlayerInLitZone)
+                && distance <= CatchDistance && !LitZone.PlayerInLitZone
+                && !HidingSystem.IsHidden)
             {
                 StartCoroutine(CatchSequence());
                 // The catch close-up (premium pass); no-op if the rigs/CM are absent.

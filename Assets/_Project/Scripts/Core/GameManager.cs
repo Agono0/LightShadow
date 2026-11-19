@@ -274,6 +274,12 @@ namespace LightShadow.Core
 
         void WakeAtCheckpoint()
         {
+            // Recovery: clear any hiding state the catch interrupted. A stale
+            // IsHidden would blind the Shadow (EnemySight) and make the next E
+            // hop teleport Nour back into the spot; idempotent with the
+            // RespawnReset call below.
+            HidingSystem.ResetState();
+
             Transform spawn = CheckpointManager.Instance != null ? CheckpointManager.Instance.SpawnPoint : null;
             if (spawn != null && player != null)
             {
