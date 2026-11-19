@@ -17,6 +17,13 @@ namespace LightShadow.Player
         public FlashlightCrank crank;
         public HidingSystem hiding;
 
+        // Flashlight hold-vs-tap (P3 banish): a press held longer than
+        // GameConfig.flashlightTapSeconds focuses the beam; a shorter tap
+        // toggles it. Tracks which pointer is down so multi-touch cannot mix.
+        int flashPointerId = -1;
+        float flashDownTime;
+        bool flashFocusStarted;
+
         void Awake()
         {
             ResolveReferences();
@@ -25,6 +32,27 @@ namespace LightShadow.Player
         void Start()
         {
             ResolveReferences();
+        }
+
+        void Update()
+        {
+            if (kind != Kind.Flashlight || flashPointerId < 0) return;
+            if (flashFocusStarted) return;
+            if (flashlight == null || !flashlight.IsOn) return;
+            if (Time.unscaledTime - flashDownTime >= TapSeconds)
+            {
+                flashFocusStarted = true;
+                flashlight.SetFocus(true);
+            }
+        }
+
+        float TapSeconds
+        {
+            get
+            {
+                Core.GameConfig config = Core.GameManager.Instance != null ? Core.GameManager.Instance.config : null;
+                return config != null ? config.flashlightTapSeconds : 0.25f;
+            }
         }
 
         void ResolveReferences()
@@ -58,7 +86,11 @@ namespace LightShadow.Player
                     if (player != null) player.ToggleCrouch();
                     break;
                 case Kind.Flashlight:
-                    if (flashlight != null) flashlight.Toggle();
+                    // Hold-to-focus / tap-to-toggle (P3 banish). The tap fires
+                    // on release so the hold can win first.
+                    flashPointerId = eventData.pointerId;
+                    flashDownTime = Time.unscaledTime;
+                    flashFocusStarted = false;
                     break;
                 case Kind.Interact:
                     // While hidden the interact button means "leave the spot"
@@ -86,6 +118,14 @@ namespace LightShadow.Player
             if (kind == Kind.SprintHold && player != null) player.SetSprint(false);
             if (kind == Kind.CrankHold && crank != null) crank.SetHeld(false);
             if (kind == Kind.BreathHold && hiding != null) hiding.SetBreathHold(false);
+
+            if (kind == Kind.Flashlight && flashlight != null && eventData.pointerId == flashPointerId)
+            {
+                if (flashFocusStarted) flashlight.SetFocus(false);
+                else flashlight.Toggle();
+                flashPointerId = -1;
+                flashFocusStarted = false;
+            }
         }
     }
 }

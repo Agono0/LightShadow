@@ -43,15 +43,37 @@ namespace LightShadow.Core
         public float chaseExitDistance = 18f;
         public float sightLostGrace = 5f;
         public float catchDistance = 1.2f;
+        public float stalkLightThreshold = 0.3f;
+
+        // Deprecated (P3 banish rebalance): the old instant-repel tuning kept so
+        // existing serialized GameConfig assets still load. The live banish
+        // fields are in the Banish header below; nothing reads these any more.
         public float repelRecoil = 8f;
         public float repelCooldown = 6f;
         public float repelMeterThreshold = 30f;
-        public float stalkLightThreshold = 0.3f;
 
         // Deprecated (P3 noise rebalance): the old sprint-hearing radius kept so
         // existing serialized GameConfig assets still load. The live hearing
         // radii are the noise fields below; nothing reads this any more.
         public float sprintNoiseRange = 8f;
+
+        [Header("Banish (Plan 4.6, P3)")]
+        // Hold-focused banish: keep the focused beam on the Shadow for
+        // banishHoldSeconds with meter >= banishMeterThreshold and it recoils
+        // and retreats for banishRetreatSeconds, costing banishMeterCost meter.
+        // The focused beam also drains the battery focusBatteryDrainMultiplier
+        // times faster (plan 4.6: wide 1/s, focused 4/s).
+        public float banishHoldSeconds = 2f;
+        public float banishMeterThreshold = 25f;
+        public float banishRetreatSeconds = 20f;
+        public float banishRecoilDistance = 8f;
+        public float banishBeamAngle = 30f;
+        public float banishReleaseDecay = 2f;
+        public float banishMeterCost = 25f;
+        public float focusBatteryDrainMultiplier = 4f;
+        // Hold-vs-tap split for the on-screen LIGHT button: holds longer than
+        // this focus the beam, shorter taps toggle it.
+        public float flashlightTapSeconds = 0.25f;
 
         [Header("Noise And Hearing (Plan 4.12, P3)")]
         // Hearing radii in metres: how far each player noise carries to the

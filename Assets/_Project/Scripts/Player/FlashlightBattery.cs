@@ -1,6 +1,7 @@
 using LightShadow.Core;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 namespace LightShadow.Player
 {
@@ -8,6 +9,11 @@ namespace LightShadow.Player
     // Bright Idea Meter amplifies it. F toggles the light; battery pickups call AddBattery().
     // This script also publishes PlayerLightLevel, the single number the Shadow reads
     // to decide how visible Nour is (0 = pitch dark, 1 = bright beam).
+    //
+    // P3 banish (plan 4.6): the beam has a FOCUSED mode - hold right mouse
+    // (desktop), gamepad Y, or the LIGHT touch button - which drains the
+    // battery focusBatteryDrainMultiplier times faster while held. EnemyBehaviour
+    // reads IsFocused for the hold-2s banish.
     public class FlashlightBattery : MonoBehaviour
     {
         [Header("Wiring")]
@@ -28,9 +34,22 @@ namespace LightShadow.Player
         float flashMultiplier = 1f;
         float lastBatteryNotified = 1f;
 
+        // Focus sources: the touch button holds SetFocus; desktop mouse and
+        // gamepad are polled. The combined state needs the beam switched on.
+        bool touchFocus;
+        bool desktopFocusHeld;
+        bool padFocusHeld;
+
         public bool IsOn => switchedOn && battery > 0f;
+        public bool IsFocused { get; private set; }
         public float Battery01 => battery;
         public float FlashMultiplier => flashMultiplier;
+
+        // Touch layer API: the LIGHT button held = focused beam.
+        public void SetFocus(bool value)
+        {
+            touchFocus = value;
+        }
 
         void Awake()
         {
@@ -63,9 +82,20 @@ namespace LightShadow.Player
             // gamepad the GamepadInput layer calls it. Locked during dialogue.
             if (!PlayerController.ExternalInputLocked && Input.GetKeyDown(KeyCode.F)) Toggle();
 
+            // Focus input: right mouse (desktop), gamepad Y, or the held LIGHT
+            // touch button. Focus only counts while the beam is actually on.
+            desktopFocusHeld = !PlayerController.ExternalInputLocked
+                && !Application.isMobilePlatform && Input.GetMouseButton(1);
+            Gamepad pad = Gamepad.current;
+            padFocusHeld = !PlayerController.ExternalInputLocked
+                && pad != null && pad.buttonNorth.isPressed;
+            IsFocused = IsOn && (touchFocus || desktopFocusHeld || padFocusHeld);
+
             if (IsOn && config != null)
             {
-                battery -= Time.deltaTime / Mathf.Max(1f, config.batterySeconds);
+                // Plan 4.6: the focused beam drains 4x (focusBatteryDrainMultiplier).
+                float drainMultiplier = IsFocused ? Mathf.Max(1f, config.focusBatteryDrainMultiplier) : 1f;
+                battery -= Time.deltaTime * drainMultiplier / Mathf.Max(1f, config.batterySeconds);
                 if (battery <= 0f)
                 {
                     battery = 0f;

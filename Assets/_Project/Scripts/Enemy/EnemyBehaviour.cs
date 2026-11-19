@@ -16,7 +16,7 @@ namespace LightShadow.Enemy
     //           +-------------------------------------+
     //  Patrol/Stalk --fresh noise in range-->  Investigate  --found nothing-->  Search
     //        Chase lost ---------------------->  Search (checks 1-2 hide spots)
-    //        Any state --beam at close range with meter>30-->  Repelled --> Stalk
+    //        Any state --focused beam held 2 s, meter>=25-->  Repelled (20 s) --> Stalk
     //        Gauge 100 (MenaceDirector) -->  ForcedCooldown  --timer done-->  Patrol
     //
     [RequireComponent(typeof(NavMeshAgent))]
@@ -67,6 +67,11 @@ namespace LightShadow.Enemy
         float searchTimer;
         float searchDwell;
 
+        // Banish (P3, plan 4.6): the focused beam must STAY on the Shadow for
+        // banishHoldSeconds before it recoils into the 20 s retreat. No instant
+        // repel any more - the timer decays fast when the beam wanders off.
+        float banishHoldTimer;
+
         public State CurrentState => state;
         public bool IsAggressive => aggressive;
 
@@ -80,9 +85,12 @@ namespace LightShadow.Enemy
         float ChaseExitDistance => config != null ? config.chaseExitDistance : 18f;
         float SightLostGrace => config != null ? config.sightLostGrace : 5f;
         float CatchDistance => config != null ? config.catchDistance : 1.2f;
-        float RepelRecoil => config != null ? config.repelRecoil : 8f;
-        float RepelCooldown => config != null ? config.repelCooldown : 6f;
-        float RepelThreshold => config != null ? config.repelMeterThreshold : 30f;
+        float BanishHoldSeconds => config != null ? config.banishHoldSeconds : 2f;
+        float BanishThreshold => config != null ? config.banishMeterThreshold : 25f;
+        float BanishRetreatSeconds => config != null ? config.banishRetreatSeconds : 20f;
+        float BanishRecoilDistance => config != null ? config.banishRecoilDistance : 8f;
+        float BanishBeamAngle => config != null ? config.banishBeamAngle : 30f;
+        float BanishReleaseDecay => config != null ? config.banishReleaseDecay : 2f;
         float StalkLightThreshold => config != null ? config.stalkLightThreshold : 0.3f;
         float InvestigateNoiseMaxAge => config != null ? config.investigateNoiseMaxAge : 3f;
         float InvestigateSearchSeconds => config != null ? config.investigateSearchSeconds : 8f;
@@ -211,13 +219,25 @@ namespace LightShadow.Enemy
                 return;
             }
 
-            // Repel check runs from every state: a strong beam to the face pushes
-            // the Shadow back without ever hurting the player (Doc 4.3).
-            if (state != State.Repelled && state != State.ForcedCooldown
-                && repelCooldownTimer <= 0f && CanRepel(sighted))
+            // Banish check runs from every state (P3, plan 4.6): holding the
+            // focused beam on the Shadow builds toward the recoil+retreat. The
+            // timer decays fast when the beam wanders off; no instant repel.
+            if (state != State.Repelled && state != State.ForcedCooldown)
             {
-                EnterRepelled(playerPosition);
-                return;
+                bool focusing = FocusedBeamOnShadow(sighted) && meter != null && meter.Meter >= BanishThreshold;
+                if (focusing)
+                {
+                    banishHoldTimer += dt;
+                    if (banishHoldTimer >= BanishHoldSeconds)
+                    {
+                        EnterBanished(playerPosition);
+                        return;
+                    }
+                }
+                else
+                {
+                    banishHoldTimer = Mathf.Max(0f, banishHoldTimer - dt * BanishReleaseDecay);
+                }
             }
 
             switch (state)
@@ -552,16 +572,21 @@ namespace LightShadow.Enemy
             }
         }
 
-        void EnterRepelled(Vector3 playerPosition)
+        // P3 banish (plan 4.6): the held focused beam wins - recoil warp onto
+        // the NavMesh, 20 s retreat, and it costs meter. Never hurts anyone.
+        void EnterBanished(Vector3 playerPosition)
         {
             EnterState(State.Repelled);
-            repelCooldownTimer = RepelCooldown;
+            repelCooldownTimer = BanishRetreatSeconds;
+            banishHoldTimer = 0f;
+
+            if (meter != null && config != null) meter.RemoveMeter(config.banishMeterCost);
 
             // Recoil away and land on the NavMesh so it never clips into geometry.
             Vector3 away = (transform.position - playerPosition);
             away.y = 0f;
             away = away.sqrMagnitude > 0.01f ? away.normalized : -transform.forward;
-            Vector3 recoilTarget = transform.position + away * RepelRecoil;
+            Vector3 recoilTarget = transform.position + away * BanishRecoilDistance;
 
             if (NavMesh.SamplePosition(recoilTarget, out NavMeshHit hit, 2f, NavMesh.AllAreas))
             {
@@ -580,6 +605,7 @@ namespace LightShadow.Enemy
             sightLostTimer = 0f;
             investigateTimer = 0f;
             forcedCooldownTimer = 0f;
+            banishHoldTimer = 0f;
             searchStageIndex = 0;
             searchPath.Clear();
             EnterState(State.Patrol);
@@ -657,15 +683,16 @@ namespace LightShadow.Enemy
             if (!on) breathingSource.Stop();
         }
 
-        bool CanRepel(bool sighted)
+        // Is the FOCUSED beam actually pointing at the Shadow right now?
+        // Replaces the old CanRepel instant check (P3 banish rebalance).
+        bool FocusedBeamOnShadow(bool sighted)
         {
             if (!sighted) return false;
-            if (flashlight == null || !flashlight.IsOn) return false;
-            if (meter == null || meter.Meter <= RepelThreshold) return false;
+            if (flashlight == null || !flashlight.IsFocused) return false;
             if (playerCamera == null) return false;
 
             Vector3 toEnemy = (transform.position + Vector3.up * 1f) - playerCamera.transform.position;
-            return Vector3.Angle(playerCamera.transform.forward, toEnemy) < 30f;
+            return Vector3.Angle(playerCamera.transform.forward, toEnemy) < BanishBeamAngle;
         }
 
         void OnDrawGizmosSelected()
