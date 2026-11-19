@@ -229,7 +229,6 @@ namespace LightShadow.UI
                 string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 string path = Path.Combine(directory, "recap_" + timestamp + ".png");
                 File.WriteAllBytes(path, texture.EncodeToPNG());
-                Debug.Log("[LightShadow] Study recap exported: " + path);
             }
             finally
             {
