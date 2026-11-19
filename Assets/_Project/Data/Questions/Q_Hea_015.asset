@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_Hea_015
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: Which organs clean the blood and make urine?
+  options:
+  - The kidneys
+  - The lungs
+  - The heart
+  - The stomach
+  correctIndex: 0
+  category: 5
+  difficulty: 1
+  explanation: The two kidneys filter the blood and send the waste out as urine.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: أي أعضاء تنقي الدم وتُخرج البول؟
+  optionsAr:
+  - الكليتان
+  - الرئتان
+  - القلب
+  - المعدة
+  explanationAr: الكليتان تنقّيان الدم وترسلان الفضلات خارج الجسم في البول.

@@ -95,6 +95,18 @@ before merge (AGENTS.md, Git workflow).
       Filled in place by Art/pipeline/fill_arabic_questions.py (append-only
       YAML edit, GUIDs/meta untouched); ValidateBatch now asserts the fields
       (SceneBuilderValidation "Question Arabic fields: 60/60").
+- [x] Question bank expansion 60 -> 120: 60 new school-level questions
+      (Q_<Cat>_011+), 12 per wing with 4 easy / 5 standard / 3 hard each
+      (Library, Science wing, Courtyard, Assembly hall, Staff room - wing
+      mapping per MASTER_PLAN section 4.5). *(P4)* - AI-authored EN+AR pairs
+      via Art/pipeline/add_120_questions.py (append-only: the legacy 60 stay
+      byte-identical, no .meta authored - Unity generates them on import, and
+      QuestionDatabase relinks automatically through GenerateQuestionsSilent
+      on the next editor run). Every factSource stays NEEDS-FACT-CHECK (rule
+      5); the source=curriculum designation lives in the authoring table
+      (QuestionData has no serialized `source` field). Verifier extended to
+      120: Art/pipeline/verify_arabic_questions.py -> RESULT: PASS. Human
+      fact-check still required before release.
 - [ ] Credits screen wired to `Docs/CREDITS.md` content (in-game screen, EN/AR
       chrome). *(P4)*
 
