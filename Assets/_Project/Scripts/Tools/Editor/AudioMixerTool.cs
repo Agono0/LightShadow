@@ -1,3 +1,40 @@
+        // Unity 6000.4 flattened ExposedAudioParameter to { GUID guid; string name; }
+        // (no path object) — match entries by boxed-GUID equality and set the name.
+        static void RenameExposedParameters(object controller, Dictionary<object, string> desiredByGuid, object cutoffGuid)
+        {
+            Array exposed = (Array)GetMember(controller, "exposedParameters");
+            int renamed = 0;
+
+            for (int i = 0; i < exposed.Length; i++)
+            {
+                object entry = exposed.GetValue(i);
+                object entryGuid = GetMember(entry, "guid");
+
+                string desired = null;
+                if (desiredByGuid.TryGetValue(entryGuid, out string groupParam))
+                {
+                    desired = groupParam;
+                }
+                else if (cutoffGuid != null && entryGuid.Equals(cutoffGuid))
+                {
+                    desired = LowpassParam;
+                }
+
+                if (desired == null) continue;
+                SetMember(entry, "name", desired);
+                exposed.SetValue(entry, i);
+                renamed++;
+            }
+
+            SetMember(controller, "exposedParameters", exposed);
+
+            if (renamed != desiredByGuid.Count + 1) // + the low-pass
+            {
+                throw new InvalidOperationException(
+                    "Renamed " + renamed + " exposed parameters, expected " + (desiredByGuid.Count + 1));
+            }
+        }
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -279,7 +316,7 @@ namespace LightShadow.Tools
                 Call(controller, "AddExposedParameter", path);
             }
 
-            RenameExposedParameters(controller, desiredByGroup);
+            RenameExposedParameters(controller, desiredByGroup, cutoffGuid);
 
             EditorUtility.SetDirty(mixer);
             AssetDatabase.SaveAssets();
