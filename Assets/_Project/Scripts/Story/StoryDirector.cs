@@ -227,6 +227,7 @@ namespace LightShadow.Story
             if (chainScheduled) return;                        // a chain continuation is already queued
             if (current != null) return;                       // a conversation is live
             if (QuizOpen()) return;                            // quiz keeps priority (brief #3)
+            if (InspectOpen()) return;                         // P3: so does the inspect overlay
             if (Time.unscaledTime - lastConversationEndedAt < (config != null ? config.triggerDelaySeconds : 1.2f)) return;
 
             // Drain until a playable node is found (stale ordinals just drop).
@@ -247,6 +248,10 @@ namespace LightShadow.Story
             GameManager game = GameManager.Instance;
             return game != null && game.quizUI != null && game.quizUI.IsOpen;
         }
+
+        // The fragment inspect overlay is not the quiz, but a dialogue must not
+        // interleave with it either (the fragment flow resumes on close).
+        bool InspectOpen() => UI.InspectViewController.IsOpen;
 
         StoryNode FindTriggeredNode(StoryTrigger trigger, int ordinal)
         {

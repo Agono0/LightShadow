@@ -48,7 +48,12 @@ namespace LightShadow.Gameplay
             // The narrator reads the memory aloud when a voice is available.
             StoryTeller.Speak(Localization.Tr(fragmentText));
 
+            // P3 inspect view: a 360 close-up of the fragment while the memory
+            // plays; the quiz waits until the player closes it.
+            UI.InspectViewController.ShowFrom(this);
+
             yield return new WaitForSeconds(memorySeconds);
+            while (UI.InspectViewController.IsOpen) yield return null;
 
             // The themed question. Answering or not, the fragment is recovered.
             if (gm != null && gm.quizUI != null && gm.database != null)

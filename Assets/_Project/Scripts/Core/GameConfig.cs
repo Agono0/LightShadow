@@ -90,6 +90,17 @@ namespace LightShadow.Core
         public float calmFxTremorMax = 0.004f;
         public float calmFxSmoothSpeed = 2f;
 
+        [Header("Inspect View (P3)")]
+        // 360-degree close-up for story items: the item spawns this far in
+        // front of the camera, scaled, idling at inspectSpinSpeed; drag/swipe
+        // orbits it at inspectDragDegreesPerPixel; the overlay auto-closes
+        // after inspectAutoSeconds if the player never does.
+        public float inspectItemDistance = 0.55f;
+        public float inspectItemScale = 1.2f;
+        public float inspectSpinSpeed = 20f;
+        public float inspectDragDegreesPerPixel = 0.4f;
+        public float inspectAutoSeconds = 12f;
+
         [Header("Noise And Hearing (Plan 4.12, P3)")]
         // Hearing radii in metres: how far each player noise carries to the
         // Shadow. Sprint is 10 m per plan 4.12 (the old sprintNoiseRange was 8).
