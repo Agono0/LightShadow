@@ -327,6 +327,7 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: `ValidateBatch` RESULT: PASS (0 compile errors) with regenerated meshes
   wired; release job fix verified by log diagnosis; CI build workflow re-runs on this PR.
 
+<<<<<<< HEAD
 ### 2026-11-19 — Premium pass P1: fonts + real AudioMixer + music — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) implementing `Docs/AGENT_REPORT_AUDIO_MIXER.md`
   nearly verbatim on branch `feat/audio-mixer-snapshots` (stacked PR; Lead runs the Unity
@@ -357,3 +358,29 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: pending Lead batch run — expected `AudioMixerTool.EnsureBatch` → `RESULT: PASS`
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
+=======
+### 2026-11-19 — P2 Blender hero-prop pipeline (Art/pipeline + Assets/_Project/Models/Hero) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) driving Blender 5.3 headless (`blender -b -P`).
+- What AI provided: the full pipeline — `Art/pipeline/` (`ls_common.py` registry/helpers,
+  `ls_props.py` procedural builders, `ls_export.py` Unity-ready FBX exporter, `ls_preview.py`
+  EEVEE turntable renderer, `run_all.cmd` driver); 14 procedural props per the mission list
+  (8 story items incl. the crank flashlight with pivot-ready Crank node, SM_Wraith_HD
+  smoke silhouette, door with iron grille, chalkboard with tray, gate crank, iron gate);
+  112 turntable preview frames; the `HeroModels` import-settings table in `ArtImporter.cs`
+  with a UV1 presence check; tri-count manifest at `Art/pipeline/manifest.json`.
+- What I changed myself: kept every prop under its tri budget (small ≤ 3k, hero ≤ 30k) by
+  construction instead of decimating; chose `bake_space_transform=True` for single-mesh props
+  (master plan §7.4 "Apply Transform on") but `False` for the flashlight FBX so the Crank
+  child keeps its axle pivot for the P3 crank minigame; named Blender materials after the
+  existing `Mat_Art_*` Unity assets for name-for-name remap; caught and fixed three
+  Blender 5.3 API breaks (`cap_ends`→`end_fill_type`, removed `use_anim`, spot light `size`)
+  and a cube-scale halving bug (5.3 `size=1` cube spans ±0.5) by round-trip verifying the
+  exported FBX in Blender; did NOT touch the SceneBuilderArt swap tables (lead wires swaps).
+- Teach-back check: pending — walk the lead through `run_all.cmd` (build → export → render),
+  the manifest tri counts, and why the flashlight FBX must keep Apply Transform off.
+- Test result: `ls_export` RESULT: PASS — 14/14 FBX exported, all within budget (largest:
+  SM_Wraith_HD 13,728 tris of 30k; smallest: SM_Story_Prism 52 of 3k); FBX re-import
+  verifies UV0+UV1 on every mesh, correct material names, upright axes, and the Crank pivot
+  at (-0.03, 0, 0.135) with identity rotation; 8 turntable PNGs per prop in Art/Previews/;
+  Unity runs intentionally left to the lead (no Unity.exe invoked).
+>>>>>>> f67df41 (docs(ai-log): P2 Blender hero-prop pipeline entry)
