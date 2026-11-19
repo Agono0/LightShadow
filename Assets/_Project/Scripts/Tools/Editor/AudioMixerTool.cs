@@ -329,8 +329,10 @@ namespace LightShadow.Tools
         // (spec §2.2 — enumerate MixerEffectDefinitions at build time).
         static string FindCutoffParameterName()
         {
-            object[] definitions = (object[])CallStatic(MixerEffectDefinitionsType, "GetEffectParameters", "Lowpass");
-            foreach (object definition in definitions)
+            // The internal API returns a typed collection (not object[]) — iterate
+            // it via IEnumerable to stay cast-safe across Unity versions.
+            object definitions = CallStatic(MixerEffectDefinitionsType, "GetEffectParameters", "Lowpass");
+            foreach (object definition in definitions is System.Collections.IEnumerable sequence ? sequence : Array.Empty<object>())
             {
                 if (GetMember(definition, "name") is string name
                     && name.IndexOf("cutoff", StringComparison.OrdinalIgnoreCase) >= 0)
