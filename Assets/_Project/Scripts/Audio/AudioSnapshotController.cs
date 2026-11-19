@@ -124,6 +124,7 @@ namespace LightShadow.Audio
         {
             previousState = state;
             state = (EnemyBehaviour.State)stateValue;
+            if (overlayExpiresAt > 0f) return; // MemoryFlash owns the mix until it expires
             Apply(ResolvePersistent(), SecondsFor(state, previousState));
         }
 
@@ -132,7 +133,8 @@ namespace LightShadow.Audio
         void OnDawnStarted()
         {
             dawnActive = true;
-            playerInLitZone = LitZone.PlayerInLitZone; // re-resolve priority with Dawn live
+            if (overlayExpiresAt > 0f) return; // the overlay expiry re-resolves with Dawn live
+            playerInLitZone = LitZone.PlayerInLitZone;
             Apply(ResolvePersistent(), TransitionDawn);
         }
 
@@ -145,6 +147,19 @@ namespace LightShadow.Audio
 
         void Update()
         {
+            // MemoryFlash overlay owns the mix until it expires; nothing below
+            // may stomp it mid-flash (state changes / zone entries are recorded
+            // and resolved on expiry).
+            if (overlayExpiresAt > 0f)
+            {
+                if (Time.unscaledTime >= overlayExpiresAt)
+                {
+                    overlayExpiresAt = -1f;
+                    Apply(ResolvePersistent(), TransitionMemoryFlashRelease);
+                }
+                return;
+            }
+
             // Hide muffle: one bool poll per frame (LitZone has no event; a poll
             // is free). True = Snapshot_Hide, false = back to the FSM snapshot.
             bool inLitZone = LitZone.PlayerInLitZone;
@@ -153,13 +168,6 @@ namespace LightShadow.Audio
                 playerInLitZone = inLitZone;
                 Apply(ResolvePersistent(),
                     inLitZone ? TransitionHide : TransitionHideRelease);
-            }
-
-            // MemoryFlash expiry: release back with the slow release time.
-            if (overlayExpiresAt > 0f && Time.unscaledTime >= overlayExpiresAt)
-            {
-                overlayExpiresAt = -1f;
-                Apply(ResolvePersistent(), TransitionMemoryFlashRelease);
             }
         }
 

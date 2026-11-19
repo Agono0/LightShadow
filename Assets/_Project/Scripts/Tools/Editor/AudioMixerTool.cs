@@ -176,8 +176,15 @@ namespace LightShadow.Tools
             // ---- Master low-pass (snapshot-owned cutoff, spec §2.1/§3) ----
             object lowpass = Activator.CreateInstance(EffectControllerType, "Lowpass");
             AssetDatabase.AddObjectToAsset((UnityEngine.Object)lowpass, mixer);
-            int insertAt = 0;
-            if (GetMember(masterGroup, "effects") is Array effects) insertAt = effects.Length;
+            int insertAt = 0; // head of the Master chain; the cutoff is unaffected
+            try
+            {
+                if (GetMember(masterGroup, "effects") is Array effects) insertAt = effects.Length;
+            }
+            catch (MissingMemberException)
+            {
+                // effects member not found: insert at the head (before Attenuation).
+            }
             Call(masterGroup, "InsertEffect", lowpass, insertAt);
 
             // ---- snapshots: rename the default "Snapshot", add the other five.
