@@ -268,10 +268,12 @@ namespace LightShadow.Tools
 
             // Prefab instances own their own look: interactables keep their
             // hand-tuned palette, and Player/TheShadow are restyled at the
-            // prefab level by ArtImporter. Only the ExitGate gets a pass here.
+            // prefab level by ArtImporter. The ExitGate gains its crank and
+            // KnowledgeFragment instances gain their story-item meshes here.
             if (PrefabUtility.IsPartOfPrefabInstance(go))
             {
                 if (go.GetComponent<ExitGate>() != null) StyleExitGate(go);
+                else if (go.GetComponent<KnowledgeFragment>() != null) StyleFragment(go);
                 return; // never descend into prefab instances
             }
 
@@ -356,7 +358,12 @@ namespace LightShadow.Tools
             }
             if (name == "MemoryBox")
             {
-                SwapBoxWithModel(go, ModelCardboardBox, BoxTargetHeight);
+                SwapMemoryBox(go);
+                return;
+            }
+            if (name.StartsWith("Door_"))
+            {
+                SwapDoorWithHeroModel(transform);
                 return;
             }
             if (name.StartsWith("Planter_"))
@@ -417,12 +424,26 @@ namespace LightShadow.Tools
                     SwapMaterialTiled(transform.gameObject, "Mat_Art_Fabric", FabricTileMeters);
                     return true;
                 case "Chalkboard":
-                    SwapMaterialPlain(transform.gameObject, "Mat_Art_Chalkboard");
+                    SwapChalkboardHost(transform);
                     return true;
                 case "ChalkFrameTop":
                 case "ChalkFrameBottom":
-                    SwapMaterialTiled(transform.gameObject, "Mat_Art_DoorWood", DoorWoodTileMeters);
+                {
+                    // The hero chalkboard FBX carries its own frame, so the
+                    // greybox frame strips go dark only when the model landed.
+                    Transform board = transform.parent != null
+                        ? transform.parent.Find("Chalkboard")
+                        : null;
+                    if (board != null && HasArtModel(board))
+                    {
+                        HideRenderer(transform.gameObject);
+                    }
+                    else
+                    {
+                        SwapMaterialTiled(transform.gameObject, "Mat_Art_DoorWood", DoorWoodTileMeters);
+                    }
                     return true;
+                }
                 case "PillarL":
                 case "PillarR":
                     SwapMaterialTiled(transform.gameObject, "Mat_Art_Stone", StoneTileMeters);
@@ -445,6 +466,123 @@ namespace LightShadow.Tools
                 SwapMaterialTiled(renderer.gameObject, "Mat_Art_GateMetal", MetalTileMeters);
             }
             Count("exit gate");
+            SwapGateCrank(gate);
+        }
+
+        // -------------------------------------------------------- hero swaps
+        // Each one is optional: when the FBX has not shipped the greybox
+        // primitive (or its Kenney stand-in) stays, so the pass degrades,
+        // never breaks.
+
+        // The crank the story keeps mentioning, mounted on the console's
+        // player-facing face. Native size (the FBX is authored at crank
+        // scale); yaw 90 turns the axle towards the player, and the anchor
+        // puts the wheel hub on the console collider's centre height (2.75,
+        // 1.2) - the interact point - with the wall plate flush against the
+        // console front. Fallback: nothing (the console stays bare).
+        static void SwapGateCrank(GameObject gate)
+        {
+            if (gate.transform.Find("ArtModel_" + HeroModelGateCrank) != null) return;
+            if (AddHeroModelChild(gate, HeroModelGateCrank, 0f,
+                    Quaternion.Euler(0f, 90f, 0f), new Vector3(2.75f, 1.02f, 0.405f)) == null) return;
+            Count("hero gate crank");
+        }
+
+        // The mother's memory box: the hero keepsake box replaces the Kenney
+        // cardboard stand-in at its authored real-world size, with the story
+        // card resting on the lid (the P3 inspect view reuses both hosts).
+        // Fallback: the cardboard box swap (existing behaviour).
+        static void SwapMemoryBox(GameObject box)
+        {
+            if (HasArtModel(box.transform)) return;
+            float bottom = -box.transform.lossyScale.y * 0.5f;
+            if (AddHeroModelChild(box, HeroModelMemoryBox, 0f,
+                    Quaternion.Euler(0f, 12f, 0f), new Vector3(0f, bottom, 0f)) == null)
+            {
+                SwapBoxWithModel(box, ModelCardboardBox, BoxTargetHeight);
+                return;
+            }
+            HideRenderer(box);
+            Count("hero memory box");
+
+            GameObject boxAsset = LoadModelAsset(HeroModelMemoryBox);
+            float boxHeight = boxAsset != null ? ArtImporter.ComputePrefabBounds(boxAsset).size.y : 0.1f;
+            if (AddHeroModelChild(box, HeroModelCard, 0f,
+                    Quaternion.Euler(0f, 15f, 0f),
+                    new Vector3(0.02f, bottom + boxHeight + 0.006f, 0.02f),
+                    "ArtModel_" + HeroModelCard) != null)
+            {
+                Count("hero story card");
+            }
+        }
+
+        // Locked wing doors: the hero grille door fills its doorway box
+        // (decorative, no collider - the walk gap and NavMesh stay as built).
+        // Fallback: door-wood material on the box (existing pattern).
+        static void SwapDoorWithHeroModel(Transform door)
+        {
+            if (HasArtModel(door)) return;
+            // Yaw 90 puts the model's width along the wall run; the origin is
+            // the door's bottom edge, hence the half-height drop.
+            if (AddHeroModelChild(door.gameObject, HeroModelDoorGrille, DoorTargetHeight,
+                    Quaternion.Euler(0f, 90f, 0f),
+                    new Vector3(0f, -door.transform.lossyScale.y * 0.5f, 0f)) == null)
+            {
+                SwapMaterialTiled(door.gameObject, "Mat_Art_DoorWood", DoorWoodTileMeters);
+                return;
+            }
+            HideRenderer(door.gameObject);
+            Count("hero door grille");
+        }
+
+        // Classroom chalkboard: the hero board (frame, tray, chalk sticks and
+        // eraser included) replaces the greybox slab. Fallback: the plain
+        // chalk material (existing behaviour).
+        static void SwapChalkboardHost(Transform host)
+        {
+            if (HasArtModel(host)) return;
+            // Yaw 180: the FBX chalk face points +Z and this wall faces -Z
+            // into the room; the origin is the board's bottom edge.
+            if (AddHeroModelChild(host.gameObject, HeroModelChalkboard, ChalkboardHostTargetHeight,
+                    Quaternion.Euler(0f, 180f, 0f),
+                    new Vector3(0f, -host.transform.lossyScale.y * 0.5f, 0f)) == null)
+            {
+                SwapMaterialPlain(host.gameObject, "Mat_Art_Chalkboard");
+                return;
+            }
+            HideRenderer(host.gameObject);
+            Count("hero chalkboard");
+        }
+
+        // Story-item hosts: each fragment instance gains its real hero mesh
+        // centred on the paper placeholder's spot; the P3 inspect view will
+        // reuse the same hosts. Fallback: the paper primitive stays.
+        static readonly Dictionary<string, string> FragmentHeroModels = new Dictionary<string, string>
+        {
+            { "Fragment_Bookmark", HeroModelBookmark },
+            { "Fragment_ExamPaper", HeroModelExamPaper },
+            { "Fragment_Optics", HeroModelPrism },
+            { "Fragment_Jasmine", HeroModelPhotograph },
+            { "Fragment_Mug", HeroModelMug },
+            { "Fragment_Programme", HeroModelProgramme },
+        };
+
+        static void StyleFragment(GameObject fragment)
+        {
+            if (!FragmentHeroModels.TryGetValue(fragment.name, out string modelName)) return;
+            Transform visual = fragment.transform.Find("Visual");
+            if (visual == null || visual.Find("ArtModel_" + modelName) != null) return;
+
+            GameObject modelAsset = LoadModelAsset(modelName);
+            if (modelAsset == null) return; // placeholder stays; LoadModelAsset already warned
+
+            Vector3 rawSize = ArtImporter.ComputePrefabBounds(modelAsset).size;
+            if (AddHeroModelChild(visual.gameObject, modelName, 0f, Quaternion.identity,
+                    new Vector3(0f, StoryItemAnchorY - rawSize.y * 0.5f, 0f)) == null) return;
+
+            Transform paper = visual.Find("Paper");
+            if (paper != null) HideRenderer(paper.gameObject);
+            Count("hero story item");
         }
 
         // ------------------------------------------------------- swap helpers
@@ -887,6 +1025,27 @@ namespace LightShadow.Tools
                 }
             }
             Count("forecourt fence");
+
+            // Hero iron gate sections extend the Kenney fence line into the
+            // gate gap, inward from each fence end, leaving the road open
+            // (decor only, no colliders, same FenceTargetHeight normalization
+            // as the Kenney fence so the rails line up).
+            GameObject gateAsset = LoadModelAsset(HeroModelIronGate);
+            if (gateAsset == null) return;
+            Vector3 gateSize = ArtImporter.ComputePrefabBounds(gateAsset).size;
+            float gateWidth = gateSize.x * (FenceTargetHeight / Mathf.Max(0.05f, gateSize.y));
+            for (int side = 0; side < 2; side++)
+            {
+                float direction = side == 0 ? -1f : 1f;
+                for (int i = 0; i < IronGateSegmentsPerSide; i++)
+                {
+                    float x = direction * (ForecourtFenceGapHalfWidth - gateWidth * (i + 0.5f));
+                    if (AddHeroModelChild(line, HeroModelIronGate, FenceTargetHeight,
+                            Quaternion.identity, new Vector3(x, 0f, ForecourtFenceZ),
+                            "ArtModel_" + HeroModelIronGate + "_" + side + "_" + i) == null) return;
+                }
+            }
+            Count("forecourt iron gate");
         }
 
         // ------------------------------------------------------------ misc
