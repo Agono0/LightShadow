@@ -19,8 +19,9 @@ namespace LightShadow.Player
 
         // Flashlight hold-vs-tap (P3 banish): a press held longer than
         // GameConfig.flashlightTapSeconds focuses the beam; a shorter tap
-        // toggles it. Tracks which pointer is down so multi-touch cannot mix.
-        int flashPointerId = -1;
+        // toggles it. UGUI captures the pointer that pressed, so only one
+        // pointer ever drives this at a time.
+        bool flashDown;
         float flashDownTime;
         bool flashFocusStarted;
 
@@ -36,7 +37,7 @@ namespace LightShadow.Player
 
         void Update()
         {
-            if (kind != Kind.Flashlight || flashPointerId < 0) return;
+            if (kind != Kind.Flashlight || !flashDown) return;
             if (flashFocusStarted) return;
             if (flashlight == null || !flashlight.IsOn) return;
             if (Time.unscaledTime - flashDownTime >= TapSeconds)
@@ -88,7 +89,7 @@ namespace LightShadow.Player
                 case Kind.Flashlight:
                     // Hold-to-focus / tap-to-toggle (P3 banish). The tap fires
                     // on release so the hold can win first.
-                    flashPointerId = eventData.pointerId;
+                    flashDown = true;
                     flashDownTime = Time.unscaledTime;
                     flashFocusStarted = false;
                     break;
@@ -119,11 +120,11 @@ namespace LightShadow.Player
             if (kind == Kind.CrankHold && crank != null) crank.SetHeld(false);
             if (kind == Kind.BreathHold && hiding != null) hiding.SetBreathHold(false);
 
-            if (kind == Kind.Flashlight && flashlight != null && eventData.pointerId == flashPointerId)
+            if (kind == Kind.Flashlight && flashlight != null && flashDown)
             {
                 if (flashFocusStarted) flashlight.SetFocus(false);
                 else flashlight.Toggle();
-                flashPointerId = -1;
+                flashDown = false;
                 flashFocusStarted = false;
             }
         }

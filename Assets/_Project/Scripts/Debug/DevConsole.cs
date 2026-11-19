@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using LightShadow.Core;
 using LightShadow.Enemy;
 using LightShadow.Player;
+using LightShadow.UI;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;

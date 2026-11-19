@@ -28,7 +28,7 @@ namespace LightShadow.Enemy
 
         // True while the post-chase grace window is running: the FSM may not
         // enter Chase. Stalking stays allowed - the Shadow is calm, not blind.
-        public static bool ChaseBlocked => instance != null && instance.chaseGraceTimer > 0f;
+        public static bool ChaseBlocked => Instance != null && Instance.chaseGraceTimer > 0f;
 
         float chaseGraceTimer;
         EnemyBehaviour.State previous = EnemyBehaviour.State.Patrol;

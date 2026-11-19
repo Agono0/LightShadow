@@ -44,26 +44,34 @@ namespace LightShadow.Player
 
         void Update()
         {
-            // The input lock (dialogue/quiz) freezes movement, so the feet stop
-            // with it; the hidden pose does not step at all either.
-            if (player == null || PlayerController.ExternalInputLocked) return;
+            // The input lock (dialogue/quiz/hiding) freezes movement, so the
+            // feet stop with it. lastPosition keeps tracking while frozen so a
+            // teleport during the lock (respawn, hide hop) never reads as a
+            // giant step when the lock releases.
+            if (player == null || PlayerController.ExternalInputLocked)
+            {
+                lastPosition = transform.position;
+                stepDistance = Stride * 0.6f;
+                return;
+            }
             if (!player.HasMoveInput)
             {
                 // Prime the clock so the first step after moving again lands
                 // promptly instead of after a full silent stride.
                 stepDistance = Stride * 0.6f;
+                lastPosition = transform.position;
                 return;
             }
 
             Vector3 delta = transform.position - lastPosition;
             delta.y = 0f;
             stepDistance += delta.magnitude;
+            lastPosition = transform.position;
             if (stepDistance >= Stride)
             {
                 stepDistance = 0f;
                 Emit(StepRadius());
             }
-            lastPosition = transform.position;
         }
 
         float Stride => config != null ? Mathf.Max(0.2f, config.noiseStride) : 1.7f;
