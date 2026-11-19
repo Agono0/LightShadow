@@ -1394,7 +1394,8 @@ namespace LightShadow.Tools
                         }
 
                         PrefabUtility.SaveAsPrefabAsset(contents, PlayerPrefabPath);
-                        report += "Player.prefab: procedural hand installed under camera Hand";
+                        report += "Player.prefab: procedural hand installed under camera Hand"
+                            + (heroFlashlight != null ? " + SM_Player_Flashlight" : " (torch primitive fallback)");
                     }
                 }
                 finally
