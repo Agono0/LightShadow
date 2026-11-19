@@ -7,18 +7,19 @@ using UnityEngine.AI;
 namespace LightShadow.Enemy
 {
     // Doc 4.3: The Shadow hunts in darkness, slows near light and cannot enter
-    // lit rooms. This is a small hand-written finite state machine with exactly
-    // four states. Every state has its own -> enter / update / exit section below.
+    // lit rooms. This is a small hand-written finite state machine. Every state
+    // has its own -> enter / update / exit section below.
     //
     //        Patrol  --player near in the dark-->  Stalk  --line of sight-->  Chase
     //           ^                                     |   <-- light returns -->
     //           +-------------------------------------+
+    //  Patrol/Stalk --fresh noise in range-->  Investigate  --search done-->  Patrol
     //        Any state --beam at close range with meter>30-->  Repelled --> Stalk
     //
     [RequireComponent(typeof(NavMeshAgent))]
     public class EnemyBehaviour : MonoBehaviour
     {
-        public enum State { Patrol, Stalk, Chase, Repelled }
+        public enum State { Patrol, Stalk, Chase, Repelled, Investigate }
 
         [Header("Wiring")]
         public GameConfig config;
@@ -40,10 +41,16 @@ namespace LightShadow.Enemy
         int waypointIndex;
         float sightLostTimer;
         float repelCooldownTimer;
-        float hearTimer;
         float catchCooldownTimer;
         bool aggressive;
         bool catching;
+
+        // Hearing (P3 noise bus): the last noise the player made and how loud
+        // it was. OnNoiseEmitted fills these; the FSM reacts in Update.
+        Vector3 lastNoisePosition;
+        float lastNoiseTime = -99f;
+        float lastNoiseRadius;
+        float investigateTimer;
 
         public State CurrentState => state;
         public bool IsAggressive => aggressive;
@@ -62,11 +69,37 @@ namespace LightShadow.Enemy
         float RepelCooldown => config != null ? config.repelCooldown : 6f;
         float RepelThreshold => config != null ? config.repelMeterThreshold : 30f;
         float StalkLightThreshold => config != null ? config.stalkLightThreshold : 0.3f;
-        float SprintNoiseRange => config != null ? config.sprintNoiseRange : 8f;
+        float InvestigateNoiseMaxAge => config != null ? config.investigateNoiseMaxAge : 3f;
+        float InvestigateSearchSeconds => config != null ? config.investigateSearchSeconds : 8f;
+        float InvestigateArriveDistance => config != null ? config.investigateArriveDistance : 0.9f;
+        float InvestigateSweepDegrees => config != null ? config.investigateSweepDegrees : 60f;
+        float InvestigateSweepSpeed => config != null ? config.investigateSweepSpeed : 1.5f;
 
         void Awake()
         {
             if (agent == null) agent = GetComponent<NavMeshAgent>();
+        }
+
+        void OnEnable()
+        {
+            GameEvents.NoiseEmitted += OnNoiseEmitted;
+        }
+
+        void OnDisable()
+        {
+            GameEvents.NoiseEmitted -= OnNoiseEmitted;
+        }
+
+        // P3 noise bus: remember where the noise happened and how far it
+        // carries. Whether the Shadow reacts at all is decided in Update (the
+        // noise must still be fresh AND inside the radius when checked).
+        void OnNoiseEmitted(float radius)
+        {
+            lastNoisePosition = player != null ? player.position : transform.position;
+            lastNoiseTime = Time.time;
+            lastNoiseRadius = radius;
+            // Already on the way to a noise? A newer one re-targets the search.
+            if (state == State.Investigate) investigateTimer = 0f;
         }
 
         void Start()
@@ -136,10 +169,15 @@ namespace LightShadow.Enemy
             float effectiveLight = LitZone.PlayerInLitZone ? 1f : FlashlightBattery.PlayerLightLevel;
             bool sighted = distance <= SightRange && (sight == null || sight.HasLineOfSight());
 
-            // Sweaty-palm hearing rule: sprinting is loud. The Shadow pauses and
-            // turns toward the noise but does not magically know where Nour hides.
-            if (playerController != null && playerController.IsSprinting && distance <= SprintNoiseRange) hearTimer = 1.2f;
-            if (hearTimer > 0f) hearTimer -= dt;
+            // Sweaty-palm hearing (P3): a fresh noise inside its radius pulls
+            // the Shadow off patrol/stalk to Investigate. It walks to where the
+            // sound came from and searches - it does not magically know where
+            // Nour is standing now.
+            if (!sighted && (state == State.Patrol || state == State.Stalk) && FreshNoiseHeard())
+            {
+                EnterState(State.Investigate);
+                return;
+            }
 
             // Caught: close enough while unlit. The GameManager handles the fade,
             // the meter penalty and the checkpoint return (Doc 4.3).
@@ -166,27 +204,77 @@ namespace LightShadow.Enemy
                 case State.Stalk: UpdateStalk(dt, playerPosition, distance, effectiveLight, sighted); break;
                 case State.Chase: UpdateChase(dt, playerPosition, distance, sighted); break;
                 case State.Repelled: UpdateRepelled(); break;
+                case State.Investigate: UpdateInvestigate(dt, playerPosition, distance, effectiveLight, sighted); break;
             }
+        }
+
+        // A noise is actionable when it is young enough and close enough: the
+        // Shadow must be standing inside the noise's hearing radius to have
+        // "heard" it.
+        bool FreshNoiseHeard()
+        {
+            if (Time.time - lastNoiseTime > InvestigateNoiseMaxAge) return false;
+            return Vector3.Distance(transform.position, lastNoisePosition) <= lastNoiseRadius;
         }
 
         // ------------------------- Patrol -------------------------
         // Walks the waypoint loop at a slow speed. Purely a presence in the dark;
-        // it only starts hunting when Nour gets close while unlit.
+        // it only starts hunting when Nour gets close while unlit. Noises are
+        // handled by the Investigate state, not by stopping mid-step any more.
         void UpdatePatrol(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
         {
-            if (hearTimer > 0f)
+            agent.isStopped = false;
+            if (!agent.hasPath || agent.remainingDistance <= 0.7f) AdvanceWaypoint();
+
+            bool playerIsDark = light < StalkLightThreshold;
+            if (distance <= EngageRadius && (playerIsDark || aggressive)) EnterState(State.Stalk);
+        }
+
+        // ------------------------- Investigate -------------------------
+        // The noise bus pulled it here (P3, replaces the old stop-and-face
+        // hack): walk to where the sound came from, sweep a look-around for a
+        // few seconds, then give up and resume the patrol. A direct sighting
+        // still escalates straight to the chase; a hidden Nour in the dark
+        // nearby reads exactly like any other patrol stalk engagement.
+        void UpdateInvestigate(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
+        {
+            if (!agent.hasPath || agent.remainingDistance <= InvestigateArriveDistance)
             {
+                // Arrived: stand still and sweep the gaze across the noise spot.
                 agent.isStopped = true;
-                FaceTowards(playerPosition);
+                investigateTimer += dt;
+
+                Vector3 noiseDirection = lastNoisePosition - transform.position;
+                noiseDirection.y = 0f;
+                float baseAngle = noiseDirection.sqrMagnitude > 0.01f
+                    ? Quaternion.LookRotation(noiseDirection).eulerAngles.y
+                    : transform.eulerAngles.y;
+
+                float sway = Mathf.Sin(investigateTimer * InvestigateSweepSpeed) * InvestigateSweepDegrees;
+                Quaternion target = Quaternion.Euler(0f, baseAngle + sway, 0f);
+                transform.rotation = Quaternion.Slerp(transform.rotation, target, Time.deltaTime * 4f);
             }
             else
             {
                 agent.isStopped = false;
-                if (!agent.hasPath || agent.remainingDistance <= 0.7f) AdvanceWaypoint();
+                SetDestination(lastNoisePosition);
             }
 
-            bool playerIsDark = light < StalkLightThreshold;
-            if (distance <= EngageRadius && (playerIsDark || aggressive)) EnterState(State.Stalk);
+            if (sighted)
+            {
+                EnterState(State.Chase);
+                return;
+            }
+
+            // The player close by in the dark is still worth stalking, exactly
+            // as from Patrol.
+            if (distance <= EngageRadius && light < StalkLightThreshold)
+            {
+                EnterState(State.Stalk);
+                return;
+            }
+
+            if (investigateTimer >= InvestigateSearchSeconds) EnterState(State.Patrol);
         }
 
         // ------------------------- Stalk -------------------------
@@ -283,6 +371,13 @@ namespace LightShadow.Enemy
                     agent.isStopped = true;
                     agent.ResetPath();
                     break;
+                case State.Investigate:
+                    // Creep toward the noise with a stalker's pace, not a jog.
+                    agent.speed = StalkSpeed;
+                    agent.isStopped = false;
+                    investigateTimer = 0f;
+                    SetBreathing(true);
+                    break;
             }
         }
 
@@ -311,8 +406,8 @@ namespace LightShadow.Enemy
         {
             catching = false;
             catchCooldownTimer = 1.5f;
-            hearTimer = 0f;
             sightLostTimer = 0f;
+            investigateTimer = 0f;
             EnterState(State.Patrol);
         }
 
@@ -322,8 +417,8 @@ namespace LightShadow.Enemy
         System.Collections.IEnumerator CatchSequence()
         {
             catching = true;
-            hearTimer = 0f;
             sightLostTimer = 0f;
+            investigateTimer = 0f;
 
             if (agent != null && agent.isOnNavMesh)
             {

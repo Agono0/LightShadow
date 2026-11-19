@@ -47,7 +47,30 @@ namespace LightShadow.Core
         public float repelCooldown = 6f;
         public float repelMeterThreshold = 30f;
         public float stalkLightThreshold = 0.3f;
+
+        // Deprecated (P3 noise rebalance): the old sprint-hearing radius kept so
+        // existing serialized GameConfig assets still load. The live hearing
+        // radii are the noise fields below; nothing reads this any more.
         public float sprintNoiseRange = 8f;
+
+        [Header("Noise And Hearing (Plan 4.12, P3)")]
+        // Hearing radii in metres: how far each player noise carries to the
+        // Shadow. Sprint is 10 m per plan 4.12 (the old sprintNoiseRange was 8).
+        public float walkNoiseRange = 4f;
+        public float sprintNoiseRadius = 10f;
+        public float crouchNoiseRange = 1f;
+        public float crankNoiseRange = 12f;
+        public float wrongAnswerNoiseRange = 6f;
+        // Ground distance per audible footstep (stride length).
+        public float noiseStride = 1.7f;
+        // Investigate: only react to noise younger than this; how long the
+        // Shadow looks around at the noise before giving up; how close it must
+        // land to consider the noise "reached"; and the sweep look-around shape.
+        public float investigateNoiseMaxAge = 3f;
+        public float investigateSearchSeconds = 8f;
+        public float investigateArriveDistance = 0.9f;
+        public float investigateSweepDegrees = 60f;
+        public float investigateSweepSpeed = 1.5f;
 
         [Header("Penalties (Doc 4.3)")]
         public float caughtMeterPenalty = 15f;

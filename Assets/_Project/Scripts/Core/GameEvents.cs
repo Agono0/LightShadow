@@ -39,8 +39,14 @@ namespace LightShadow.Core
         public static event Action EscapeStarted;
 
         // The Shadow changed FSM state. Payload: (int)LightShadow.Enemy.EnemyBehaviour.State
-        // (Patrol 0, Stalk 1, Chase 2, Repelled 3). Raised from EnemyBehaviour.EnterState.
+        // (Patrol 0, Stalk 1, Chase 2, Repelled 3, Investigate 4). Raised from
+        // EnemyBehaviour.EnterState.
         public static event Action<int> EnemyStateChanged;
+
+        // The player made a noise the Shadow may hear (P3 noise bus). Payload:
+        // the hearing radius in metres (GameConfig noise fields). The listener
+        // decides what to do; NoiseEmitter is the usual raiser.
+        public static event Action<float> NoiseEmitted;
 
         // ---- Raise helpers -----------------------------------------------------
         // Each one-liner guards its event so callers never need to.
@@ -93,6 +99,11 @@ namespace LightShadow.Core
         public static void RaiseEnemyStateChanged(int state)
         {
             EnemyStateChanged?.Invoke(state);
+        }
+
+        public static void RaiseNoiseEmitted(float radius)
+        {
+            NoiseEmitted?.Invoke(radius);
         }
     }
 }
