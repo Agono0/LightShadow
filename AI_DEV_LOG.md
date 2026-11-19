@@ -326,3 +326,34 @@ The game itself contains **no AI features** — this log is about the developmen
   next collaborator.
 - Test result: `ValidateBatch` RESULT: PASS (0 compile errors) with regenerated meshes
   wired; release job fix verified by log diagnosis; CI build workflow re-runs on this PR.
+
+### 2026-11-19 — Premium pass P1: fonts + real AudioMixer + music — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) implementing `Docs/AGENT_REPORT_AUDIO_MIXER.md`
+  nearly verbatim on branch `feat/audio-mixer-snapshots` (stacked PR; Lead runs the Unity
+  batches and git push).
+- What AI provided: `AudioMixerTool.cs` (reflection builder for `M_Main.mixer` — bus tree with
+  duck children, Master low-pass, six snapshots, 14 exposed params — plus `ValidateMixer()`);
+  `AudioSnapshotController.cs` (persistent + MemoryFlash overlay snapshots, LitZone poll);
+  `VolumeCategories` mixer bridge (append-only Voice/Shadow categories, SetMixer/GroupFor,
+  user-param SetFloat, scan overrides for Shadow/Ambience/whisper sources); the
+  `GameEvents.EnemyStateChanged` raise in `EnemyBehaviour.EnterState`; GameConfig snapshot
+  transition fields; §4.5 touch-points (AdaptiveMusic mixer bypass fix + real-bed layer,
+  ShadowAudio/PooledWhisperBurst Shadow routing, `PlaySfxAt` pooled one-shot);
+  builder attachments (bootstrap + school Systems) and mixer validation checks; font bundling
+  and wiring (SceneBuilderUI font getters, UIFontBinder roles, `Localization.SetFonts`);
+  music plumbing (AudioLibrary ids, AdaptiveMusic bed, per-ending cues on EndingController);
+  ASSET_LICENSES/CREDITS/TASKS/CHANGELOG/DECISIONS(D17) updates.
+- What I changed myself: verified every internal UnityEditor.Audio API against the spec's
+  reference-source citations before writing the reflection calls; chose Noto Naskh Bold (not
+  Cairo/Reem Kufi) for Arabic titles because those fonts lack the Presentation Forms-B glyphs
+  ArabicSupport emits (SOURCING doc caveat); kept the legacy per-source volume path for
+  headless/direct-play so loudness is unchanged; confirmed the three music tracks' CC-BY 3.0
+  versions on Wikimedia Commons (ISRC-matched file pages) after ID3 tags revealed the staged
+  files are Kevin MacLeod tracks renamed to semantic slots; rejected the staged
+  `MUS_Bed_DarkHighway.mp3` (FMA login-page HTML, not audio).
+- Teach-back check: pending — explain the SetFloat/snapshot orthogonality rule (sliders own the
+  seven *Vol params; snapshots own the ducks + low-pass) and the manual listening checklist
+  (spec §7.2) to the next collaborator.
+- Test result: pending Lead batch run — expected `AudioMixerTool.EnsureBatch` → `RESULT: PASS`
+  (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
+  agent (single-Unity-instance rule).

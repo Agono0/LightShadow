@@ -1,5 +1,32 @@
 # LIGHT SHADOW — Changelog (Premium Pass)
 
+## [Unreleased] — 2026-11-19 — Phase 1: fonts + audio mixer + music
+
+### Added
+- **Real AudioMixer asset** (D17, supersedes D15's interim code mixer):
+  `AudioMixerTool` generates `M_Main.mixer` (Master > Music/Ambience/SFX/Voice/Shadow/UI with
+  snapshot-owned duck children + Master low-pass) via Unity's editor serialization pipeline;
+  `ValidateMixer()` batch-asserts it (`RESULT: PASS`). Settings sliders keep working unchanged —
+  they now write the seven exposed user params through `VolumeCategories`.
+- **Audio snapshot choreography** (premium-pass brief §8.3): six snapshots — Explore, Stalk,
+  Chase, Hide, MemoryFlash, Dawn — driven by the Shadow FSM (new `GameEvents.EnemyStateChanged`),
+  lit-zone muffle (900 Hz while claimed), fragment/fuse memory beats (world ducks around the
+  narrator for 6 s) and the dawn swell; all transition seconds live in `GameConfig`.
+- **Bundled fonts**: Noto Naskh Arabic (R/B), Cairo (R/B), Reem Kufi (R/B), Inter (R/SemiBold),
+  Special Elite — OFL/Apache 2.0, license texts shipped in `Assets/_Project/Fonts/Licenses/`;
+  wired through builder-created references (no Resources folder); Arabic no longer depends on OS
+  fonts, and OS fallbacks remain when the bundle is missing.
+- **Real music**: Kevin MacLeod CC-BY 3.0 bed ("Long Note One") layered under the procedural
+  AdaptiveMusic pads during Explore/Stalk; per-ending one-shot cues (Frozen Star → FullRecovery,
+  Anguish → DawnlessGrey) wired on the ending screen; credits + license rows updated.
+
+### Changed
+- The Shadow's audio sources (breathing, one-shots, growl/stinger, pooled whispers) route to a
+  dedicated Shadow bus; AmbientDrone is recategorized to Ambience; `AudioManager.PlaySfxAt` no
+  longer uses `AudioSource.PlayClipAtPoint` (its temp sources bypassed categories and the mixer).
+- `EnemyBehaviour.EnterState` raises `GameEvents.EnemyStateChanged(int)` — one raise covers every
+  FSM transition including the post-catch reset.
+
 ## [0.5.0-premium] — 2026-10-31 — Round 3: bug fixes + horror presentation
 
 ### Fixed

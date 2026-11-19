@@ -65,15 +65,41 @@ The in-game credits screen (Phase 4, `Docs/TASKS.md`) renders from this file.
 
 ## Fonts
 
-- Pending Phase 1 additions (`Docs/TASKS.md`): bundled OFL Arabic and Latin
-  fonts will be listed here once imported and logged in
-  `Docs/ASSET_LICENSES.md`. Until then the game uses OS-provided fonts.
+Bundled OFL/Apache font set (`Assets/_Project/Fonts/`, license texts shipped in
+`Assets/_Project/Fonts/Licenses/` — registry: `Docs/ASSET_LICENSES.md`):
+
+- **Noto Naskh Arabic** Regular + Bold (SIL OFL 1.1) by The Noto Project Authors — Arabic body
+  text and Arabic titles (the only bundled font covering the Arabic Presentation Forms-B range the
+  display-time shaper emits). https://fonts.google.com/specimen/Noto+Naskh+Arabic
+- **Cairo** Regular + Bold (SIL OFL 1.1) by The Cairo Project Authors — Latin titles (Bold) and
+  first Latin UI fallback. https://fonts.google.com/specimen/Cairo
+- **Inter** Regular + SemiBold (SIL OFL 1.1) by The Inter Project Authors — Latin body/UI font.
+  https://fonts.google.com/specimen/Inter
+- **Reem Kufi** Regular + Bold (SIL OFL 1.1, Reserved Font Name) by The Reem Kufi Project Authors
+  — bundled display alternative (not yet bound in UI). https://fonts.google.com/specimen/Reem+Kufi
+- **Special Elite** Regular (Apache License 2.0) by Astigmatic — typewriter notes/props
+  (Latin-only). https://fonts.google.com/specimen/Special+Elite
 
 ## Music
 
-- Procedural (AdaptiveMusic synthesised layers) — no third-party music used
-  to date. Any future music cues will be logged in `Docs/ASSET_LICENSES.md`
-  and credited here.
+- **Kevin MacLeod** (incompetech.com), CC-BY 3.0 — required attribution (versions confirmed on the
+  Wikimedia Commons file pages for each ISRC at download time, 2026-11-19):
+
+  > "Long Note One" Kevin MacLeod (incompetech.com)
+  > Licensed under Creative Commons: By Attribution 3.0 http://creativecommons.org/licenses/by/3.0/
+  > "Frozen Star" Kevin MacLeod (incompetech.com)
+  > Licensed under Creative Commons: By Attribution 3.0 http://creativecommons.org/licenses/by/3.0/
+  > "Anguish" Kevin MacLeod (incompetech.com)
+  > Licensed under Creative Commons: By Attribution 3.0 http://creativecommons.org/licenses/by/3.0/
+
+  Used as: "Long Note One" — night-school tension bed layered under the procedural AdaptiveMusic
+  pads (Explore/Stalk); "Frozen Star" — FullRecovery ending cue (MUS_Ending_HopeGold); "Anguish" —
+  Dawnless ending cue (MUS_Ending_DawnlessGrey). Track pages:
+  https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100418 · USUAN1100356 ·
+  USUAN1400047.
+- **Procedural layers** (AdaptiveMusic synthesised calm/tension/pulse pads) — original,
+  no third-party rights. The Pixabay primaries from `Docs/SOURCING_FONTS_MUSIC.md` remain pending
+  manual download; they will be logged in `Docs/ASSET_LICENSES.md` and credited here when adopted.
 
 ## Team
 
