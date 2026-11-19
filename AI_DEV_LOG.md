@@ -387,3 +387,42 @@ The game itself contains **no AI features** — this log is about the developmen
   four PNGs (verified visually at 1024/192/96); speaker tallies re-derived
   twice (22+7+9+6 = 44 nodes); docs-only changes so the CI fast-checks are the
   gate for this branch.
+
+### 2026-11-19 — Docs finalization for the premium integration (Session 3) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) on the `LS-p5` worktree, branch
+  `feat/docs-final` (stacked on `feat/release-prep`), read-only against the
+  main checkout and the GitHub API; no Unity runs, no git push.
+- What AI provided: refreshed the seven living docs to the integration state —
+  `Docs/PROGRESS.md` Session 3 (what landed per phase P1–P5, verification
+  results, open items); `Docs/CHANGELOG.md` 0.6.0-premium-integration block
+  (folds the Phase-1 [Unreleased] draft into the versioned entry, adds P2/P3/
+  P4/P5); `Docs/PROJECT_STATE.md` status/what-works/issues/human-only rewrite;
+  `Docs/PERFORMANCE.md` CI build ledger (artifact byte sizes + per-job build
+  times + honest delta vs the 73.7 MB baseline); README status/features/
+  settings/build updates (horror systems, Arabic questions, hero props, fonts,
+  all with review flags); `Docs/TASKS.md` reconciliation (P2/P3/P4/P5 ticks
+  ported from `feat/premium-integration` + a human-only/deferred open-items
+  section); this log entry.
+- What I changed myself: verified every number against the GitHub API before
+  writing it — artifact byte sizes from run 44608154090 (arm64 88,040,419 /
+  armv7 86,145,163 / Windows 152,043,678) and the pre-P1 comparison run
+  44592065316 (65,613,495 / 63,726,235 / 129,698,324), per-job wall-clocks
+  from three runs (Windows 7m12s–8m57s, arm64 9m45s–18m28s, armv7 8m44s–16m08s;
+  the second-hand PR #3/#4 merge-day figures are quoted as reported, inside
+  the measured envelope); checked `feat/horror-systems` history for
+  reverb/occlusion before listing it deferred (nothing landed — only an SSAO
+  hotfix matched); counted the P3 review fixes as nine from the review-fix
+  dev-log entry on the branch; kept the Arabic-questions entry at "AI
+  translation pending human/native review", the 120-bank expansion at "in
+  progress", and `factSource = NEEDS-FACT-CHECK` claims untouched — no human
+  review claimed anywhere; kept TASKS.md honest by splitting the landed first
+  batch of 14 hero props from the un-built master-plan props rather than
+  ticking the whole P2 item.
+- Teach-back check: pending — walk a teammate through why PERFORMANCE.md
+  compares same-pipeline CI runs (65.6 → 88.0 MB arm64 artifact, +22.4 MB for
+  P1 alone) instead of comparing a CI zip artifact against the 30 Oct local
+  73.7 MB APK, and why the integration PR's own artifact sizes amend that
+  table only when its run completes.
+- Test result: docs-only change; no Unity runs by design; every quoted number
+  re-derived from `gh api` output or `git log` at write time; CI fast-checks
+  are the gate for this branch.
