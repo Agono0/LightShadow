@@ -237,6 +237,11 @@ namespace LightShadow.Tools
             // The audio library must exist before the Systems object is wired.
             AudioImportTool.ImportAll();
 
+            // The mixer must exist before scenes are built for the same reason:
+            // AudioSnapshotController gets wired with M_Main.mixer on the
+            // bootstrap and school Systems objects (D15 follow-up).
+            AudioMixerTool.BuildMixer();
+
             // The school cannot be answered without questions.
             string questionSummary = QuestionGenerator.GenerateQuestionsSilent();
             QuestionDatabase database = AssetDatabase.LoadAssetAtPath<QuestionDatabase>(DatabasePath);

@@ -78,6 +78,19 @@ namespace LightShadow.UI
                 fog = new Color(0.28f, 0.28f, 0.30f) },
         };
 
+        [System.Serializable]
+        public class EndingMusic
+        {
+            public string endingId;
+            [Tooltip("One-shot cue played when the ending screen starts (null = silent until the Pixabay primaries land).")]
+            public AudioClip clip;
+        }
+
+        [Header("Ending music (Phase 1; matched by id, first hit wins)")]
+        public AudioSource musicSource;
+        [Range(0f, 1f)] public float endingMusicVolume = 0.8f;
+        public EndingMusic[] endingMusic;
+
         public float sunStartHeight = 1.5f;
         public float sunEndHeight = 5.8f;
         public float lightEndIntensity = 1.5f;
@@ -93,12 +106,14 @@ namespace LightShadow.UI
 
             // D13: the director (if present) picks the ending from run state.
             StoryNode endingNode = null;
+            string endingId = null;
             StoryDirector director = StoryDirector.Instance;
             if (director != null && director.config != null)
             {
-                string endingId = director.EnsureEndingDecided();
+                endingId = director.EnsureEndingDecided();
                 endingNode = director.GetEndingNode(endingId);
                 ApplyEndingTint(endingId);
+                PlayEndingMusic(endingId);
             }
 
             if (dawnTitle != null)
@@ -164,6 +179,27 @@ namespace LightShadow.UI
                     recap.SetEnding(withDirector.CurrentEndingId);
                 }
                 recap.Show(RunResults.Answers);
+            }
+        }
+
+        // Phase 1: one-shot cue per ending (builder wires the clips from the
+        // AudioLibrary; silent fallback when the id has no clip yet or the
+        // scene is played without the school library).
+        void PlayEndingMusic(string id)
+        {
+            if (string.IsNullOrEmpty(id) || endingMusic == null) return;
+            for (int i = 0; i < endingMusic.Length; i++)
+            {
+                if (endingMusic[i] == null || endingMusic[i].endingId != id || endingMusic[i].clip == null) continue;
+
+                if (musicSource == null) musicSource = gameObject.AddComponent<AudioSource>();
+                musicSource.spatialBlend = 0f;
+                musicSource.loop = false;
+                musicSource.playOnAwake = false;
+                musicSource.volume = Mathf.Clamp01(endingMusicVolume);
+                musicSource.clip = endingMusic[i].clip;
+                musicSource.Play();
+                return;
             }
         }
 

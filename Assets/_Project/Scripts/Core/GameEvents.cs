@@ -38,6 +38,10 @@ namespace LightShadow.Core
         // Nour escaped through the gate; GameManager.Escape() runs the ending.
         public static event Action EscapeStarted;
 
+        // The Shadow changed FSM state. Payload: (int)LightShadow.Enemy.EnemyBehaviour.State
+        // (Patrol 0, Stalk 1, Chase 2, Repelled 3). Raised from EnemyBehaviour.EnterState.
+        public static event Action<int> EnemyStateChanged;
+
         // ---- Raise helpers -----------------------------------------------------
         // Each one-liner guards its event so callers never need to.
 
@@ -84,6 +88,11 @@ namespace LightShadow.Core
         public static void RaiseEscapeStarted()
         {
             EscapeStarted?.Invoke();
+        }
+
+        public static void RaiseEnemyStateChanged(int state)
+        {
+            EnemyStateChanged?.Invoke(state);
         }
     }
 }

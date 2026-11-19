@@ -53,10 +53,34 @@ namespace LightShadow.Core
             sfxSource.PlayOneShot(clip);
         }
 
+        // Positional one-shot through a pooled child source instead of
+        // AudioSource.PlayClipAtPoint: PlayClipAtPoint creates a temp
+        // "OneShot Audio" source that bypasses VolumeCategories and any mixer
+        // routing (D15 follow-up §4.5). Named "SfxOneShot" so the scan maps it
+        // to Sfx; explicitly registered/routed at creation too.
+        AudioSource oneShotSource;
+
         public void PlaySfxAt(AudioClip clip, Vector3 position)
         {
             if (clip == null) return;
-            AudioSource.PlayClipAtPoint(clip, position);
+            AudioSource source = GetOneShotSource();
+            if (source == null) return;
+            source.transform.position = position;
+            source.spatialBlend = 1f;
+            source.PlayOneShot(clip);
+        }
+
+        AudioSource GetOneShotSource()
+        {
+            if (oneShotSource != null) return oneShotSource;
+
+            var go = new GameObject("SfxOneShot");
+            go.transform.SetParent(transform, false);
+            oneShotSource = go.AddComponent<AudioSource>();
+            oneShotSource.playOnAwake = false;
+            LightShadow.Audio.VolumeCategories.Register(
+                oneShotSource, LightShadow.Audio.VolumeCategories.Category.Sfx, 1f);
+            return oneShotSource;
         }
     }
 }

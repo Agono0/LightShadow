@@ -16,8 +16,23 @@ namespace LightShadow.Core
 
         static Font englishFont;
         static Font arabicFont;
+
+        // Bundled OFL fonts (Assets/_Project/Fonts), injected by the scene
+        // builder through UIFontBinder.SetFonts — direct serialized scene
+        // references, no Resources folder. When they are absent the getters
+        // below fall back to the built-in / OS fonts exactly as before.
+        static Font latinOverride;
+        static Font arabicOverride;
         static GameLanguage current = GameLanguage.English;
         static bool loaded;
+
+        // Registers the bundled font pair (idempotent; null fields are ignored
+        // so a missing font asset keeps the OS fallback alive).
+        public static void SetFonts(Font latin, Font arabic)
+        {
+            if (latin != null) latinOverride = latin;
+            if (arabic != null) arabicOverride = arabic;
+        }
 
         public static GameLanguage Current
         {
@@ -32,6 +47,7 @@ namespace LightShadow.Core
         {
             get
             {
+                if (latinOverride != null) return latinOverride;
                 if (englishFont == null)
                 {
                     englishFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -45,6 +61,11 @@ namespace LightShadow.Core
         {
             get
             {
+                // Bundled Noto Naskh Arabic first: it maps the legacy
+                // Presentation Forms-B range (U+FE70–FEFF) that the
+                // display-time ArabicSupport shaper emits, which Cairo /
+                // Reem Kufi do not (Docs/SOURCING_FONTS_MUSIC.md Part 1).
+                if (arabicOverride != null) return arabicOverride;
                 if (arabicFont == null)
                 {
                     string[] candidates =

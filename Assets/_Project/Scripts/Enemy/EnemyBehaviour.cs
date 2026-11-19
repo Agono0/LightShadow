@@ -256,6 +256,9 @@ namespace LightShadow.Enemy
             if (state == State.Stalk && next != State.Stalk) SetBreathing(false);
 
             state = next;
+            // Audio snapshot driving (AudioSnapshotController) follows the FSM
+            // through this single raise: every transition enters here.
+            GameEvents.RaiseEnemyStateChanged((int)next);
             switch (next)
             {
                 case State.Patrol:

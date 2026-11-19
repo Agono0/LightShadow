@@ -531,6 +531,10 @@ namespace LightShadow.Tools
 
             if (systems.GetComponent<AdaptiveMusic>() == null) systems.AddComponent<AdaptiveMusic>();
 
+            // Snapshot driving survives story-scene rebuilds too (idempotent;
+            // D15 follow-up §4.5).
+            AttachAudioSnapshot(systems.transform);
+
             // Dialogue box on the school canvas.
             GameObject canvasGo = GameObject.Find("UI_School");
             if (canvasGo == null) return "school: UI_School canvas missing (run Build Scenes first) - director added, UI skipped";
@@ -953,7 +957,9 @@ namespace LightShadow.Tools
 
         static Font StoryFont
         {
-            get { return Localization.EnglishFont; }
+            // Bundled OFL set (Inter with LegacyRuntime fallback) so story UI
+            // matches the rest of the interface; fonts wire identically here.
+            get { return SceneBuilderUI.UIFont; }
         }
 
         static RectTransform MakeStoryRect(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax,

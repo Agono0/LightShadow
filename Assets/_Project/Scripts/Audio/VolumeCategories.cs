@@ -1,37 +1,60 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 
 namespace LightShadow.Audio
 {
-    // Code-level category mixer (decision D15, documented honestly in the brief
-    // and in Docs/AGENT_REPORT_NARRATIVE.md): a real AudioMixer asset cannot be
-    // created reliably headlessly, and the game's audio is synthesised at
-    // runtime with no external files - so the mixer lives in code with the same
-    // settings-card UX (five sliders Master/Music/Ambience/SFX/UI, 0-10,
-    // PlayerPrefs-backed).
+    // Category mixer bridge (D15 follow-up, AGENT_REPORT_AUDIO_MIXER §4.4):
+    // the settings-card UX is unchanged (sliders Master/Music/Ambience/SFX/UI,
+    // 0-10, PlayerPrefs-backed) but the levels now land on the REAL AudioMixer
+    // asset (M_Main) when one is wired, and keep the original per-source
+    // multiply when it is not (headless validation, direct scene play before
+    // the bootstrap runs).
     //
-    // Sources register two ways:
+    // Split of ownership (§4.1 — the SetFloat/snapshot orthogonality rule):
+    //   - The seven user params (MasterVol..UiVol) are script-owned: SetFloat
+    //     only ever targets them, so snapshot transitions never fight sliders.
+    //   - The duck children + Master low-pass are snapshot-owned and are NEVER
+    //     SetFloat'ed (AudioSnapshotController.AssertNotSnapshotOwned asserts it).
+    //
+    // Sources register two ways (unchanged):
     //   1. explicitly  - VolumeCategories.Register(source, Category.Music)
-    //   2. by name     - every scene load scans live AudioSources and maps them
-    //      by naming convention: "MUS_"/"Music*" -> Music, "AMB_"/"Ambien*" ->
-    //      Ambience, "SFX_"/"Sfx*"/"SFX*" -> Sfx, "UI*" -> Ui, unmatched -> Sfx.
-    //
-    // Volume math per source: source.volume = baseVolume * category * master,
-    // re-applied when a slider moves or a scene loads. Zero per-frame cost.
+    //   2. by scan     - every scene load scans live AudioSources; component
+    //      overrides first (Shadow FSM parent -> Shadow, AmbientDrone ->
+    //      Ambience, "*whisper*" -> Shadow), then the naming convention
+    //      "MUS_"/"Music*" -> Music, "AMB_"/"Ambien*" -> Ambience, "SFX_" -> Sfx,
+    //      "UI*" -> Ui, unmatched -> Sfx.
     public static class VolumeCategories
     {
-        public enum Category { Master = 0, Music = 1, Ambience = 2, Sfx = 3, Ui = 4 }
+        // Append-only enum: PlayerPrefs indices of the original five categories
+        // must never move (saved player settings survive the mixer migration).
+        public enum Category { Master = 0, Music = 1, Ambience = 2, Sfx = 3, Ui = 4, Voice = 5, Shadow = 6 }
 
         public const int LevelCount = 11; // 0..10 slider steps
 
         static readonly string[] PrefKeys =
         {
             "ls_vol_master", "ls_vol_music", "ls_vol_ambience", "ls_vol_sfx", "ls_vol_ui",
+            "ls_vol_voice", "ls_vol_shadow",
         };
 
         const float DefaultLevel = 8f;
+
+        // Mixer handle (§4.4.3): wired by AudioSnapshotController.SetMixer; an
+        // unresolved group leaves GroupFor null and the legacy path keeps working.
+        static AudioMixer mixer;
+        static readonly AudioMixerGroup[] groups = new AudioMixerGroup[7];
+
+        // Category value -> exact mixer group name (FindMatchingGroups matches by
+        // sub-path, so the exact-name pick stops "Music" resolving to "MusicDuck").
+        static readonly string[] GroupNames =
+        {
+            "Master", "Music", "Ambience", "SFX", "UI", "Voice", "Shadow",
+        };
+
+        public static bool MixerActive => mixer != null;
 
         // One registered source: the base volume the owner set, scaled live.
         struct Registered
@@ -43,7 +66,10 @@ namespace LightShadow.Audio
         }
 
         static readonly List<Registered> registered = new List<Registered>(16);
-        static readonly float[] levels = { DefaultLevel, DefaultLevel, DefaultLevel, DefaultLevel, DefaultLevel };
+        static readonly float[] levels =
+        {
+            DefaultLevel, DefaultLevel, DefaultLevel, DefaultLevel, DefaultLevel, DefaultLevel, DefaultLevel,
+        };
         static bool bootstrapped;
 
         public static event Action CategoryChanged;
@@ -69,6 +95,69 @@ namespace LightShadow.Audio
 
         static void OnSceneLoaded(Scene scene, LoadSceneMode mode) => ScanActiveScene();
 
+        // ----------------------------------------------------------- mixer ----
+
+        // Idempotent: the first non-null mixer wins, groups resolve once, and the
+        // saved slider levels are applied to the mixer immediately. Safe to call
+        // from both scene-built AudioSnapshotControllers (§4.2).
+        public static void SetMixer(AudioMixer value)
+        {
+            if (value == null || mixer == value) return;
+            mixer = value;
+
+            for (int i = 0; i < groups.Length; i++)
+            {
+                groups[i] = FindGroupExact(GroupNames[i]);
+            }
+
+            ApplyMixerVolumes();
+        }
+
+        public static AudioMixerGroup GroupFor(Category category)
+        {
+            int index = (int)category;
+            return index >= 0 && index < groups.Length ? groups[index] : null;
+        }
+
+        static AudioMixerGroup FindGroupExact(string name)
+        {
+            if (mixer == null) return null;
+            AudioMixerGroup[] matches = mixer.FindMatchingGroups(name);
+            for (int i = 0; i < matches.Length; i++)
+            {
+                if (matches[i] != null && matches[i].name == name) return matches[i];
+            }
+            return null;
+        }
+
+        // Slider level (0..10) -> dB for the exposed user params (§4.1):
+        // 10 -> 0 dB, 5 -> about -6 dB, 0 -> -80 dB (silent, like the old 0).
+        static float LevelToDb(float level)
+        {
+            return level <= 0f ? -80f : 20f * Mathf.Log10(level / 10f);
+        }
+
+        // Only the seven user params; duck/lowpass names are hard-asserted off
+        // limits (AudioSnapshotController.AssertNotSnapshotOwned).
+        static void ApplyMixerVolumes()
+        {
+            if (!MixerActive) return;
+            for (int i = 0; i < groups.Length; i++)
+            {
+                string parameter = GroupToParameter[i];
+                if (parameter == null) continue;
+                AudioSnapshotController.AssertNotSnapshotOwned(parameter);
+                mixer.SetFloat(parameter, LevelToDb(levels[i]));
+            }
+        }
+
+        // Indexed by Category; Master carries MasterVol (its group volume is the
+        // master slider). Duck/lowpass params are deliberately absent here.
+        static readonly string[] GroupToParameter =
+        {
+            "MasterVol", "MusicVol", "AmbienceVol", "SfxVol", "UiVol", "VoiceVol", "ShadowVol",
+        };
+
         // ---------------------------------------------------------- settings --
 
         public static float GetLevel(Category category)
@@ -85,11 +174,12 @@ namespace LightShadow.Audio
             levels[index] = level;
             PlayerPrefs.SetInt(PrefKeys[index], level);
             PlayerPrefs.Save();
-            ApplyAll();
+            if (MixerActive) ApplyMixerVolumes();
+            else ApplyAll();
             CategoryChanged?.Invoke();
         }
 
-        // Category volume 0..1 as heard under Master.
+        // Category volume 0..1 as heard under Master (legacy path + AdaptiveMusic).
         public static float CategoryVolume01(Category category)
         {
             return Mathf.Clamp01(levels[(int)category] / (LevelCount - 1f));
@@ -122,7 +212,7 @@ namespace LightShadow.Audio
             }
         }
 
-        // Name-convention scan over the active scene. Safe to call repeatedly.
+        // Scan over the active scene. Safe to call repeatedly.
         public static void ScanActiveScene()
         {
             AudioSource[] sources = UnityEngine.Object.FindObjectsByType<AudioSource>(FindObjectsSortMode.None);
@@ -130,10 +220,27 @@ namespace LightShadow.Audio
             {
                 AudioSource source = sources[i];
                 if (source == null) continue;
-                Category category = CategoryFromName(source.gameObject.name);
+                Category category = CategoryFor(source);
                 if (category == Category.Master) continue; // not a category source
                 Register(source, category, source.volume);
             }
+        }
+
+        // Component overrides first (§4.4.6), then the naming convention. The
+        // component checks fix the known mis-categorizations: the Shadow's
+        // breathing/one-shot/growl/stinger sources and the pooled whispers land
+        // on the Shadow bus, AmbientDrone's player-rooted source on Ambience.
+        static Category CategoryFor(AudioSource source)
+        {
+            if (source == null) return Category.Sfx;
+
+            if (source.GetComponentInParent<LightShadow.Enemy.EnemyBehaviour>() != null) return Category.Shadow;
+            if (source.GetComponent<LightShadow.Core.AmbientDrone>() != null) return Category.Ambience;
+
+            string name = source.gameObject.name;
+            if (!string.IsNullOrEmpty(name) && name.ToLowerInvariant().Contains("whisper")) return Category.Shadow;
+
+            return CategoryFromName(name);
         }
 
         static Category CategoryFromName(string name)
@@ -163,11 +270,17 @@ namespace LightShadow.Audio
             }
         }
 
+        // Mixer active: the category x master product lives on the mixer group
+        // gains (same product as the legacy math, §4.4.5), so the per-source
+        // volume keeps only the authored base. Legacy: the original multiply.
         static void ApplyTo(AudioSource source, Category category, float baseVolume)
         {
             if (source == null) return;
-            float scaled = baseVolume * CategoryVolume01(category) * MasterVolume01;
-            source.volume = Mathf.Clamp01(scaled);
+            AudioMixerGroup group = GroupFor(category);
+            if (group != null) source.outputAudioMixerGroup = group;
+            source.volume = MixerActive
+                ? Mathf.Clamp01(baseVolume)
+                : Mathf.Clamp01(baseVolume * CategoryVolume01(category) * MasterVolume01);
         }
     }
 }
