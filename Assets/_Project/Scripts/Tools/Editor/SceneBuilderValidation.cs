@@ -272,6 +272,8 @@ namespace LightShadow.Tools
                     if (!mixer.GetFloat(parameter, out _))
                     {
                         problems.Add("Mixer: exposed parameter missing: " + parameter + ".");
+                    }
+                }
 
             // ------------------------------------------------- P2 hero props
             // The 14 Blender FBX models must be imported, every registered
@@ -363,6 +365,8 @@ namespace LightShadow.Tools
             if (storyGlass != null && storyGlass.GetFloat("_Surface") != 1f)
             {
                 problems.Add("Mat_Story_Glass is not set up as a transparent surface.");
+            }
+
             }
 
             report.AppendLine();
