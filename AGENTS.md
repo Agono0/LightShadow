@@ -42,6 +42,8 @@ Fast orientation for humans and AI agents. Verify cheaply; never re-derive from 
    - Tests pass for the touched area (see Verification below): runtime/editor scripts →
      `ValidateBatch` (grep `RESULT: PASS`); scene/prefab layout changed → `BuildAllBatch`
      first, then `ValidateBatch`; docs/workflow-only → the CI fast-checks are the gate.
+     Every PR additionally runs the `build` workflow (Windows player + one APK per Android
+     ABI, parallel, Library-cached) — those checks must be green before merge.
    - PR is `MERGEABLE` (no conflicts with `origin/main`); if not, `git switch <branch> &&
      git merge origin/main`, resolve, re-push.
 5. **While CI runs, keep working on the project** — poll `gh pr checks --watch` between
@@ -68,11 +70,15 @@ U="C:/Program Files/Unity/Hub/Editor/6000.4.0f1/Editor/Unity.exe"
 "$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.ValidateBatch -logFile Logs/validate.log      # content validation (RESULT: PASS)
 "$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAllBatch -logFile Logs/build.log        # rebuild scenes/prefabs after layout changes
 "$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildWindowsBatch -logFile Logs/win.log      # Builds/Windows/LightShadow.exe
-"$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidBatch -logFile Logs/android.log  # Builds/Android/LightShadow.apk
+"$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidBatch -logFile Logs/android.log  # universal ARM64 APK → Builds/Android/LightShadow.apk
+"$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidArm64Batch -logFile Logs/android-arm64.log  # per-ABI APK → Builds/Android/arm64-v8a/
+"$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidArmV7Batch -logFile Logs/android-armv7.log  # per-ABI APK → Builds/Android/armeabi-v7a/
+"$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.SceneBuilder.BuildAndroidX64Batch -logFile Logs/android-x64.log      # per-ABI APK → Builds/Android/x86_64/
 "$U" -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.BuildProfileTool.EnsureBatch -logFile Logs/profiles.log   # repair build profiles if boot aborts
 ```
 
-Grep logs for `RESULT:|error CS|Exception` — never read a full Unity log. Exit code 0 = success.
+Grep logs for `RESULT:|error CS|Exception` — never read a full Unity log. Exit code 0 = success
+(player builds throw and exit 1 on a failed `BuildPlayer` since the CI/CD pass).
 If boot aborts with "Failed to read the specified build profile": run `BuildProfileTool.EnsureBatch`;
 if it persists, delete `Library/EditorUserBuildSettings.asset` (machine-local) and rerun.
 

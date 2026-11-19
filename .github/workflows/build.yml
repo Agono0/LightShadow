@@ -1,0 +1,164 @@
+# Player build CI/CD for LIGHT SHADOW — see AGENTS.md "Git workflow".
+# Produces a Windows player and SEPARATE Android APKs per ABI (arm64-v8a,
+# armeabi-v7a, x86_64 — no universal APK). Unity Personal license must be
+# configured as repo secrets: UNITY_LICENSE (+ optional UNITY_EMAIL /
+# UNITY_PASSWORD). See game.ci/docs/github/activation.
+name: build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Superseded PR runs are cancelled; main and tag runs always complete.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-android:
+    name: build-android (${{ matrix.abi }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - abi: arm64-v8a
+            method: BuildAndroidArm64Batch
+          - abi: armeabi-v7a
+            method: BuildAndroidArmV7Batch
+          - abi: x86_64
+            method: BuildAndroidX64Batch
+    steps:
+      - name: Free runner disk space (GameCI android image + project do not fit otherwise)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          docker-images: true
+          large-packages: true
+          swap-storage: true
+
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Library (import cache per ABI)
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-${{ matrix.abi }}-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-Android-${{ matrix.abi }}-
+            Library-Android-
+
+      - name: Build ${{ matrix.abi }} APK
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: Android
+          unityVersion: auto
+          buildMethod: LightShadow.Tools.SceneBuilder.${{ matrix.method }}
+
+      - name: Upload ${{ matrix.abi }} APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LightShadow-android-${{ matrix.abi }}
+          path: Builds/Android/${{ matrix.abi }}/LightShadow.apk
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  build-windows:
+    name: build-windows
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Free runner disk space (GameCI windows-mono image + project do not fit otherwise)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          docker-images: true
+          large-packages: true
+          swap-storage: true
+
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Library (import cache for StandaloneWindows64)
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-StandaloneWindows64-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-StandaloneWindows64-
+
+      - name: Build Windows player (StandaloneWindows64, Mono — project default backend)
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: StandaloneWindows64
+          unityVersion: auto
+          customImage: unityci/editor:ubuntu-6000.4.0f1-windows-mono-4.0.0
+          buildMethod: LightShadow.Tools.SceneBuilder.BuildWindowsBatch
+
+      - name: Upload Windows player
+        uses: actions/upload-artifact@v4
+        with:
+          name: LightShadow-windows
+          path: Builds/Windows/
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: release
+    needs: [build-android, build-windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: LightShadow-*
+          path: artifacts
+
+      # The three APKs are all named LightShadow.apk inside their per-ABI
+      # artifacts — rename them so release assets are distinguishable.
+      - name: Rename APKs per ABI and zip the Windows player folder
+        run: |
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            mv "artifacts/LightShadow-android-$abi/LightShadow.apk" "artifacts/LightShadow-$abi.apk"
+          done
+          cd artifacts/LightShadow-windows
+          zip -qr ../LightShadow-windows.zip .
+          cd ../..
+          ls -la artifacts
+
+      - name: Attach builds to GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/LightShadow-windows.zip
+            artifacts/LightShadow-arm64-v8a.apk
+            artifacts/LightShadow-armeabi-v7a.apk
+            artifacts/LightShadow-x86_64.apk
