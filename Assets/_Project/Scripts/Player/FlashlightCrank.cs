@@ -87,8 +87,11 @@ namespace LightShadow.Player
 
             if (!activeHeld)
             {
+                // Zero the ratchet clock too: re-engaging the crank must not
+                // fire an instant ratchet - the first tick needs RatchetSeconds
+                // of actual turning, same as a fresh hold.
                 ResetGesture();
-                ratchetClock = RatchetSeconds;
+                ratchetClock = 0f;
                 return;
             }
 
