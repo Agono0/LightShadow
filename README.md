@@ -159,18 +159,19 @@ Drain rates, meter rewards, enemy speeds, catch distance and question timer can 
 without touching code. Re-run **3. Build Scenes** only when the layout changes; existing scenes read
 the asset at runtime.
 
-## Known limitations / next pass
+## Status & limitations
 
-- Greybox geometry remains, but the finishing pass added a global URP post stack (bloom, vignette,
-  colour grade, film grain), soft moon shadows, lamp flicker and a real 3D dawn ending; a baked
-  lighting pass is still the Week 7 deliverable.
-- Questions are AI-assisted drafts. A human must verify each `factSource` before release.
-  Question text itself is English; the `questionAr`/`optionsAr`/`explanationAr` fields exist for
-  the hand-translation pass.
-- Android builds successfully (`Builds/Android/LightShadow.apk`, 23 Oct 2026) but has not been run
-  on a physical test device in this environment; the Windows build was smoke-tested in the editor.
-  The touch UI is present and hides itself on desktop.
-- No cutscenes, voice acting audio files, multiple save slots or localization packages, by design
-  (doc §2.4 cut list). Interface localization (EN/AR) and the SAPI narrator are code-side only.
-- Checkpoints are per-session; there is no disk save yet. The game is 20–40 minutes, so this is
-  the documented “checkpoint autosave only” scope rather than multiple slots.
+- **Premium-pass art is integrated:** 60 Kenney mesh swaps plus Poly Haven PBR
+  surface sets are live in the shipped scenes; primitive architecture keeps its
+  tiled PBR, and the Blender hero-prop pass is in progress (see
+  [`Docs/TASKS.md`](Docs/TASKS.md), phase P2).
+- **The branching story shipped:** a 44-node graph with 12 authored choice
+  moments, timed choices, 4 endings and 3-slot disk saves (details in
+  [`Docs/PROJECT_STATE.md`](Docs/PROJECT_STATE.md)).
+- **Questions remain `NEEDS-FACT-CHECK`** pending human review, and the Arabic
+  question fields are awaiting the translation pass (phase P4).
+- **Builds are automated in CI** — Android arm64/armv7 APKs and the Windows
+  player build on every PR, with artifacts/releases; on-device performance
+  profiling is still pending.
+- Full detail lives in [`Docs/`](Docs/): [`PROJECT_STATE.md`](Docs/PROJECT_STATE.md),
+  [`TASKS.md`](Docs/TASKS.md), [`PERFORMANCE.md`](Docs/PERFORMANCE.md).

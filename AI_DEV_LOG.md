@@ -289,3 +289,40 @@ The game itself contains **no AI features** — this log is about the developmen
   were removed and the pipeline corrected on this branch.
 
 
+
+### 2026-11-19 — Docs/SOURCING_FONTS_MUSIC.md (premium-pass font + music sourcing) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) with WebSearch/WebFetch license-and-URL verification.
+- What AI provided: verified sourcing doc — 5 font families (Noto Naskh Arabic, Cairo, Reem Kufi,
+  Special Elite, Inter) with exact download URLs and license-file locations; 10 primary + 4
+  alternate music candidates (Pixabay Content License / Incompetech CC-BY / FMA CC0) mapped to
+  tension beds, chase, memory theme, and the four ending moods; 3 dawn-ambience SFX beds; a
+  download checklist with T_/MUS_/AMB_ target filenames. No files were downloaded.
+- What I changed myself: flagged The_Mountain's track as AI-generated and Mohamed_hassan's
+  "Chase Pulse" was skipped for the chase slot for that reason; chose the Pixabay primary set over
+  Incompetech where mood tags verified better; marked the Cairo/Reem Kufi presentation-forms (FE70)
+  caveat as a required in-editor test against ArabicSupport before adoption.
+- Teach-back check: pending — walk the team through the Pixabay Content License limits (no
+  standalone redistribution; no attribution required) vs CC-BY credit lines before any download PR.
+- Test result: research only — every listed URL resolved HTTP 200/206 or rendered a page on
+  2026-11-19 (verification appendix in the doc); repo untouched except this doc + log entry.
+
+### 2026-11-19 — Premium pass P0: release fix, missing art assets, adopted-plan docs — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) with 3 parallel sub-agents (docs set, audio-mixer
+  spec, font/music sourcing).
+- What AI provided: release-job root cause (leftover x86_64 rename loop aborted the tag run
+  before the release step) and the fix in build.yml; re-ran ArtImporter + BuildAllBatch so
+  `SM_Wraith.asset`, `SM_BeamCone.asset`, `M_Art_Beam.mat`, `T_FlashlightCookie.png` and the
+  rewired Shadow/Player prefabs now exist and are committed (scenes previously referenced
+  missing files); docs set — `Docs/MASTER_PLAN.md` (adopted universal production plan with
+  reconciliation header), `PROJECT_STATE.md`, `TASKS.md` (P0-P5 reconciled backlog),
+  `STYLE_GUIDE.md`, `CREDITS.md`; README "Known limitations" replaced with an accurate
+  Status section; ROADMAP P4 updated; `AGENT_REPORT_AUDIO_MIXER.md` (real AudioMixer +
+  snapshots implementation spec, D15 follow-up); `SOURCING_FONTS_MUSIC.md` (license-verified
+  font + music candidates with live URLs).
+- What I changed myself: chose "shipped game wins" reconciliation policy (stat scales,
+  story graph, tuning stay); dropped iOS and speech input per owner decision; verified
+  ValidateBatch RESULT: PASS after the rebuild; kept Assets/.github untouched by sub-agents.
+- Teach-back check: pending — explain the reconciliation policy and the new Docs set to the
+  next collaborator.
+- Test result: `ValidateBatch` RESULT: PASS (0 compile errors) with regenerated meshes
+  wired; release job fix verified by log diagnosis; CI build workflow re-runs on this PR.
