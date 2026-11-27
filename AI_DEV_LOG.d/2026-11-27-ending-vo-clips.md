@@ -1,21 +1,39 @@
 ### 2026-11-27 — feat/ending-vo-clips: ending VO, 14 lines x EN/AR — Instinct agent (for Ahmed)
-- Tool used: Instinct (AI agent)
-- What AI provided: SYNTHETIC generated-voice clips (TTS), user-approved batch.
-  28 clips: VO_SN_Ending_01..14.ogg in Assets/_Project/Resources/VO/{EN,AR}/,
-  named per Docs/ENDING_VO_SPEC.md §3 (clip id VO_<nodeId>, language by
-  directory). Voices are SYNTHETIC (generated TTS, same casting as the
-  previously accepted generated batches: Memory narrator, Nour, Mother, Shadow),
-  NOT human recordings; the spec's recording chain (VO_RECORDING_SPECS.md §3)
-  describes the human-recording target - these clips are the accepted generated
-  placeholder batch per the accepted batch policy. Format per the settled batch
-  agreement: mono 24 kHz Vorbis .ogg (q4), one take per line, loudness and
-  trimming untouched from generation. Importer .meta per clip (fresh GUIDs,
-  copied from the existing VO_SN_Act1_01.ogg.meta template). No manifest rows
-  (VO clips are tracked outside the register), VO_CLIP_MAP.md untouched, no
-  wiring, no script/scene changes. Clips carry placeholder/slate-free audio
-  only; no runtime, voice-quality or date claims.
+- Tool used: Instinct (AI agent). TTS generation was performed by the Instinct
+  main agent's speech capability; this task agent did conversion, staging and
+  publication only.
+- Authority: Ahmed's verified 2026-11-27 5:35 PM EET acceptance of the 28
+  ending clips (14 lines x EN/AR), relayed by main. No broader batch approval
+  is claimed.
+- What AI provided: 28 SYNTHETIC generated-voice clips (TTS, not human
+  recordings): VO_SN_Ending_01..14.ogg in Assets/_Project/Resources/VO/{EN,AR}/,
+  named per Docs/ENDING_VO_SPEC.md §3 (spec blob
+  7a3d13396e4bf4b4065a5e446d6d25dc1ed4d419 at base 3a3e81b). Format per the
+  settled agreement: mono 24 kHz Vorbis .ogg (q4), one take per line, loudness
+  and trimming untouched from generation. Importer .meta per clip (fresh GUIDs,
+  from the existing VO_SN_Act1_01.ogg.meta template). No manifest rows (pending
+  peer decision), VO_CLIP_MAP.md untouched, no wiring, no script/scene changes.
+- Voices (as recorded): the generator's handoff message (main -> this task,
+  2026-11-27 5:40:37 PM EET) states the casting used: Memory=Schedar,
+  Nour=Leda, Mother=Gacrux, Shadow=Enceladus. Per-line speakers follow spec
+  §3; the full per-line table with source WAV sha256 and committed ogg sha256
+  is AI_DEV_LOG.d/2026-11-27-ending-vo-ledger.md. The per-call voice
+  parameters live in the main agent's generation logs, not in this repo. No
+  audition was possible here: voice identity per file is NOT independently
+  verified.
+- Continuity: voice continuity with prior generated batches is UNVERIFIED.
+  The prior batch's own record
+  (AI_DEV_LOG.d/2026-11-27-generated-vo-clips-77-story-lines-in-en-ar-plan-.md)
+  records Nour=Leda, Mother=Gacrux, Shadow=Enceladus (whisper), System=Schedar;
+  it does not name a "Memory" voice, so Memory=Schedar for these ending lines
+  rests only on the generator's handoff statement.
+- Rights: synthetic clips generated in-house; NOT third-party stock, no
+  third-party license, no CC0 claim. Rights in the generated audio are
+  governed by the generator's terms; no clearance beyond that is claimed.
+  Validator PASS is a format check only and proves nothing about rights.
 - What I changed myself: n/a (agent-authored; no human edits yet).
 - Teach-back check: pending - PR review with the owner.
-- Test result: 28/28 output files verified against source WAV durations and
-  recorded processed sha256 (sha256 list retained); all clips mono 24 kHz
-  Vorbis. Listening/audition not possible here: voice quality UNVERIFIED.
+- Test result: 28/28 files verified mono 24 kHz Vorbis, durations 1:1 with the
+  source WAVs, sha256 recorded in the ledger and re-verified against the
+  committed files. Listening/audition not possible here: voice quality and
+  voice identity UNVERIFIED. No runtime or date claims.

@@ -219,3 +219,20 @@ import test was possible here: scale/pivot, materials and motion are UNVERIFIED
 | Model | Source page | File URL | License | Author | Notes |
 | --- | --- | --- | --- | --- | --- |
 | SM_Wraith_GhostSkull.glb | https://poly.pizza/m/TX8r9WBXpe | https://static.poly.pizza/0716bf8e-1894-4a90-8d10-34868975a239.glb.br | CC0 1.0 | Quaternius | mesh Ghost_Skull, 3,144 tris, 8 clips; pack https://quaternius.com/packs/ultimatemonsters.html |
+
+## Ending VO: 28 synthetic generated clips (added 2026-11-27, PR #95)
+
+These 28 clips (VO_SN_Ending_01..14.ogg, EN + AR, under
+Assets/_Project/Resources/VO/) are SYNTHETIC voice clips generated in-house
+with the Instinct agent's text-to-speech. They are NOT third-party stock audio
+and carry NO third-party license; no CC0 claim is made. Rights in the
+generated audio are governed by the generator's terms; no clearance beyond
+that is claimed or implied. Generator and voices as recorded: TTS by the
+Instinct main agent; casting stated in the generator's handoff message
+2026-11-27 5:40 PM EET: Memory=Schedar, Nour=Leda, Mother=Gacrux,
+Shadow=Enceladus. Spec/prompt source: Docs/ENDING_VO_SPEC.md, blob
+7a3d13396e4bf4b4065a5e446d6d25dc1ed4d419. Per-line ledger with source WAV and
+committed ogg sha256: AI_DEV_LOG.d/2026-11-27-ending-vo-ledger.md. Voice
+continuity with prior generated batches is UNVERIFIED. Authority: user's
+2026-11-27 5:35 PM EET acceptance of the 28 ending clips. Validator PASS is a
+format check only, not a rights check.
