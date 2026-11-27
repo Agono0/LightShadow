@@ -328,3 +328,21 @@ existing placeholders (UI_Panel/UI_Button/UI_Glow/UI_Backdrop) are untouched.
 | --- | --- | --- | --- | --- | --- |
 | T_UI_Panel_Night.png, T_UI_Button_Night.png | https://opengameart.org/content/fantasy-ui-borders | https://opengameart.org/sites/default/files/kenney_fantasy-ui-borders.zip | CC0 1.0 | Kenney | recolored derivatives of Double panel-000: vector re-raster + two-tone tint (panel), 9-slice composition (button) |
 | T_UI_Glow_Night.png, T_UI_Backdrop_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural assets, no external source; parameters in Art/pipeline/generate_ui_procedural.py |
+
+## HUD night sprites (added 2026-11-27, peer reservation grant)
+
+T_UI_HealthFrame_Night.png, T_UI_HealthFill_Night.png, T_UI_Icon_Key_Night.png,
+T_UI_Icon_Medkit_Night.png and T_UI_Icon_Checkpoint_Night.png are ORIGINAL
+in-house script-generated assets - no external source, no stock, no
+third-party license. Palette follows the settled night family: soft cyan
+#8FC3CE rims over deep blue-teal, health fill is a muted rose-coral #B86E66
+gradient (not saturated red, not brown); no baked text. Exact parameters in
+Art/pipeline/generate_ui_procedural.py (append-only HUD section; the four
+earlier night-UI outputs are byte-unchanged, verified by sha256 before/after).
+Visual review of all five rendered PNGs was performed on the actual pixels
+2026-11-27; no in-editor or runtime check. Wiring (HUD/Scripts) is the
+Scripts owner's side.
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| T_UI_HealthFrame_Night.png, T_UI_HealthFill_Night.png, T_UI_Icon_Key_Night.png, T_UI_Icon_Medkit_Night.png, T_UI_Icon_Checkpoint_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural assets, no external source; parameters in Art/pipeline/generate_ui_procedural.py |

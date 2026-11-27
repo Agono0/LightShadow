@@ -230,3 +230,125 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ---------------------------------------------------------------------------
+# HUD night sprites (2026-11-27, APPEND-ONLY extension; the four emitters
+# above are untouched and their outputs stay byte-identical). All sprites
+# below are ORIGINAL in-house generated: no external source, no stock.
+# Palette: soft cyan #8FC3CE rims over deep blue-teal #122E3A / #1A3D4B;
+# health fill is a muted rose-coral #B86E66 (not saturated red, not brown).
+# ---------------------------------------------------------------------------
+HUD_FRAME_SIZE = (256, 64)
+HUD_FILL_SIZE = (256, 64)
+ICON_SIZE = (128, 128)
+SS = 4  # supersample factor for crisp edges
+
+HUD_FRAME_RIM = FRAME            # #8FC3CE soft cyan
+HUD_FRAME_INNER = PANEL_FILL     # #122E3A deep blue-teal
+HUD_HEALTH_STOPS = [
+    (0.00, (0xC9, 0x85, 0x7C)),  # top highlight
+    (0.50, (0xB8, 0x6E, 0x66)),  # muted rose-coral base
+    (1.00, (0x9E, 0x5A, 0x53)),  # bottom shade
+]
+ICON_MAIN = FRAME                # #8FC3CE
+ICON_DARK = (0x1D, 0x4A, 0x55)   # darker teal detail
+ICON_ACCENT = (0xB8, 0x6E, 0x66) # muted rose-coral accent (medkit cross)
+
+
+def _vgrad(size, stops):
+    W, H = size
+    img = np.zeros((H, 3), dtype=np.float32)
+    ys = np.linspace(0.0, 1.0, H)
+    for (y0, c0), (y1, c1) in zip(stops, stops[1:]):
+        m = (ys >= y0) & (ys <= y1)
+        t = (ys[m] - y0) / max(y1 - y0, 1e-6)
+        img[m] = (1 - t)[:, None] * np.array(c0, dtype=np.float32) \
+                 + t[:, None] * np.array(c1, dtype=np.float32)
+    return Image.fromarray(np.tile(img[:, None, :], (1, W, 1)).astype(np.uint8), "RGB")
+
+
+def make_health_frame(size=HUD_FRAME_SIZE, radius=16, rim=7):
+    """Rounded-rect 9-slice frame: cyan rim, deep teal interior."""
+    from PIL import ImageDraw
+    W, H = size
+    im = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([0, 0, W * SS - 1, H * SS - 1], radius=radius * SS,
+                        fill=HUD_FRAME_RIM + (255,))
+    r = rim * SS
+    d.rounded_rectangle([r, r, W * SS - 1 - r, H * SS - 1 - r],
+                        radius=(radius - rim) * SS if radius > rim else 1,
+                        fill=HUD_FRAME_INNER + (255,))
+    return im.resize(size, Image.LANCZOS)
+
+
+def make_health_fill(size=HUD_FILL_SIZE):
+    """Muted rose-coral bar fill with a soft vertical gradient."""
+    return _vgrad(size, HUD_HEALTH_STOPS).convert("RGBA")
+
+
+def make_icon_key(size=ICON_SIZE):
+    """Flat key pictogram: ring bow, shaft, two teeth."""
+    from PIL import ImageDraw
+    S = size[0] * SS
+    im = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    u = S / 128.0
+    d.ellipse([14 * u, 34 * u, 60 * u, 80 * u], fill=ICON_MAIN + (255,))
+    d.ellipse([26 * u, 46 * u, 48 * u, 68 * u], fill=(0, 0, 0, 0))
+    d.rounded_rectangle([52 * u, 52 * u, 112 * u, 67 * u], radius=7 * u,
+                        fill=ICON_MAIN + (255,))
+    d.rectangle([94 * u, 67 * u, 104 * u, 88 * u], fill=ICON_MAIN + (255,))
+    d.rectangle([80 * u, 67 * u, 89 * u, 80 * u], fill=ICON_MAIN + (255,))
+    return im.resize(size, Image.LANCZOS)
+
+
+def make_icon_medkit(size=ICON_SIZE):
+    """Flat medkit pictogram: teal case, cyan rim, rose-coral cross."""
+    from PIL import ImageDraw
+    S = size[0] * SS
+    im = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    u = S / 128.0
+    d.rounded_rectangle([46 * u, 22 * u, 82 * u, 40 * u], radius=8 * u,
+                        fill=ICON_MAIN + (255,))
+    d.rounded_rectangle([16 * u, 36 * u, 112 * u, 106 * u], radius=12 * u,
+                        fill=ICON_DARK + (255,), outline=ICON_MAIN + (255,),
+                        width=int(5 * u))
+    d.rectangle([57 * u, 52 * u, 71 * u, 90 * u], fill=ICON_ACCENT + (255,))
+    d.rectangle([45 * u, 64 * u, 83 * u, 78 * u], fill=ICON_ACCENT + (255,))
+    return im.resize(size, Image.LANCZOS)
+
+
+def make_icon_checkpoint(size=ICON_SIZE):
+    """Flat checkpoint pictogram: pole, waving flag, base."""
+    from PIL import ImageDraw
+    S = size[0] * SS
+    im = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    u = S / 128.0
+    d.ellipse([34 * u, 100 * u, 74 * u, 112 * u], fill=ICON_DARK + (255,))
+    d.rounded_rectangle([50 * u, 18 * u, 60 * u, 106 * u], radius=5 * u,
+                        fill=ICON_MAIN + (255,))
+    d.polygon([(60 * u, 22 * u), (104 * u, 34 * u), (60 * u, 52 * u)],
+              fill=BUTTON_FILL + (255,), outline=ICON_MAIN + (255,))
+    return im.resize(size, Image.LANCZOS)
+
+
+def emit_hud(out_dir):
+    os.makedirs(out_dir, exist_ok=True)
+    for name, img in [
+        ("T_UI_HealthFrame_Night.png", make_health_frame()),
+        ("T_UI_HealthFill_Night.png", make_health_fill()),
+        ("T_UI_Icon_Key_Night.png", make_icon_key()),
+        ("T_UI_Icon_Medkit_Night.png", make_icon_medkit()),
+        ("T_UI_Icon_Checkpoint_Night.png", make_icon_checkpoint()),
+    ]:
+        p = os.path.join(out_dir, name)
+        img.save(p)
+        print("wrote", p, sha256(p), "(script-generated, no external source)")
+
+
+if __name__ == "__main__":
+    emit_hud(sys.argv[2])
