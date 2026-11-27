@@ -19,10 +19,39 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Docs-only PRs (audit notes, cue sheets, dev-log fragments, READMEs) used
+  # to wait ~35 minutes for three Unity players they cannot affect. This job
+  # diffs the PR; the build jobs no-op in seconds on docs-only changes while
+  # still reporting their required check names as successful. Anything under
+  # Assets/, ProjectSettings/, Packages/ or .github/ forces full builds.
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" | tee /tmp/changed.txt
+          if grep -qE '^(Assets|ProjectSettings|Packages|\.github)/' /tmp/changed.txt; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build-android:
     name: build-android (${{ matrix.abi }})
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    needs: changes
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +61,8 @@ jobs:
           - abi: armeabi-v7a
             method: BuildAndroidArmV7Batch
     steps:
-      - name: Free runner disk space (GameCI android image + project do not fit otherwise)
+      - if: needs.changes.outputs.code == 'true'
+        name: Free runner disk space (GameCI android image + project do not fit otherwise)
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
@@ -43,11 +73,13 @@ jobs:
           large-packages: true
           swap-storage: true
 
-      - uses: actions/checkout@v4
+      - if: needs.changes.outputs.code == 'true'
+        uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Cache Library (import cache per ABI)
+      - if: needs.changes.outputs.code == 'true'
+        name: Cache Library (import cache per ABI)
         uses: actions/cache@v4
         with:
           path: Library
@@ -56,7 +88,8 @@ jobs:
             Library-Android-${{ matrix.abi }}-
             Library-Android-
 
-      - name: Build ${{ matrix.abi }} APK
+      - if: needs.changes.outputs.code == 'true'
+        name: Build ${{ matrix.abi }} APK
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -67,7 +100,8 @@ jobs:
           unityVersion: auto
           buildMethod: LightShadow.Tools.SceneBuilder.${{ matrix.method }}
 
-      - name: Upload ${{ matrix.abi }} APK
+      - if: needs.changes.outputs.code == 'true'
+        name: Upload ${{ matrix.abi }} APK
         uses: actions/upload-artifact@v4
         with:
           name: LightShadow-android-${{ matrix.abi }}
@@ -80,8 +114,10 @@ jobs:
     name: build-windows
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    needs: changes
     steps:
-      - name: Free runner disk space (GameCI windows-mono image + project do not fit otherwise)
+      - if: needs.changes.outputs.code == 'true'
+        name: Free runner disk space (GameCI windows-mono image + project do not fit otherwise)
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
@@ -92,11 +128,13 @@ jobs:
           large-packages: true
           swap-storage: true
 
-      - uses: actions/checkout@v4
+      - if: needs.changes.outputs.code == 'true'
+        uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Cache Library (import cache for StandaloneWindows64)
+      - if: needs.changes.outputs.code == 'true'
+        name: Cache Library (import cache for StandaloneWindows64)
         uses: actions/cache@v4
         with:
           path: Library
@@ -104,7 +142,8 @@ jobs:
           restore-keys: |
             Library-StandaloneWindows64-
 
-      - name: Build Windows player (StandaloneWindows64, Mono — project default backend)
+      - if: needs.changes.outputs.code == 'true'
+        name: Build Windows player (StandaloneWindows64, Mono — project default backend)
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -116,7 +155,8 @@ jobs:
           customImage: unityci/editor:ubuntu-6000.4.0f1-windows-mono-4.0.0
           buildMethod: LightShadow.Tools.SceneBuilder.BuildWindowsBatch
 
-      - name: Upload Windows player
+      - if: needs.changes.outputs.code == 'true'
+        name: Upload Windows player
         uses: actions/upload-artifact@v4
         with:
           name: LightShadow-windows

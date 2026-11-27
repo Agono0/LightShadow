@@ -688,7 +688,6 @@ history and stay untouched (append-only).
   phones, and why the safe-area child only insets on notched devices).
 - Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
   no local Unity editor available.
-
 ### 2026-11-27 — SaveSystem deferred-restore fix (audit A3) — Abdelrhman Mohamed
 - Tool used: Instinct (AI coding agent)
 - What AI provided: `SaveSystem.ClearPendingRestore` and the new-game hook in
