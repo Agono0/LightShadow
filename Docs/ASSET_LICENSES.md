@@ -143,6 +143,7 @@ Download volume: Kenney packs 21.5 MB zips + Poly Haven 67 MB (24 × 2K JPG) ≈
 - OFL 1.1 fonts require no attribution but ship their full license text in
   `Assets/_Project/Fonts/Licenses/`; the OFL FAQ is https://openfontlicense.org (verified 2026-11-19).
 
+## ambientCG CC0 texture sets - floors (workstream C, downloaded + verified 2026-11-27)
 ## ambientCG CC0 texture sets - walls (workstream C, downloaded + verified 2026-11-27)
 ## ambientCG CC0 texture sets - decals (workstream C, downloaded + verified 2026-11-27)
 
@@ -182,6 +183,9 @@ Concrete texture metas. CC0: no attribution list entries needed.
 
 | Set | Source URL | License | Author | Imported at | Maps to |
 | --- | --- | --- | --- | --- | --- |
+| WoodFloor065B (2K JPG) | https://ambientcg.com/view?id=WoodFloor065B | CC0 1.0 | ambientCG | 2026-11-27 | T_WornWoodFloor_* / Mat_Art_WornWoodFloor |
+| Planks009 (2K JPG) | https://ambientcg.com/view?id=Planks009 | CC0 1.0 | ambientCG | 2026-11-27 | T_OldPlanks_* / Mat_Art_OldPlanks |
+| Fabric028 (2K JPG) | https://ambientcg.com/view?id=Fabric028 | CC0 1.0 | ambientCG | 2026-11-27 | T_DirtyCarpet_* / Mat_Art_DirtyCarpet |
 | PaintedPlaster016 (2K JPG) | https://ambientcg.com/view?id=PaintedPlaster016 | CC0 1.0 | ambientCG | 2026-11-27 | T_PeelingPlaster_* / Mat_Art_PeelingPlaster |
 | Concrete033 (2K JPG) | https://ambientcg.com/view?id=Concrete033 | CC0 1.0 | ambientCG | 2026-11-27 | T_MoldConcrete_* / Mat_Art_MoldConcrete |
 | Tiles140 (2K JPG) | https://ambientcg.com/view?id=Tiles140 | CC0 1.0 | ambientCG | 2026-11-27 | T_StainedTile_* / Mat_Art_StainedTile |
