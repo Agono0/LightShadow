@@ -26,6 +26,26 @@ namespace LightShadow.Tests.Editor
         }
 
         [Test]
+        public void RedesignFamilies_MapToTheirFields()
+        {
+            Assert.AreEqual("keyPickup", AudioLibrarySync.FieldForId("SFX_KeyPickup"));
+            Assert.AreEqual("doorUnlock", AudioLibrarySync.FieldForId("SFX_DoorUnlock"));
+            Assert.AreEqual("doorLockedRattle", AudioLibrarySync.FieldForId("SFX_DoorLockedRattle"));
+            Assert.AreEqual("medkitUse", AudioLibrarySync.FieldForId("SFX_MedkitUse"));
+            Assert.AreEqual("hurtHit", AudioLibrarySync.FieldForId("SFX_HurtHit"));
+            Assert.AreEqual("hurtHeavy", AudioLibrarySync.FieldForId("SFX_HurtHeavy"));
+            Assert.AreEqual("respawn", AudioLibrarySync.FieldForId("SFX_Respawn"));
+            Assert.AreEqual("throwWhoosh", AudioLibrarySync.FieldForId("SFX_ThrowWhoosh"));
+            Assert.AreEqual("throwImpactSoft", AudioLibrarySync.FieldForId("SFX_ThrowImpactSoft"));
+            Assert.AreEqual("throwImpactHard", AudioLibrarySync.FieldForId("SFX_ThrowImpactHard"));
+            Assert.AreEqual("crateScrape", AudioLibrarySync.FieldForId("SFX_CrateScrape"));
+            Assert.AreEqual("wraithRoam", AudioLibrarySync.FieldForId("SFX_WraithRoam"));
+            Assert.AreEqual("wraithAmbushStinger", AudioLibrarySync.FieldForId("SFX_WraithAmbushStinger"));
+            Assert.AreEqual("wraithBreathNear", AudioLibrarySync.FieldForId("SFX_WraithBreathNear"));
+            Assert.AreEqual("ambienceYard", AudioLibrarySync.FieldForId("AMB_SchoolyardNight"));
+        }
+
+        [Test]
         public void UnknownIds_MapToNull()
         {
             Assert.IsNull(AudioLibrarySync.FieldForId("SFX_FootstepCloud"));

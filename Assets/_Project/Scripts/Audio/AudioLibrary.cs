@@ -59,6 +59,23 @@ namespace LightShadow.Audio
         [Header("Ambience")]
         public AudioClip ambienceNight;
 
+        [Header("Redesign SFX (drop-in families, wired by name, null until the clips land)")]
+        public AudioClip[] keyPickup;
+        public AudioClip[] doorUnlock;
+        public AudioClip[] doorLockedRattle;
+        public AudioClip[] medkitUse;
+        public AudioClip[] hurtHit;
+        public AudioClip[] hurtHeavy;
+        public AudioClip[] respawn;
+        public AudioClip[] throwWhoosh;
+        public AudioClip[] throwImpactSoft;
+        public AudioClip[] throwImpactHard;
+        public AudioClip[] crateScrape;
+        public AudioClip[] wraithRoam;
+        public AudioClip[] wraithAmbushStinger;
+        public AudioClip[] wraithBreathNear;
+        public AudioClip ambienceYard;
+
         [Header("Memory theme (Yoiyami CC0, shared clip)")]
         [Tooltip("Memory-scene theme; the main menu reuses the same clip via the MUS_Menu alias (Docs/AUDIO_CUES.md). Assigned by the audio import pass.")]
         public AudioClip memoryTheme;
