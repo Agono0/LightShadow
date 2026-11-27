@@ -178,6 +178,10 @@ namespace LightShadow.Tools
             // Labored breathing when winded or scared (user brief 2026-11-27).
             root.AddComponent<PlayerBreathing>();
 
+            // Movable objects (same brief): walking shoves crates and light
+            // furniture.
+            root.AddComponent<PlayerPush>();
+
             // P3 horror systems: the noise bus (hearing radii), the crank
             // minigame and hiding v1 all ride the player rig.
             NoiseEmitter noise = root.AddComponent<NoiseEmitter>();

@@ -243,6 +243,30 @@ T_DustMote was downscaled 512 -> 128 px RGBA (LANCZOS), alpha preserved.
 | SM_DoorProp.glb | https://poly.pizza/m/JuTzNjtD54 | https://static.poly.pizza/7c257cc3-8ade-4813-86c2-82615b4c8eda.glb.br | CC0 1.0 | Quaternius | 2216 tris (exception); 3.08 m tall; flat-color |
 | SM_TorchBody.glb | https://poly.pizza/m/WGsvr4KOZd | https://static.poly.pizza/035c4897-22f3-4e9c-b29f-ebafe2b566da.glb.br | CC0 1.0 | Quaternius | 610 tris; 2.51 m tall; mid-height pivot; flat-color |
 | T_DustMote.png | https://opengameart.org/content/particle-pack-80-sprites | https://opengameart.org/sites/default/files/kenney_particlePack.zip | CC0 1.0 | Kenney | circle_05.png from zip, downscaled to 128x128 RGBA; original https://kenney.nl/assets/particle-pack |
+## Ending VO: 28 synthetic generated clips (added 2026-11-27, PR #95)
+
+These 28 clips (VO_SN_Ending_01..14.ogg, EN + AR, under
+Assets/_Project/Resources/VO/) are SYNTHETIC voice clips generated in-house
+with text-to-speech. They are NOT third-party stock audio and carry NO
+third-party license; no CC0 claim is made. Voices and per-line settings as
+recorded at generation time: Memory=Schedar, Nour=Leda, Mother=Gacrux,
+Shadow=Enceladus; full per-line ledger with direction settings and
+source/processed sha256: AI_DEV_LOG.d/2026-11-27-ending-vo-ledger.md.
+Spec/prompt source: Docs/ENDING_VO_SPEC.md, blob
+7a3d13396e4bf4b4065a5e446d6d25dc1ed4d419.
+
+Applicable observed terms (fetched and read 2026-11-27):
+https://aistudio.google.com/docs/terms, section "Use of Generated Content" -
+Google won't claim ownership of generated content, and Google may generate the
+same or similar content for others (output is non-exclusive). The paid/unpaid
+tier and the service arrangement in use are not observable from here.
+Documenting these terms is not rights clearance; no clearance beyond them is
+claimed or implied.
+
+Voice continuity with prior generated batches is UNVERIFIED. Authority:
+user's 2026-11-27 5:35 PM EET acceptance of the 28 ending clips. Validator
+PASS is a format check only, not a rights check.
+
 ## P0 SFX: wraith roam / ambush stinger / breath near (added 2026-11-27, peer-approved picks, provisional)
 
 Licenses re-verified on the source pages 2026-11-27: all CC0 1.0, no attribution
