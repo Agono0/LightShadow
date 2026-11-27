@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_Mat_022
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: 'A triangle has a base of 10 cm and a height of 6 cm. What is its area?'
+  options:
+  - '60 square cm'
+  - '16 square cm'
+  - '36 square cm'
+  - '30 square cm'
+  correctIndex: 3
+  category: 1
+  difficulty: 2
+  explanation: Area of a triangle = base x height / 2 = 10 x 6 / 2 = 30 square cm.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: مثلث قاعدته 10 سم وارتفاعه 6 سم. ما مساحته؟
+  optionsAr:
+  - '60 سم مربع'
+  - '16 سم مربع'
+  - '36 سم مربع'
+  - '30 سم مربع'
+  explanationAr: مساحة المثلث = القاعدة × الارتفاع ÷ 2 = 10 × 6 ÷ 2 = 30 سم مربع.

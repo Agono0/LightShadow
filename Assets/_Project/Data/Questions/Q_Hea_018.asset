@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_Hea_018
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: 'The right side of the heart pumps blood to which organs?'
+  options:
+  - The brain
+  - The kidneys
+  - The liver
+  - The lungs
+  correctIndex: 3
+  category: 5
+  difficulty: 2
+  explanation: The right side pumps blood to the lungs to pick up oxygen. The left side sends it to the body.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: إلى أي أعضاء يضخ الجانب الأيمن من القلب الدم؟
+  optionsAr:
+  - الدماغ
+  - الكليتان
+  - الكبد
+  - الرئتان
+  explanationAr: يضخ الجانب الأيمن الدم إلى الرئتين ليحمل الأكسجين، ويرسله الجانب الأيسر إلى الجسم.
