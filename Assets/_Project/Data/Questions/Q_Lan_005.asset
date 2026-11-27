@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: '"Go" is irregular: today I go, yesterday I went, I have gone.'
   factSource: NEEDS-FACT-CHECK
+  questionAr: ما الزمن الماضي للفعل «go»؟
+  optionsAr:
+  - goed
+  - went
+  - gone
+  - going
+  explanationAr: '«go» فعل شاذ التصريف: ماضيه «went» لا «goed»، وأصله التام «gone».'

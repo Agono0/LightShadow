@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using LightShadow.Core;
 using LightShadow.Gameplay;
 using LightShadow.Player;
@@ -7,18 +8,21 @@ using UnityEngine.AI;
 namespace LightShadow.Enemy
 {
     // Doc 4.3: The Shadow hunts in darkness, slows near light and cannot enter
-    // lit rooms. This is a small hand-written finite state machine with exactly
-    // four states. Every state has its own -> enter / update / exit section below.
+    // lit rooms. This is a small hand-written finite state machine. Every state
+    // has its own -> enter / update / exit section below.
     //
     //        Patrol  --player near in the dark-->  Stalk  --line of sight-->  Chase
     //           ^                                     |   <-- light returns -->
     //           +-------------------------------------+
-    //        Any state --beam at close range with meter>30-->  Repelled --> Stalk
+    //  Patrol/Stalk --fresh noise in range-->  Investigate  --found nothing-->  Search
+    //        Chase lost ---------------------->  Search (checks 1-2 hide spots)
+    //        Any state --focused beam held 2 s, meter>=25-->  Repelled (20 s) --> Stalk
+    //        Gauge 100 (MenaceDirector) -->  ForcedCooldown  --timer done-->  Patrol
     //
     [RequireComponent(typeof(NavMeshAgent))]
     public class EnemyBehaviour : MonoBehaviour
     {
-        public enum State { Patrol, Stalk, Chase, Repelled }
+        public enum State { Patrol, Stalk, Chase, Repelled, Investigate, ForcedCooldown, Search }
 
         [Header("Wiring")]
         public GameConfig config;
@@ -40,10 +44,33 @@ namespace LightShadow.Enemy
         int waypointIndex;
         float sightLostTimer;
         float repelCooldownTimer;
-        float hearTimer;
         float catchCooldownTimer;
         bool aggressive;
         bool catching;
+
+        // Hearing (P3 noise bus): the last noise the player made and how loud
+        // it was. OnNoiseEmitted fills these; the FSM reacts in Update.
+        Vector3 lastNoisePosition;
+        float lastNoiseTime = -99f;
+        float lastNoiseRadius;
+        float investigateTimer;
+
+        // Forced cool-down (P3 MenaceDirector): the Shadow leaves the wing.
+        Vector3 forcedCooldownTarget;
+        float forcedCooldownTimer;
+        float forcedCooldownSeconds;
+
+        // Search (P3 hiding): after a lost chase or a fruitless investigate the
+        // Shadow checks a few random hide spots around the last known point.
+        readonly List<Vector3> searchPath = new List<Vector3>();
+        int searchStageIndex;
+        float searchTimer;
+        float searchDwell;
+
+        // Banish (P3, plan 4.6): the focused beam must STAY on the Shadow for
+        // banishHoldSeconds before it recoils into the 20 s retreat. No instant
+        // repel any more - the timer decays fast when the beam wanders off.
+        float banishHoldTimer;
 
         public State CurrentState => state;
         public bool IsAggressive => aggressive;
@@ -58,15 +85,48 @@ namespace LightShadow.Enemy
         float ChaseExitDistance => config != null ? config.chaseExitDistance : 18f;
         float SightLostGrace => config != null ? config.sightLostGrace : 5f;
         float CatchDistance => config != null ? config.catchDistance : 1.2f;
-        float RepelRecoil => config != null ? config.repelRecoil : 8f;
-        float RepelCooldown => config != null ? config.repelCooldown : 6f;
-        float RepelThreshold => config != null ? config.repelMeterThreshold : 30f;
+        float BanishHoldSeconds => config != null ? config.banishHoldSeconds : 2f;
+        float BanishThreshold => config != null ? config.banishMeterThreshold : 25f;
+        float BanishRetreatSeconds => config != null ? config.banishRetreatSeconds : 20f;
+        float BanishRecoilDistance => config != null ? config.banishRecoilDistance : 8f;
+        float BanishBeamAngle => config != null ? config.banishBeamAngle : 30f;
+        float BanishReleaseDecay => config != null ? config.banishReleaseDecay : 2f;
         float StalkLightThreshold => config != null ? config.stalkLightThreshold : 0.3f;
-        float SprintNoiseRange => config != null ? config.sprintNoiseRange : 8f;
+        float InvestigateNoiseMaxAge => config != null ? config.investigateNoiseMaxAge : 3f;
+        float InvestigateSearchSeconds => config != null ? config.investigateSearchSeconds : 8f;
+        float InvestigateArriveDistance => config != null ? config.investigateArriveDistance : 0.9f;
+        float InvestigateSweepDegrees => config != null ? config.investigateSweepDegrees : 60f;
+        float InvestigateSweepSpeed => config != null ? config.investigateSweepSpeed : 1.5f;
+        float SearchSeconds => config != null ? config.searchSeconds : 60f;
+        int SearchHideSpotsChecked => config != null ? config.searchHideSpotsChecked : 2;
+        float SearchExcludeRadius => config != null ? config.searchHideSpotExcludeRadius : 2f;
+        float SearchSpotDwellSeconds => config != null ? config.searchSpotDwellSeconds : 2.5f;
 
         void Awake()
         {
             if (agent == null) agent = GetComponent<NavMeshAgent>();
+        }
+
+        void OnEnable()
+        {
+            GameEvents.NoiseEmitted += OnNoiseEmitted;
+        }
+
+        void OnDisable()
+        {
+            GameEvents.NoiseEmitted -= OnNoiseEmitted;
+        }
+
+        // P3 noise bus: remember where the noise happened and how far it
+        // carries. Whether the Shadow reacts at all is decided in Update (the
+        // noise must still be fresh AND inside the radius when checked).
+        void OnNoiseEmitted(float radius)
+        {
+            lastNoisePosition = player != null ? player.position : transform.position;
+            lastNoiseTime = Time.time;
+            lastNoiseRadius = radius;
+            // Already on the way to a noise? A newer one re-targets the search.
+            if (state == State.Investigate) investigateTimer = 0f;
         }
 
         void Start()
@@ -134,17 +194,27 @@ namespace LightShadow.Enemy
 
             // How visible Nour is right now: standing in a lit room counts as fully lit.
             float effectiveLight = LitZone.PlayerInLitZone ? 1f : FlashlightBattery.PlayerLightLevel;
-            bool sighted = distance <= SightRange && (sight == null || sight.HasLineOfSight());
+            bool sighted = distance <= SightRange && (sight == null || sight.HasLineOfSightCached());
 
-            // Sweaty-palm hearing rule: sprinting is loud. The Shadow pauses and
-            // turns toward the noise but does not magically know where Nour hides.
-            if (playerController != null && playerController.IsSprinting && distance <= SprintNoiseRange) hearTimer = 1.2f;
-            if (hearTimer > 0f) hearTimer -= dt;
+            // Sweaty-palm hearing (P3): a fresh noise inside its radius pulls
+            // the Shadow off patrol/stalk (or interrupts a search) to
+            // Investigate. It walks to where the sound came from and searches -
+            // it does not magically know where Nour is standing now.
+            if (!sighted && (state == State.Patrol || state == State.Stalk || state == State.Search)
+                && FreshNoiseHeard())
+            {
+                EnterState(State.Investigate);
+                return;
+            }
 
             // Caught: close enough while unlit. The GameManager handles the fade,
-            // the meter penalty and the checkpoint return (Doc 4.3).
-            if (state != State.Repelled && catchCooldownTimer <= 0f
-                && distance <= CatchDistance && !LitZone.PlayerInLitZone)
+            // the meter penalty and the checkpoint return (Doc 4.3). Exempt:
+            // the forced cool-down (the Shadow is leaving the wing on purpose)
+            // and a hidden Nour - the Shadow cannot grab through the spot wall;
+            // Search still FINDS a witnessed hider through sight (UpdateSearch).
+            if (state != State.Repelled && state != State.ForcedCooldown && catchCooldownTimer <= 0f
+                && distance <= CatchDistance && !LitZone.PlayerInLitZone
+                && !HidingSystem.IsHidden)
             {
                 StartCoroutine(CatchSequence());
                 // The catch close-up (premium pass); no-op if the rigs/CM are absent.
@@ -152,12 +222,25 @@ namespace LightShadow.Enemy
                 return;
             }
 
-            // Repel check runs from every state: a strong beam to the face pushes
-            // the Shadow back without ever hurting the player (Doc 4.3).
-            if (state != State.Repelled && repelCooldownTimer <= 0f && CanRepel(sighted))
+            // Banish check runs from every state (P3, plan 4.6): holding the
+            // focused beam on the Shadow builds toward the recoil+retreat. The
+            // timer decays fast when the beam wanders off; no instant repel.
+            if (state != State.Repelled && state != State.ForcedCooldown)
             {
-                EnterRepelled(playerPosition);
-                return;
+                bool focusing = FocusedBeamOnShadow(sighted) && meter != null && meter.Meter >= BanishThreshold;
+                if (focusing)
+                {
+                    banishHoldTimer += dt;
+                    if (banishHoldTimer >= BanishHoldSeconds)
+                    {
+                        EnterBanished(playerPosition);
+                        return;
+                    }
+                }
+                else
+                {
+                    banishHoldTimer = Mathf.Max(0f, banishHoldTimer - dt * BanishReleaseDecay);
+                }
             }
 
             switch (state)
@@ -166,33 +249,214 @@ namespace LightShadow.Enemy
                 case State.Stalk: UpdateStalk(dt, playerPosition, distance, effectiveLight, sighted); break;
                 case State.Chase: UpdateChase(dt, playerPosition, distance, sighted); break;
                 case State.Repelled: UpdateRepelled(); break;
+                case State.Investigate: UpdateInvestigate(dt, playerPosition, distance, effectiveLight, sighted); break;
+                case State.ForcedCooldown: UpdateForcedCooldown(dt); break;
+                case State.Search: UpdateSearch(dt, playerPosition, sighted); break;
             }
+        }
+
+        // P3 MenaceDirector pacing: a public one-way valve. At gauge 100 the
+        // director parks the Shadow on the farthest waypoint for 45-60 s; no
+        // catches, no chases, no stalk while it is leaving. The gauge resets
+        // when the director sees ForcedCooldown exit.
+        public void ForceCooldown(float seconds)
+        {
+            if (catching) return;
+            forcedCooldownSeconds = Mathf.Max(1f, seconds);
+            EnterState(State.ForcedCooldown);
+        }
+
+        // A noise is actionable when it is young enough and close enough: the
+        // Shadow must be standing inside the noise's hearing radius to have
+        // "heard" it.
+        bool FreshNoiseHeard()
+        {
+            if (Time.time - lastNoiseTime > InvestigateNoiseMaxAge) return false;
+            return Vector3.Distance(transform.position, lastNoisePosition) <= lastNoiseRadius;
         }
 
         // ------------------------- Patrol -------------------------
         // Walks the waypoint loop at a slow speed. Purely a presence in the dark;
-        // it only starts hunting when Nour gets close while unlit.
+        // it only starts hunting when Nour gets close while unlit. Noises are
+        // handled by the Investigate state, not by stopping mid-step any more.
         void UpdatePatrol(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
         {
-            if (hearTimer > 0f)
+            agent.isStopped = false;
+            if (!agent.hasPath || agent.remainingDistance <= 0.7f) AdvanceWaypoint();
+
+            bool playerIsDark = light < StalkLightThreshold;
+            if (distance <= EngageRadius && (playerIsDark || aggressive)) EnterState(State.Stalk);
+        }
+
+        // ------------------------- Investigate -------------------------
+        // The noise bus pulled it here (P3, replaces the old stop-and-face
+        // hack): walk to where the sound came from, sweep a look-around for a
+        // few seconds, then give up and resume the patrol. A direct sighting
+        // still escalates straight to the chase; a hidden Nour in the dark
+        // nearby reads exactly like any other patrol stalk engagement.
+        void UpdateInvestigate(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
+        {
+            if (!agent.hasPath || agent.remainingDistance <= InvestigateArriveDistance)
             {
+                // Arrived: stand still and sweep the gaze across the noise spot.
                 agent.isStopped = true;
-                FaceTowards(playerPosition);
+                investigateTimer += dt;
+
+                Vector3 noiseDirection = lastNoisePosition - transform.position;
+                noiseDirection.y = 0f;
+                float baseAngle = noiseDirection.sqrMagnitude > 0.01f
+                    ? Quaternion.LookRotation(noiseDirection).eulerAngles.y
+                    : transform.eulerAngles.y;
+
+                float sway = Mathf.Sin(investigateTimer * InvestigateSweepSpeed) * InvestigateSweepDegrees;
+                Quaternion target = Quaternion.Euler(0f, baseAngle + sway, 0f);
+                transform.rotation = Quaternion.Slerp(transform.rotation, target, Time.deltaTime * 4f);
             }
             else
             {
                 agent.isStopped = false;
-                if (!agent.hasPath || agent.remainingDistance <= 0.7f) AdvanceWaypoint();
+                SetDestination(lastNoisePosition);
             }
 
-            bool playerIsDark = light < StalkLightThreshold;
-            if (distance <= EngageRadius && (playerIsDark || aggressive)) EnterState(State.Stalk);
+            if (sighted && !MenaceDirector.ChaseBlocked)
+            {
+                EnterState(State.Chase);
+                return;
+            }
+
+            // The player close by in the dark is still worth stalking, exactly
+            // as from Patrol.
+            if (distance <= EngageRadius && light < StalkLightThreshold)
+            {
+                EnterState(State.Stalk);
+                return;
+            }
+
+            if (investigateTimer >= InvestigateSearchSeconds) BeginSearch(lastNoisePosition);
+        }
+
+        // ------------------------- Search -------------------------
+        // Plan 4.12: after a lost chase (or a fruitless investigate) the Shadow
+        // checks up to searchHideSpotsChecked random hide spots around the last
+        // known point - never the one Nour currently occupies on the first
+        // pass. Sighting still escalates; running out of time or spots ends
+        // back at Patrol.
+        void BeginSearch(Vector3 lastKnown)
+        {
+            searchTimer = 0f;
+            searchDwell = 0f;
+            searchPath.Clear();
+            searchPath.Add(lastKnown);
+
+            // Candidate spots: exclude the one Nour is occupying right now
+            // (first pass never checks the occupied spot - plan 4.12).
+            List<Vector3> candidates = new List<Vector3>();
+            for (int i = 0; i < HideSpot.All.Count; i++)
+            {
+                HideSpot spot = HideSpot.All[i];
+                if (spot == null) continue;
+                if (HidingSystem.IsHidden && player != null
+                    && Vector3.Distance(spot.transform.position, player.position) <= SearchExcludeRadius)
+                {
+                    continue;
+                }
+                candidates.Add(spot.transform.position);
+            }
+
+            // Sample distinct random candidates in random order.
+            int wanted = Mathf.Max(0, SearchHideSpotsChecked);
+            while (searchPath.Count < wanted + 1 && candidates.Count > 0)
+            {
+                int index = Random.Range(0, candidates.Count);
+                searchPath.Add(candidates[index]);
+                candidates.RemoveAt(index);
+            }
+
+            EnterState(State.Search);
+        }
+
+        void UpdateSearch(float dt, Vector3 playerPosition, bool sighted)
+        {
+            searchTimer += dt;
+
+            if (sighted && !MenaceDirector.ChaseBlocked)
+            {
+                EnterState(State.Chase);
+                return;
+            }
+
+            if (searchStageIndex >= searchPath.Count)
+            {
+                // Every stop checked: give up.
+                EnterState(State.Patrol);
+                return;
+            }
+
+            Vector3 target = searchPath[searchStageIndex];
+            if (!agent.hasPath || agent.remainingDistance <= InvestigateArriveDistance)
+            {
+                // Dwell at the stop and look it over, then move to the next.
+                agent.isStopped = true;
+                FaceTowards(searchStageIndex == 0 ? playerPosition : target);
+                searchDwell += dt;
+                if (searchDwell >= SearchSpotDwellSeconds)
+                {
+                    searchDwell = 0f;
+                    searchStageIndex++;
+                }
+            }
+            else
+            {
+                agent.isStopped = false;
+                SetDestination(target);
+            }
+
+            if (searchTimer >= SearchSeconds) EnterState(State.Patrol);
+        }
+
+        // ------------------------- ForcedCooldown -------------------------
+        // The MenaceDirector pulled the gauge to 100: walk to the waypoint
+        // farthest from Nour, then stand there until the cool-down ends. The
+        // Update gates above already exempt this state from catching, chasing,
+        // stalking and the beam repel - the Shadow is leaving, full stop.
+        void UpdateForcedCooldown(float dt)
+        {
+            if (!agent.hasPath || agent.remainingDistance > InvestigateArriveDistance)
+            {
+                agent.isStopped = false;
+                SetDestination(forcedCooldownTarget);
+                return;
+            }
+
+            agent.isStopped = true;
+            forcedCooldownTimer += dt;
+            if (forcedCooldownTimer >= forcedCooldownSeconds) EnterState(State.Patrol);
+        }
+
+        void PickFarWaypoint()
+        {
+            forcedCooldownTarget = transform.position;
+            if (route == null || route.Count == 0 || player == null) return;
+
+            float best = -1f;
+            for (int i = 0; i < route.Count; i++)
+            {
+                Transform waypoint = route.Get(i);
+                if (waypoint == null) continue;
+                float distance = Vector3.Distance(waypoint.position, player.position);
+                if (distance > best)
+                {
+                    best = distance;
+                    forcedCooldownTarget = waypoint.position;
+                }
+            }
         }
 
         // ------------------------- Stalk -------------------------
         // Creeps toward Nour in the darkness with an audible breath. Stops
         // three or four meters away and watches; that is the horror beat.
         // Returns to patrol the moment the light comes up (unless dawn chase).
+        // Chase is gated by the MenaceDirector's post-chase grace window.
         void UpdateStalk(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
         {
             if (distance > 4f)
@@ -206,7 +470,7 @@ namespace LightShadow.Enemy
                 FaceTowards(playerPosition);
             }
 
-            if (sighted)
+            if (sighted && !MenaceDirector.ChaseBlocked)
             {
                 EnterState(State.Chase);
                 return;
@@ -219,7 +483,9 @@ namespace LightShadow.Enemy
 
         // ------------------------- Chase -------------------------
         // Full speed straight at the player's last known position. Ends when the
-        // player out-runs it, breaks line of sight long enough, or repels it.
+        // player out-runs it, breaks line of sight long enough, or repels it -
+        // and a lost chase hands over to the hide-spot Search instead of
+        // straight patrol (plan 4.12).
         void UpdateChase(float dt, Vector3 playerPosition, float distance, bool sighted)
         {
             if (sighted)
@@ -236,8 +502,7 @@ namespace LightShadow.Enemy
             bool lost = sightLostTimer > SightLostGrace;
             if (escaped || lost)
             {
-                // Still close by? Lurk. Far away? Give up and patrol.
-                EnterState(distance <= EngageRadius ? State.Stalk : State.Patrol);
+                BeginSearch(playerPosition);
             }
         }
 
@@ -283,19 +548,48 @@ namespace LightShadow.Enemy
                     agent.isStopped = true;
                     agent.ResetPath();
                     break;
+                case State.Investigate:
+                    // Creep toward the noise with a stalker's pace, not a jog.
+                    agent.speed = StalkSpeed;
+                    agent.isStopped = false;
+                    investigateTimer = 0f;
+                    SetBreathing(true);
+                    break;
+                case State.ForcedCooldown:
+                    // Leaving the wing: patrol pace, quiet, no target fixes
+                    // while the timer runs.
+                    agent.speed = PatrolSpeed;
+                    agent.isStopped = false;
+                    forcedCooldownTimer = 0f;
+                    PickFarWaypoint();
+                    SetBreathing(false);
+                    break;
+                case State.Search:
+                    // Check the picked spots with a stalker's pace.
+                    agent.speed = StalkSpeed;
+                    agent.isStopped = false;
+                    searchStageIndex = 0;
+                    searchDwell = 0f;
+                    SetBreathing(true);
+                    break;
             }
         }
 
-        void EnterRepelled(Vector3 playerPosition)
+        // P3 banish (plan 4.6): the held focused beam wins - recoil warp onto
+        // the NavMesh, 20 s retreat, and it costs meter. Never hurts anyone.
+        void EnterBanished(Vector3 playerPosition)
         {
             EnterState(State.Repelled);
-            repelCooldownTimer = RepelCooldown;
+            repelCooldownTimer = BanishRetreatSeconds;
+            banishHoldTimer = 0f;
+
+            if (meter != null && config != null) meter.RemoveMeter(config.banishMeterCost);
 
             // Recoil away and land on the NavMesh so it never clips into geometry.
             Vector3 away = (transform.position - playerPosition);
             away.y = 0f;
             away = away.sqrMagnitude > 0.01f ? away.normalized : -transform.forward;
-            Vector3 recoilTarget = transform.position + away * RepelRecoil;
+            Vector3 recoilTarget = transform.position + away * BanishRecoilDistance;
 
             if (NavMesh.SamplePosition(recoilTarget, out NavMeshHit hit, 2f, NavMesh.AllAreas))
             {
@@ -311,8 +605,12 @@ namespace LightShadow.Enemy
         {
             catching = false;
             catchCooldownTimer = 1.5f;
-            hearTimer = 0f;
             sightLostTimer = 0f;
+            investigateTimer = 0f;
+            forcedCooldownTimer = 0f;
+            banishHoldTimer = 0f;
+            searchStageIndex = 0;
+            searchPath.Clear();
             EnterState(State.Patrol);
         }
 
@@ -322,8 +620,11 @@ namespace LightShadow.Enemy
         System.Collections.IEnumerator CatchSequence()
         {
             catching = true;
-            hearTimer = 0f;
             sightLostTimer = 0f;
+            investigateTimer = 0f;
+            forcedCooldownTimer = 0f;
+            searchStageIndex = 0;
+            searchPath.Clear();
 
             if (agent != null && agent.isOnNavMesh)
             {
@@ -385,15 +686,16 @@ namespace LightShadow.Enemy
             if (!on) breathingSource.Stop();
         }
 
-        bool CanRepel(bool sighted)
+        // Is the FOCUSED beam actually pointing at the Shadow right now?
+        // Replaces the old CanRepel instant check (P3 banish rebalance).
+        bool FocusedBeamOnShadow(bool sighted)
         {
             if (!sighted) return false;
-            if (flashlight == null || !flashlight.IsOn) return false;
-            if (meter == null || meter.Meter <= RepelThreshold) return false;
+            if (flashlight == null || !flashlight.IsFocused) return false;
             if (playerCamera == null) return false;
 
             Vector3 toEnemy = (transform.position + Vector3.up * 1f) - playerCamera.transform.position;
-            return Vector3.Angle(playerCamera.transform.forward, toEnemy) < 30f;
+            return Vector3.Angle(playerCamera.transform.forward, toEnemy) < BanishBeamAngle;
         }
 
         void OnDrawGizmosSelected()

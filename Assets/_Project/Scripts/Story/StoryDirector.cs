@@ -62,6 +62,8 @@ namespace LightShadow.Story
         public float Boldness => state.boldness;
         public float Trust => state.trust;
         public float Calm => state.calm;
+        // P3 calm FX payload: the -1..1 story stat mapped to 0-1 (0 = worst).
+        public float NormalizedCalm => Mathf.Clamp01((state.calm + 1f) / 2f);
         public float Accuracy => state.asked > 0 ? (float)state.correct / state.asked : 0f;
 
         // Fallback spawner so pressing Play in any scene never hard-crashes.
@@ -225,6 +227,7 @@ namespace LightShadow.Story
             if (chainScheduled) return;                        // a chain continuation is already queued
             if (current != null) return;                       // a conversation is live
             if (QuizOpen()) return;                            // quiz keeps priority (brief #3)
+            if (InspectOpen()) return;                         // P3: so does the inspect overlay
             if (Time.unscaledTime - lastConversationEndedAt < (config != null ? config.triggerDelaySeconds : 1.2f)) return;
 
             // Drain until a playable node is found (stale ordinals just drop).
@@ -245,6 +248,10 @@ namespace LightShadow.Story
             GameManager game = GameManager.Instance;
             return game != null && game.quizUI != null && game.quizUI.IsOpen;
         }
+
+        // The fragment inspect overlay is not the quiz, but a dialogue must not
+        // interleave with it either (the fragment flow resumes on close).
+        bool InspectOpen() => UI.InspectViewController.IsOpen;
 
         StoryNode FindTriggeredNode(StoryTrigger trigger, int ordinal)
         {
@@ -307,7 +314,7 @@ namespace LightShadow.Story
             }
             if (node.enterBoldness != 0f) state.boldness = ClampStat(state.boldness + node.enterBoldness);
             if (node.enterTrust != 0f) state.trust = ClampStat(state.trust + node.enterTrust);
-            if (node.enterCalm != 0f) state.calm = ClampStat(state.calm + node.enterCalm);
+            if (node.enterCalm != 0f) ChangeCalm(state.calm + node.enterCalm);
 
             // Narration: a generated voice clip when one exists for this node
             // (VoiceoverPlayer keys on the line sheet's VO_<nodeId> ids),
@@ -367,7 +374,7 @@ namespace LightShadow.Story
                 if (timedOut)
                 {
                     StoryEvents.RaiseChoiceTimedOut(node, offeredIndex);
-                    if (config != null) state.calm = ClampStat(state.calm - config.timeoutCalmPenalty);
+                    if (config != null) ChangeCalm(state.calm - config.timeoutCalmPenalty);
                     next = Resolve(choice.timeoutNextId);
                 }
                 else
@@ -389,7 +396,7 @@ namespace LightShadow.Story
                     }
                     state.boldness = ClampStat(state.boldness + choice.boldness);
                     state.trust = ClampStat(state.trust + choice.trust);
-                    state.calm = ClampStat(state.calm + choice.calm);
+                    ChangeCalm(state.calm + choice.calm);
 
                     StoryEvents.RaiseChoiceMade(node, offeredIndex);
 
@@ -456,6 +463,30 @@ namespace LightShadow.Story
         }
 
         static float ClampStat(float value) => Mathf.Clamp(value, -1f, 1f);
+
+        // P3 hiding: gameplay systems nudge calm directly (hold-breath drains
+        // it). The story graph keeps ownership of its own effect lines; this is
+        // the one sanctioned outside entry point.
+        public void AddCalm(float delta)
+        {
+            ChangeCalm(state.calm + delta);
+        }
+
+        // P3 dev console: set a story flag by name (dev-only).
+        public void SetFlag(string flag)
+        {
+            if (!string.IsNullOrEmpty(flag)) flags.Add(flag);
+        }
+
+        // The ONE place calm is written: clamp, then publish on the bus so the
+        // calm FX (vignette/heartbeat/tremor) and any future listeners track.
+        void ChangeCalm(float newValue)
+        {
+            float clamped = ClampStat(newValue);
+            if (Mathf.Approximately(clamped, state.calm)) return;
+            state.calm = clamped;
+            GameEvents.RaiseCalmChanged(NormalizedCalm);
+        }
 
         // ------------------------------------------------------------ endings --
 

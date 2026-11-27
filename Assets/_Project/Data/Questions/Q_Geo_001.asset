@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: The Pacific covers more area than all the other oceans combined.
   factSource: NEEDS-FACT-CHECK
+  questionAr: ما أكبر محيط على وجه الأرض؟
+  optionsAr:
+  - المحيط الأطلسي
+  - المحيط الهندي
+  - المحيط الهادي
+  - المحيط المتجمد الشمالي
+  explanationAr: المحيط الهادي تغطي مساحته أكثر من مساحة جميع المحيطات الأخرى مجتمعة.

@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Tokyo has been Japan's capital since 1868, when the city was still
     called Edo.
   factSource: NEEDS-FACT-CHECK
+  questionAr: ما عاصمة اليابان؟
+  optionsAr:
+  - سيول
+  - بكين
+  - طوكيو
+  - بانكوك
+  explanationAr: طوكيو عاصمة اليابان منذ عام 1868، حين كانت المدينة تُسمى إيدو.
