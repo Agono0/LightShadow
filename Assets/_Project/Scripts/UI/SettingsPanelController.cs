@@ -49,9 +49,11 @@ namespace LightShadow.UI
         public const int VolumeSfxRow = 20;
         public const int VolumeUiRow = 21;
         public const int ControlSizeRow = 22;  // touch control size (mobile only)
+        public const int CaptionsRow = 23;     // sound captions on/off
+        public const int HintsRow = 24;        // progressive hints on/off
 
         public const int PageARows = 12;
-        public const int TotalRows = 23;
+        public const int TotalRows = 25;
 
         [Header("Wiring")]
         public GameObject panel;
@@ -84,6 +86,7 @@ namespace LightShadow.UI
             "Skip hold time",
             "Master volume", "Music volume", "Ambience volume", "SFX volume", "UI volume",
             "Touch control size",
+            "Sound captions", "Hints",
         };
 
         // Rows that only make sense where a picked resolution exists (audit
@@ -265,6 +268,8 @@ namespace LightShadow.UI
                 case VolumeSfxRow: VolumeCategories.SetLevel(VolumeCategories.Category.Sfx, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Sfx)) - 1); break;
                 case VolumeUiRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ui, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ui)) - 1); break;
                 case ControlSizeRow: GameSettings.SetControlSize(GameSettings.ControlSizeIndex - 1); break;
+                case CaptionsRow: ToggleCaptions(); break;
+                case HintsRow: ToggleHints(); break;
             }
         }
 
@@ -297,7 +302,21 @@ namespace LightShadow.UI
                 case VolumeSfxRow: VolumeCategories.SetLevel(VolumeCategories.Category.Sfx, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Sfx)) + 1); break;
                 case VolumeUiRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ui, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ui)) + 1); break;
                 case ControlSizeRow: GameSettings.SetControlSize(GameSettings.ControlSizeIndex + 1); break;
+                case CaptionsRow: ToggleCaptions(); break;
+                case HintsRow: ToggleHints(); break;
             }
+        }
+
+        void ToggleCaptions()
+        {
+            Contrib.Abdelraouf.Captions.CaptionService.Enabled = !Contrib.Abdelraouf.Captions.CaptionService.Enabled;
+            Refresh();
+        }
+
+        void ToggleHints()
+        {
+            Contrib.Abdelraouf.Hints.HintService.Enabled = !Contrib.Abdelraouf.Hints.HintService.Enabled;
+            Refresh();
         }
 
         // Tier cycle: Auto(-1) → Low(0) → Medium(1) → High(2) → Ultra(3) → Auto.
@@ -409,6 +428,10 @@ namespace LightShadow.UI
                 case VolumeSfxRow: return VolumeSliderLabel(VolumeCategories.Category.Sfx);
                 case VolumeUiRow: return VolumeSliderLabel(VolumeCategories.Category.Ui);
                 case ControlSizeRow: return GameSettings.ControlSizeLabel();
+                case CaptionsRow:
+                    return Contrib.Abdelraouf.Captions.CaptionService.Enabled ? Localization.TrPresent("On") : Localization.TrPresent("Off");
+                case HintsRow:
+                    return Contrib.Abdelraouf.Hints.HintService.Enabled ? Localization.TrPresent("On") : Localization.TrPresent("Off");
                 default: return "";
             }
         }

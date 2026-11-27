@@ -29,6 +29,14 @@ namespace LightShadow.Contrib.Abdelraouf.Hints
     public class HintService : MonoBehaviour
     {
         public const string SaveKey = "hints";
+        public const string PrefsKey = "abdelraouf.hints.enabled";
+
+        // On by default. A missing PlayerPrefs key reads as on.
+        public static bool Enabled
+        {
+            get { return PlayerPrefs.GetInt(PrefsKey, 1) != 0; }
+            set { PlayerPrefs.SetInt(PrefsKey, value ? 1 : 0); PlayerPrefs.Save(); }
+        }
         public const int MaxLevel = 3;
 
         public static HintService Instance { get; private set; }
@@ -112,7 +120,7 @@ namespace LightShadow.Contrib.Abdelraouf.Hints
 
         void Update()
         {
-            if (PauseMenu.IsOpen || PlayerController.ExternalInputLocked)
+            if (PauseMenu.IsOpen || PlayerController.ExternalInputLocked || !Enabled)
             {
                 lastActivity = Time.unscaledTime;
                 return;
@@ -128,7 +136,9 @@ namespace LightShadow.Contrib.Abdelraouf.Hints
             Vector3 mouse = Input.mousePosition;
             bool moved = (mouse - lastMouse).sqrMagnitude > 4f;
             lastMouse = mouse;
-            if (Input.anyKey || moved || Input.touchCount > 0)
+            // Gamepad sticks do not set anyKey, so read the move and look axes too.
+            bool stick = Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0.2f || Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0.2f;
+            if (Input.anyKey || moved || stick || Input.touchCount > 0)
             {
                 lastActivity = Time.unscaledTime;
                 return;
@@ -145,6 +155,7 @@ namespace LightShadow.Contrib.Abdelraouf.Hints
         // whichever puzzle is nearest. Returns true when a hint was shown.
         public bool RequestHint()
         {
+            if (!Enabled) return false;
             if (Time.unscaledTime - lastHintTime < cooldownSeconds) return false;
             PuzzleBase puzzle = FindCurrentPuzzle();
             if (puzzle == null) return false;
