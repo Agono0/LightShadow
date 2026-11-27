@@ -388,3 +388,11 @@ The game itself contains **no AI features** — this log is about the developmen
 - Teach-back check: pending — Docs/PUZZLES.md explains the restore-timing choice
   (manager keeps the id set; puzzles pick it up when they register).
 - Test result: static only; CI build workflow is the compile gate. No scene changes.
+### 2026-11-27 — SaveSystem deferred-restore fix (audit A3) — Abdelrhman Mohamed
+- Tool used: Instinct (AI coding agent)
+- What AI provided: `SaveSystem.ClearPendingRestore` and the new-game hook in
+  `SaveSlotUI.StartRun`, so a deferred restore from an earlier Load attempt cannot apply
+  a stale save to a fresh run; the AUDIT_2.md status flip for finding A3.
+- What I changed myself: pending review — lands through the PR workflow.
+- Teach-back check: pending — repro steps are in the PR body and AUDIT_2.md.
+- Test result: static reasoning only (no editor); CI build workflow is the gate.
