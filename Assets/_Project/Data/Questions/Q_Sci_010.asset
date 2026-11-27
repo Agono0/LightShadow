@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Steam is water vapour - water in its gas state, above 100 degrees
     Celsius at sea level.
   factSource: NEEDS-FACT-CHECK
+  questionAr: البخار هو الماء في أي حالة من حالات المادة؟
+  optionsAr:
+  - الصلبة
+  - السائلة
+  - الغازية
+  - البلازما
+  explanationAr: البخار هو بخار الماء - الماء في حالته الغازية فوق 100 درجة مئوية عند مستوى سطح البحر.

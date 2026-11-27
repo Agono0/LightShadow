@@ -104,6 +104,11 @@ namespace LightShadow.Player
             verticalVelocity = 0f;
             ExternalInputLocked = false;
 
+            // A hide interrupted by the catch must not survive the respawn:
+            // stale IsHidden leaves the Shadow blind and E hops Nour back into
+            // the old spot (no teleport here - the wake already moved her).
+            HidingSystem.ResetState();
+
             if (cameraPivot != null)
             {
                 cameraPivot.localRotation = Quaternion.identity;

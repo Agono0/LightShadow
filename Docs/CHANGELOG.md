@@ -1,31 +1,74 @@
 # LIGHT SHADOW — Changelog (Premium Pass)
 
-## [Unreleased] — 2026-11-19 — Phase 1: fonts + audio mixer + music
+## [0.6.0-premium-integration] — 2026-11-19 — Premium integration: audio, horror, Arabic, release prep
+
+Everything below ships through one integration PR (`feat/premium-integration`,
+supersedes closed PRs #5/#6; PRs #3/#4 already merged to `main`). Features are
+user-visible; review flags are stated honestly.
 
 ### Added
-- **Real AudioMixer asset** (D17, supersedes D15's interim code mixer):
+- **Bundled fonts (Arabic renders offline now)**: Noto Naskh Arabic (R/B), Cairo (R/B),
+  Reem Kufi (R/B), Inter (R/SemiBold), Special Elite — OFL/Apache 2.0, license texts shipped in
+  `Assets/_Project/Fonts/Licenses/`; wired through builder-created references (no Resources
+  folder); Arabic no longer depends on OS-installed fonts, with OS fallbacks retained.
+- **Real AudioMixer** (D17, supersedes D15's interim code mixer):
   `AudioMixerTool` generates `M_Main.mixer` (Master > Music/Ambience/SFX/Voice/Shadow/UI with
   snapshot-owned duck children + Master low-pass) via Unity's editor serialization pipeline;
   `ValidateMixer()` batch-asserts it (`RESULT: PASS`). Settings sliders keep working unchanged —
   they now write the seven exposed user params through `VolumeCategories`.
-- **Audio snapshot choreography** (premium-pass brief §8.3): six snapshots — Explore, Stalk,
+- **Audio snapshot choreography** (premium-pass brief §8.3): **six snapshots** — Explore, Stalk,
   Chase, Hide, MemoryFlash, Dawn — driven by the Shadow FSM (new `GameEvents.EnemyStateChanged`),
   lit-zone muffle (900 Hz while claimed), fragment/fuse memory beats (world ducks around the
   narrator for 6 s) and the dawn swell; all transition seconds live in `GameConfig`.
-- **Bundled fonts**: Noto Naskh Arabic (R/B), Cairo (R/B), Reem Kufi (R/B), Inter (R/SemiBold),
-  Special Elite — OFL/Apache 2.0, license texts shipped in `Assets/_Project/Fonts/Licenses/`;
-  wired through builder-created references (no Resources folder); Arabic no longer depends on OS
-  fonts, and OS fallbacks remain when the bundle is missing.
-- **Real music**: Kevin MacLeod CC-BY 3.0 bed ("Long Note One") layered under the procedural
+- **Music cues**: Kevin MacLeod CC-BY 3.0 bed ("Long Note One") layered under the procedural
   AdaptiveMusic pads during Explore/Stalk; per-ending one-shot cues (Frozen Star → FullRecovery,
   Anguish → DawnlessGrey) wired on the ending screen; credits + license rows updated.
+- **14 Blender hero props in the scenes**: SM_Story_{MemoryBox, Card, Bookmark, ExamPaper,
+  Prism, Photograph, Programme, Mug}, SM_Player_Flashlight, SM_Wraith_HD (the Shadow's new HD
+  silhouette), SM_Arch_{DoorGrille, Chalkboard, GateCrank, IronGate} — modelled in
+  `Art/Sources/HeroProps.blend`, imported via a `HeroModels` table with story materials
+  (Mat_Story_RedInk/Glass/LED), and wired through builder swap tables (8 chalkboards incl.
+  QuizBoard, memory box + card, 6 story items, door grilles, gate crank, iron-gate segments,
+  the player's flashlight); validation asserts 14/14 FBX + 12/12 materials + swap counts.
+- **Horror & interaction systems** (premium-pass brief P3, all eleven):
+  - noise bus — `NoiseEmitter` events (sprint/walk/crouch/door/drop/wrong buzzer) with
+    per-action hearing radii feeding the Shadow's hearing;
+  - Shadow `Investigate` state — goes to the last heard noise, then resumes patrol;
+  - crank minigame — hold + circular swipe emergency charge, capped low and loud;
+  - MenaceDirector — 0–100 pacing gauge that spaces sightings, forces a cool-down exit at 100
+    and guarantees calm after chases;
+  - hiding v1 — hide spots (lockers/desks/curtains), hold-breath meter when the Shadow is
+    close, Shadow `Search` checks 1–2 spots, hiding state cleared on catch/checkpoint;
+  - banish rebalance — hold the focused beam 2 s at charge ≥ 25 → 20 s retreat
+    (GameConfig fields, no literals);
+  - calm FX — vignette, heartbeat and beam tremor driven by the calm stat;
+  - 360° inspect view for story items (inspectable close-up);
+  - study-recap PNG export (shareable/printable from the recap screen);
+  - haptics — light on correct answers, heavy on caught (Android);
+  - dev console — set flags/stats, teleport, skip to act, toggle the Shadow's behaviour
+    (editor builds only).
+- **Arabic questions 60/60**: `questionAr`/`optionsAr`/`explanationAr` filled for all 60
+  questions (AI translation, pending human/native review; `factSource` stays
+  `NEEDS-FACT-CHECK`); ValidateBatch asserts the fields; bank expansion to 120 is in progress.
+- **Release assets**: flashlight-emblem app icon pipeline (Blender EEVEE headless →
+  1024/512/192/96 PNG; PlayerSettings assignment remains a human step), EN/AR store listing
+  with IARC + privacy notes (`Docs/STORE_LISTING.md`), VO recording specs
+  (`Docs/VO_RECORDING_SPECS.md`, 96 files EN+AR).
 
 ### Changed
 - The Shadow's audio sources (breathing, one-shots, growl/stinger, pooled whispers) route to a
   dedicated Shadow bus; AmbientDrone is recategorized to Ambience; `AudioManager.PlaySfxAt` no
   longer uses `AudioSource.PlayClipAtPoint` (its temp sources bypassed categories and the mixer).
 - `EnemyBehaviour.EnterState` raises `GameEvents.EnemyStateChanged(int)` — one raise covers every
-  FSM transition including the post-catch reset.
+  FSM transition including the post-catch reset; the FSM gains Investigate/Search/ForcedCooldown
+  states alongside Patrol/Stalk/Chase/Repelled.
+- Nine review fixes across the horror systems (hiding-state reset on respawn, F tap-vs-crank
+  split on desktop, touch hold respects the input lock, one shared sight Linecast per frame
+  between the FSM and MenaceDirector, calm-FX volume-profile teardown, crank ratchet clock reset,
+  recap Debug.Log removal, comment alignment, defensive `VolumeCategories.SetMixer` routing).
+
+### Fixed
+- `(integration)` PadHeld defined via the Input System runtime; unshadowed MakeButton label.
 
 ## [0.5.0-premium] — 2026-10-31 — Round 3: bug fixes + horror presentation
 

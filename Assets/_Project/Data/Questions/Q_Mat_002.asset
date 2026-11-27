@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: The denominator tells how many equal parts the whole is divided into.
   factSource: NEEDS-FACT-CHECK
+  questionAr: في الكسر 3/8، ماذا يُسمَّى العدد 8؟
+  optionsAr:
+  - البسط
+  - المقام
+  - ناتج القسمة
+  - الباقي
+  explanationAr: المقام يخبرنا إلى كم جزء متساوٍ قُسِّم الكل.

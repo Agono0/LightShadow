@@ -24,6 +24,8 @@ namespace LightShadow.Core
         static AudioClip click;
         static AudioClip pickup;
         static AudioClip power;
+        static AudioClip crank;
+        static AudioClip heartbeat;
 
         public static AudioClip Correct
         {
@@ -67,6 +69,29 @@ namespace LightShadow.Core
             {
                 if (power == null) power = Resolve("SFX_Power", () => MakeSequence("SFX_Power", new[] { 110f, 165f, 220f, 330f }, 0.7f, 0.38f));
                 return power;
+            }
+        }
+
+        // P3 crank ratchet (plan 4.6): a tight mechanical clack per tick. The
+        // library-first id is "SFX_Crank"; this synthesised fallback keeps the
+        // crank audible with zero external assets.
+        public static AudioClip Crank
+        {
+            get
+            {
+                if (crank == null) crank = Resolve("SFX_Crank", () => MakeSequence("SFX_Crank", new[] { 1500f, 900f }, 0.09f, 0.30f));
+                return crank;
+            }
+        }
+
+        // P3 calm FX (plan 4.7): a low lub-dub thump the heartbeat pacer plays
+        // as calm drops. Library-first id "SFX_Heartbeat".
+        public static AudioClip Heartbeat
+        {
+            get
+            {
+                if (heartbeat == null) heartbeat = Resolve("SFX_Heartbeat", () => MakeSequence("SFX_Heartbeat", new[] { 62f, 44f }, 0.4f, 0.9f));
+                return heartbeat;
             }
         }
 
