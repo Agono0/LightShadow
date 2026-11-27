@@ -279,39 +279,47 @@ namespace LightShadow.Tools
             GameObject mobileRoot = MakeRect(root, "MobileControls", Vector2.zero, Vector2.one,
                 new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero).gameObject;
 
+            // Bigger joystick (user brief 2026-11-27): a 300px pad with a
+            // 112px throw reads much better under a thumb than the old 240/90.
             RectTransform joystickBackground = MakeImage(mobileRoot.transform, "JoystickBackground",
                 new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0.5f, 0.5f),
-                new Vector2(190f, 190f), new Vector2(240f, 240f), KnobSprite,
-                new Color(0.08f, 0.08f, 0.09f, 0.55f), true).rectTransform;
+                new Vector2(230f, 230f), new Vector2(300f, 300f), KnobSprite,
+                new Color(0.08f, 0.08f, 0.09f, 0.45f), true).rectTransform;
 
             Image joystickHandle = MakeImage(joystickBackground, "Handle", new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(100f, 100f),
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(124f, 124f),
                 KnobSprite, new Color(0.92f, 0.86f, 0.70f, 0.38f), false);
 
             TouchJoystick joystick = joystickBackground.gameObject.AddComponent<TouchJoystick>();
             joystick.background = joystickBackground;
             joystick.handle = joystickHandle.rectTransform;
-            joystick.radius = 90f;
+            joystick.radius = 112f;
 
+            // Round, semi-transparent buttons (same brief). TouchControlsScaler
+            // rescales every direct child from the Settings "Touch control
+            // size" row, capturing these sizes as the 100% baseline.
             AddMobileButton(mobileRoot.transform, "InteractButton", "E", TouchButton.Kind.Interact,
-                new Vector2(-190f, 300f), new Vector2(150f, 92f));
+                new Vector2(-200f, 310f), 124f, 22);
             AddMobileButton(mobileRoot.transform, "FlashlightButton", "LIGHT", TouchButton.Kind.Flashlight,
-                new Vector2(-190f, 195f), new Vector2(150f, 92f));
+                new Vector2(-200f, 168f), 124f, 20);
             AddMobileButton(mobileRoot.transform, "SprintButton", "RUN", TouchButton.Kind.SprintHold,
-                new Vector2(-350f, 300f), new Vector2(140f, 80f));
+                new Vector2(-348f, 310f), 104f, 20);
             AddMobileButton(mobileRoot.transform, "CrouchButton", "CROUCH", TouchButton.Kind.CrouchToggle,
-                new Vector2(-350f, 195f), new Vector2(140f, 80f));
-            AddMobileButton(mobileRoot.transform, "ObjectivesButton", "TASKS", TouchButton.Kind.Objectives,
-                new Vector2(-190f, 105f), new Vector2(150f, 56f));
-            AddMobileButton(mobileRoot.transform, "PauseButton", "II", TouchButton.Kind.Pause,
-                new Vector2(-350f, 105f), new Vector2(140f, 56f));
+                new Vector2(-348f, 168f), 104f, 16);
 
-            // P3 horror buttons: hold to crank (twirl a second finger in
-            // circles off the UI) and hold-breath while hidden.
+            // Utility row along the bottom edge: tasks, pause, and the P3
+            // horror holds (crank: twirl a second finger in circles off the
+            // UI; breath while hidden).
+            AddMobileButton(mobileRoot.transform, "ObjectivesButton", "TASKS", TouchButton.Kind.Objectives,
+                new Vector2(-86f, 56f), 84f, 13);
+            AddMobileButton(mobileRoot.transform, "PauseButton", "II", TouchButton.Kind.Pause,
+                new Vector2(-200f, 56f), 84f, 15);
             AddMobileButton(mobileRoot.transform, "CrankButton", "CRANK", TouchButton.Kind.CrankHold,
-                new Vector2(-190f, 38f), new Vector2(150f, 56f));
+                new Vector2(-314f, 56f), 84f, 13);
             AddMobileButton(mobileRoot.transform, "BreathButton", "BREATH", TouchButton.Kind.BreathHold,
-                new Vector2(-350f, 38f), new Vector2(140f, 56f));
+                new Vector2(-428f, 56f), 84f, 13);
+
+            mobileRoot.AddComponent<TouchControlsScaler>();
 
             mobileRoot.SetActive(false);
 
@@ -481,13 +489,38 @@ namespace LightShadow.Tools
             dim.gameObject.SetActive(false);
         }
 
+        // Round, semi-transparent touch button (user brief 2026-11-27): the
+        // old sliced rectangles read as desktop UI on a phone screen. Built by
+        // hand instead of MakeButton so the round Knob sprite stays Simple.
         static void AddMobileButton(Transform parent, string name, string label, TouchButton.Kind kind,
-            Vector2 position, Vector2 size)
+            Vector2 position, float diameter, int fontSize)
         {
-            Text labelText;
-            Button button = MakeButton(parent, name, label, new Vector2(1f, 0f), new Vector2(1f, 0f),
-                new Vector2(0.5f, 0.5f), position, size, ButtonDark, 20, out labelText);
+            Image image = MakeImage(parent, name, new Vector2(1f, 0f), new Vector2(1f, 0f),
+                new Vector2(0.5f, 0.5f), position, new Vector2(diameter, diameter), KnobSprite,
+                new Color(0.10f, 0.10f, 0.11f, 0.45f), true);
+
+            Button button = image.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.transition = Selectable.Transition.ColorTint;
+
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.15f, 1.12f, 1.05f, 1f);
+            colors.pressedColor = new Color(0.78f, 0.76f, 0.72f, 1f);
+            colors.selectedColor = new Color(1.05f, 1.02f, 0.98f, 1f);
+            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+            colors.fadeDuration = 0.08f;
+            button.colors = colors;
+
+            Navigation navigation = button.navigation;
+            navigation.mode = Navigation.Mode.None;
+            button.navigation = navigation;
+
+            Text labelText = MakeText(image.rectTransform, "Label", label, fontSize, Paper,
+                TextAnchor.MiddleCenter, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f),
+                Vector2.zero, Vector2.zero);
             labelText.fontStyle = FontStyle.Bold;
+            labelText.raycastTarget = false;
             Localize(labelText);
 
             TouchButton touch = button.gameObject.AddComponent<TouchButton>();

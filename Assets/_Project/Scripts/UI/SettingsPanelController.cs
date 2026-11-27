@@ -48,9 +48,10 @@ namespace LightShadow.UI
         public const int VolumeAmbienceRow = 19;
         public const int VolumeSfxRow = 20;
         public const int VolumeUiRow = 21;
+        public const int ControlSizeRow = 22;  // touch control size (mobile only)
 
         public const int PageARows = 12;
-        public const int TotalRows = 22;
+        public const int TotalRows = 23;
 
         [Header("Wiring")]
         public GameObject panel;
@@ -82,6 +83,7 @@ namespace LightShadow.UI
             "Text speed", "Subtitle size", "Colourblind palette", "Auto-advance",
             "Skip hold time",
             "Master volume", "Music volume", "Ambience volume", "SFX volume", "UI volume",
+            "Touch control size",
         };
 
         // Rows that only make sense where a picked resolution exists (audit
@@ -89,6 +91,12 @@ namespace LightShadow.UI
         static bool HiddenOnMobile(int row)
         {
             return Application.isMobilePlatform && (row == ResolutionRow || row == FullscreenRow);
+        }
+
+        // The touch control size row only means something on a touch device.
+        static bool HiddenOnDesktop(int row)
+        {
+            return !Application.isMobilePlatform && row == ControlSizeRow;
         }
 
         // The builder lays page A rows out at y = -120 - i * 64 (prev/next sit
@@ -190,7 +198,7 @@ namespace LightShadow.UI
                 rowValues != null ? rowValues.Length : 0);
             for (int i = 0; i < bound; i++)
             {
-                bool onThisPage = (i < PageARows) == (currentPage == 0) && !HiddenOnMobile(i);
+                bool onThisPage = (i < PageARows) == (currentPage == 0) && !HiddenOnMobile(i) && !HiddenOnDesktop(i);
                 if (rowLabels[i] != null) rowLabels[i].gameObject.SetActive(onThisPage);
                 if (rowValues[i] != null) rowValues[i].gameObject.SetActive(onThisPage);
                 if (prevButtons != null && i < prevButtons.Length && prevButtons[i] != null)
@@ -256,6 +264,7 @@ namespace LightShadow.UI
                 case VolumeAmbienceRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ambience, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ambience)) - 1); break;
                 case VolumeSfxRow: VolumeCategories.SetLevel(VolumeCategories.Category.Sfx, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Sfx)) - 1); break;
                 case VolumeUiRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ui, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ui)) - 1); break;
+                case ControlSizeRow: GameSettings.SetControlSize(GameSettings.ControlSizeIndex - 1); break;
             }
         }
 
@@ -287,6 +296,7 @@ namespace LightShadow.UI
                 case VolumeAmbienceRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ambience, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ambience)) + 1); break;
                 case VolumeSfxRow: VolumeCategories.SetLevel(VolumeCategories.Category.Sfx, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Sfx)) + 1); break;
                 case VolumeUiRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ui, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ui)) + 1); break;
+                case ControlSizeRow: GameSettings.SetControlSize(GameSettings.ControlSizeIndex + 1); break;
             }
         }
 
@@ -398,6 +408,7 @@ namespace LightShadow.UI
                 case VolumeAmbienceRow: return VolumeSliderLabel(VolumeCategories.Category.Ambience);
                 case VolumeSfxRow: return VolumeSliderLabel(VolumeCategories.Category.Sfx);
                 case VolumeUiRow: return VolumeSliderLabel(VolumeCategories.Category.Ui);
+                case ControlSizeRow: return GameSettings.ControlSizeLabel();
                 default: return "";
             }
         }

@@ -858,15 +858,16 @@ namespace LightShadow.Tools
                 "Text speed", "Subtitle size", "Colourblind palette", "Auto-advance",
                 "Skip hold time",
                 "Master volume", "Music volume", "Ambience volume", "SFX volume", "UI volume",
+                "Touch control size",
             };
 
             for (int i = 0; i < pageBKeys.Length; i++)
             {
                 int rowIndex = SettingsPanelController.TextSpeedRow + i;
-                // The quality-tier row moved to page A (graphics refactor), so
-                // page B is a balanced 5 + 5 grid of accessibility and volume.
-                bool leftColumn = i < 5;
-                int columnRow = leftColumn ? i : i - 5;
+                // The quality-tier row moved to page A (graphics refactor);
+                // touch control size (user brief 2026-11-27) makes it a 6 + 5 grid.
+                bool leftColumn = i < 6;
+                int columnRow = leftColumn ? i : i - 6;
                 float x = leftColumn ? 48f : 580f;
                 float valueX = leftColumn ? 285f : 817f;
                 float prevX = leftColumn ? 412f : 944f;
