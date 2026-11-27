@@ -7,8 +7,9 @@
   silence trim at -50 dB with 20 ms keep, peak normalized to -3.0 dBFS,
   encoded Vorbis q5 44.1 kHz mono ogg. Exact gain, source sha256 and
   processed sha256 are recorded per row in Docs/ASSET_MANIFEST.md.
-  No .meta files committed (per task scope: no GUID assignment) - Unity
-  generates them on first open; importer targets are ADPCM mono per row spec.
+  Importer .meta committed per asset (fresh GUIDs, AudioImporter ADPCM,
+  forceToMono+normalize, copied from the existing SFX template) because the
+  repo fast-checks job enforces meta pairing; no wiring or references.
   ASSET_LICENSES.md not updated (outside granted paths for this PR);
   full license evidence is in the manifest rows.
 - What I changed myself: n/a (agent-authored; no human edits yet).
