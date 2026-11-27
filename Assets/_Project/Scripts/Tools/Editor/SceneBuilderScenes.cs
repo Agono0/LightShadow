@@ -208,6 +208,7 @@ namespace LightShadow.Tools
             camera.fieldOfView = 55f;
 
             CreatePostVolume(null, "DawnVolume", PostDawnPath);
+            AttachEndingReverbZone(t);
             EnsureEventSystem();
             EndingController ending = SceneBuilderUI.BuildEndingUI();
 
@@ -1197,7 +1198,7 @@ namespace LightShadow.Tools
             new ReverbRoom { name = "Library",    minX = -22f,  maxX = -2.65f, minZ = -22f, maxZ = -8f,  height = 3.3f, preset = AudioReverbPreset.Room },
             new ReverbRoom { name = "PhysicsLab", minX = 2.65f, maxX = 22f,    minZ = -22f, maxZ = -8f,  height = 3.3f, preset = AudioReverbPreset.Room },
             new ReverbRoom { name = "Classroom",  minX = -22f,  maxX = -2.65f, minZ = 4f,   maxZ = 18f,  height = 3.3f, preset = AudioReverbPreset.Room },
-            new ReverbRoom { name = "Garden",     minX = 2.65f, maxX = 22f,    minZ = 4f,   maxZ = 18f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            new ReverbRoom { name = "Garden",     minX = 2.65f, maxX = 22f,    minZ = 4f,   maxZ = 18f,  height = 3.3f, preset = AudioReverbPreset.Plain }, // open-air: no indoor tail
             new ReverbRoom { name = "StaffRoom",  minX = -22f,  maxX = -2.65f, minZ = 20f,  maxZ = 26f,  height = 3.3f, preset = AudioReverbPreset.Room },
             // Medium: circulation spaces (StoneCorridor is the report §5 medium
             // preset; Unity's enum has no "MediumRoom" member).
@@ -1207,6 +1208,30 @@ namespace LightShadow.Tools
             // (Unity spells the preset "Concerthall").
             new ReverbRoom { name = "MainHall",   minX = -14f,   maxX = 14f,   minZ = 27f,  maxZ = 41f,  height = 4.8f, preset = AudioReverbPreset.Concerthall },
         };
+
+        // The dawn/ending scene runs outdoors (Docs/REVERB_ZONES.md gap 1): a
+        // single Plain zone over the pavement and gate keeps any 3D source
+        // nearly dry, matching the open street. Same falloff math and bake
+        // safety as the school zones; idempotent via the ReverbZone child guard.
+        static void AttachEndingReverbZone(Transform setRoot)
+        {
+            if (setRoot.Find("ReverbZone") != null) return;
+
+            var zoneGo = new GameObject("ReverbZone");
+            zoneGo.transform.SetParent(setRoot, false);
+            zoneGo.layer = 0; // Default: see AttachReverbZones (bake safety)
+            zoneGo.transform.localPosition = new Vector3(0f, 0f, -4f);
+
+            BoxCollider bounds = zoneGo.AddComponent<BoxCollider>();
+            bounds.isTrigger = true;
+            bounds.center = new Vector3(0f, 3f, 0f);
+            bounds.size = new Vector3(24f, 6f, 20f); // pavement, gate, first metres of path
+
+            AudioReverbZone reverb = zoneGo.AddComponent<AudioReverbZone>();
+            reverb.reverbPreset = AudioReverbPreset.Plain;
+            reverb.minDistance = 10f;  // fully-wet radius fits inside the bounds
+            reverb.maxDistance = Mathf.Sqrt(24f * 24f + 20f * 20f);
+        }
 
         // Attaches one AudioReverbZone per interior room. Idempotent: an existing
         // ReverbZone child is left alone (same guard style as AttachAudioSnapshot).
