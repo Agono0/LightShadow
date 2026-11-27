@@ -53,6 +53,11 @@ namespace LightShadow.Audio
             SfxRegistry.Register("SFX_SchoolBell", library.schoolBell);
             SfxRegistry.RegisterMany("SFX_ShadowMoan", library.shadowMoans);
             SfxRegistry.Register("AMB_SchoolNight", library.ambienceNight);
+            SfxRegistry.Register("MUS_MemoryTheme", library.memoryTheme);
+            // Alias: the menu plays the memory theme (one asset, one register
+            // row - Docs/AUDIO_CUES.md MUS_Menu). Register() skips null, so a
+            // missing import leaves the menu silent instead of crashing.
+            SfxRegistry.Register("MUS_Menu", library.memoryTheme);
             SfxRegistry.Register("MUS_Bed_LongNoteOne", library.musicBedLongNoteOne);
             SfxRegistry.Register("MUS_Ending_HopeGold", library.endingHopeGold);
             SfxRegistry.Register("MUS_Ending_DawnlessGrey", library.endingDawnlessGrey);
