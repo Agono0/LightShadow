@@ -309,9 +309,14 @@ namespace LightShadow.Story
             if (node.enterTrust != 0f) state.trust = ClampStat(state.trust + node.enterTrust);
             if (node.enterCalm != 0f) state.calm = ClampStat(state.calm + node.enterCalm);
 
-            // Narration uses the logical (unshaped) string; StoryTeller picks the
-            // right voice for Arabic by itself and respects the narrator toggle.
-            StoryTeller.Speak(StoryStrings.Get(node.text), true);
+            // Narration: a generated voice clip when one exists for this node
+            // (VoiceoverPlayer keys on the line sheet's VO_<nodeId> ids),
+            // otherwise StoryTeller's SAPI path, which picks the right voice
+            // for Arabic by itself and respects the narrator toggle.
+            if (!VoiceoverPlayer.Play("VO_" + node.nodeId))
+            {
+                StoryTeller.Speak(StoryStrings.Get(node.text), true);
+            }
 
             if (dialogueUI == null) dialogueUI = GetComponentInChildren<DialogueUIController>();
             if (dialogueUI == null)
@@ -367,6 +372,12 @@ namespace LightShadow.Story
                 }
                 else
                 {
+                    // The picked choice has its own inner-voice line (sheet id
+                    // VO_<nodeId>_C<n>); it interrupts the node line still
+                    // playing. No clip recorded means silence, not SAPI: the
+                    // player already read the choice they tapped.
+                    VoiceoverPlayer.Play("VO_" + node.nodeId + "_C" + (offeredIndex + 1));
+
                     // Effects first (flag-gated routing can read the new flags),
                     // then the events, then routing.
                     if (choice.setFlags != null)
@@ -431,6 +442,7 @@ namespace LightShadow.Story
             current = null;
             lastConversationEndedAt = Time.unscaledTime;
             PlayerController.ExternalInputLocked = false;
+            VoiceoverPlayer.Stop();
             StoryEvents.RaiseConversationEnded();
 
             if (dialogueUI != null) dialogueUI.Hide();

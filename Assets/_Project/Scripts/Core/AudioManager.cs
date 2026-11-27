@@ -13,6 +13,7 @@ namespace LightShadow.Core
         public AudioSource musicSource;
         public AudioSource ambienceSource;
         public AudioSource sfxSource;
+        public AudioSource voiceSource;
 
         void Awake()
         {
@@ -45,6 +46,23 @@ namespace LightShadow.Core
             ambienceSource.clip = clip;
             ambienceSource.loop = true;
             ambienceSource.Play();
+        }
+
+        // Story voiceover: one line at a time, interrupting itself, never
+        // looping. Generated clips play through here (VoiceoverPlayer) so a
+        // new node line always cuts the previous one off.
+        public void PlayVoice(AudioClip clip)
+        {
+            if (clip == null || voiceSource == null) return;
+            voiceSource.Stop();
+            voiceSource.clip = clip;
+            voiceSource.loop = false;
+            voiceSource.Play();
+        }
+
+        public void StopVoice()
+        {
+            if (voiceSource != null) voiceSource.Stop();
         }
 
         public void PlaySfx(AudioClip clip)
