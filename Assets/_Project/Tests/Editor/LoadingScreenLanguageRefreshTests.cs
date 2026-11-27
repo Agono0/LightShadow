@@ -19,15 +19,15 @@ namespace LightShadow.Tests.Editor
         const string TipKey = "Knowledge is the only light that follows a person into the dark.";
 
         static readonly MethodInfo AwakeMethod =
-            typeof(LoadingScreen).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(LoadingScreen).GetMethod("Awake", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly MethodInfo OnDestroyMethod =
-            typeof(LoadingScreen).GetMethod("OnDestroy", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(LoadingScreen).GetMethod("OnDestroy", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly MethodInfo RefreshMethod =
-            typeof(LoadingScreen).GetMethod("RefreshLanguage", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(LoadingScreen).GetMethod("RefreshLanguage", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly FieldInfo CaptionField =
-            typeof(LoadingScreen).GetField("captionText", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(LoadingScreen).GetField("captionText", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly FieldInfo TipField =
-            typeof(LoadingScreen).GetField("tipText", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(LoadingScreen).GetField("tipText", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly FieldInfo LanguageChangedField =
             typeof(Localization).GetField("LanguageChanged",
                 BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
@@ -68,8 +68,11 @@ namespace LightShadow.Tests.Editor
 
             OnDestroyMethod.Invoke(screen, null);
 
+            // Other live LoadingScreens from other tests may still be
+            // subscribed; only handlers bound to THIS screen count.
             Delegate remaining = Handlers();
-            int left = remaining == null ? 0 : remaining.GetInvocationList().Length;
+            int left = remaining == null ? 0
+                : Array.FindAll(remaining.GetInvocationList(), handler => ReferenceEquals(handler.Target, screen)).Length;
             Assert.AreEqual(0, left, "OnDestroy must unsubscribe RefreshLanguage");
         }
 

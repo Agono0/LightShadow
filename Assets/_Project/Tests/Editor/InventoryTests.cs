@@ -10,9 +10,9 @@ namespace LightShadow.Tests.Editor
     public class InventoryTests
     {
         static readonly MethodInfo CaptureMethod =
-            typeof(Inventory).GetMethod("OnSaveCaptured", BindingFlags.NonPublic | BindingFlags.Static);
+            typeof(Inventory).GetMethod("OnSaveCaptured", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
         static readonly MethodInfo ApplyMethod =
-            typeof(Inventory).GetMethod("OnSaveApplied", BindingFlags.NonPublic | BindingFlags.Static);
+            typeof(Inventory).GetMethod("OnSaveApplied", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 
         [SetUp]
         public void SetUp()

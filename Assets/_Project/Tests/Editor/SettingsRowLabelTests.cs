@@ -15,15 +15,15 @@ namespace LightShadow.Tests.Editor
     public class SettingsRowLabelTests
     {
         static readonly MethodInfo SpeedLabelMethod = typeof(SettingsPanelController)
-            .GetMethod("AccessibilitySpeedLabel", BindingFlags.NonPublic | BindingFlags.Static);
+            .GetMethod("AccessibilitySpeedLabel", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
         static readonly MethodInfo SizeLabelMethod = typeof(SettingsPanelController)
-            .GetMethod("AccessibilitySizeLabel", BindingFlags.NonPublic | BindingFlags.Static);
+            .GetMethod("AccessibilitySizeLabel", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
         static readonly MethodInfo ColorblindLabelMethod = typeof(SettingsPanelController)
-            .GetMethod("AccessibilityColorblindLabel", BindingFlags.NonPublic | BindingFlags.Static);
+            .GetMethod("AccessibilityColorblindLabel", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
         static readonly MethodInfo ShadowsLabelMethod = typeof(SettingsPanelController)
-            .GetMethod("ShadowsValueLabel", BindingFlags.NonPublic | BindingFlags.Static);
+            .GetMethod("ShadowsValueLabel", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
         static readonly MethodInfo VolumeLabelMethod = typeof(SettingsPanelController)
-            .GetMethod("VolumeSliderLabel", BindingFlags.NonPublic | BindingFlags.Static);
+            .GetMethod("VolumeSliderLabel", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 
         int originalSpeed;
         int originalSize;

@@ -14,13 +14,13 @@ namespace LightShadow.Tests.Editor
     public class HUDMessageQueueTests
     {
         static readonly MethodInfo AwakeMethod =
-            typeof(HUDController).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(HUDController).GetMethod("Awake", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly MethodInfo UpdateMethod =
-            typeof(HUDController).GetMethod("Update", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(HUDController).GetMethod("Update", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly FieldInfo MessageTimerField =
-            typeof(HUDController).GetField("messageTimer", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(HUDController).GetField("messageTimer", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly FieldInfo MessageQueueField =
-            typeof(HUDController).GetField("messageQueue", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(HUDController).GetField("messageQueue", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
         GameObject host;
         HUDController hud;

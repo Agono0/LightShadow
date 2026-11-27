@@ -11,13 +11,13 @@ namespace LightShadow.Tests.Editor
     public class RecapScreenExportFeedbackTests
     {
         static readonly MethodInfo AwakeMethod =
-            typeof(RecapScreen).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(RecapScreen).GetMethod("Awake", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly MethodInfo SetFeedbackMethod =
-            typeof(RecapScreen).GetMethod("SetExportFeedback", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(RecapScreen).GetMethod("SetExportFeedback", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly MethodInfo SavedMessageMethod =
-            typeof(RecapScreen).GetMethod("FormatSavedMessage", BindingFlags.NonPublic | BindingFlags.Static);
+            typeof(RecapScreen).GetMethod("FormatSavedMessage", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
         static readonly MethodInfo FailedMessageMethod =
-            typeof(RecapScreen).GetMethod("FormatFailedMessage", BindingFlags.NonPublic | BindingFlags.Static);
+            typeof(RecapScreen).GetMethod("FormatFailedMessage", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 
         GameObject host;
         RecapScreen screen;

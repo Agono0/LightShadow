@@ -26,11 +26,11 @@ namespace LightShadow.Tests.Editor
         }
 
         static readonly MethodInfo AwakeMethod =
-            typeof(PuzzleManager).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(PuzzleManager).GetMethod("Awake", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly MethodInfo CaptureMethod =
-            typeof(PuzzleManager).GetMethod("OnSaveCaptured", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(PuzzleManager).GetMethod("OnSaveCaptured", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly MethodInfo ApplyMethod =
-            typeof(PuzzleManager).GetMethod("OnSaveApplied", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(PuzzleManager).GetMethod("OnSaveApplied", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly PropertyInfo InstanceProperty =
             typeof(PuzzleManager).GetProperty("Instance", BindingFlags.Public | BindingFlags.Static);
 

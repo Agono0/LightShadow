@@ -13,9 +13,9 @@ namespace LightShadow.Tests.Editor
     public class SaveSlotUIFragmentTargetTests
     {
         static readonly MethodInfo FormatFragmentsMethod =
-            typeof(SaveSlotUI).GetMethod("FormatFragments", BindingFlags.NonPublic | BindingFlags.Static);
+            typeof(SaveSlotUI).GetMethod("FormatFragments", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
         static readonly MethodInfo DescribeMethod =
-            typeof(SaveSlotUI).GetMethod("Describe", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(SaveSlotUI).GetMethod("Describe", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
         static string FormatFragments(int collected)
         {

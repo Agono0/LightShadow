@@ -13,7 +13,7 @@ namespace LightShadow.Tests.Editor
     public class SaveSlotUIFormatStampTests
     {
         static readonly MethodInfo FormatStampMethod = typeof(SaveSlotUI)
-            .GetMethod("FormatStamp", BindingFlags.NonPublic | BindingFlags.Static);
+            .GetMethod("FormatStamp", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 
         static string FormatStamp(string savedAtUtc)
         {

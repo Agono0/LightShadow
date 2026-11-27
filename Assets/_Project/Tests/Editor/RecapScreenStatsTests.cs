@@ -13,9 +13,9 @@ namespace LightShadow.Tests.Editor
     public class RecapScreenStatsTests
     {
         static readonly MethodInfo BuildStatsMethod = typeof(RecapScreen)
-            .GetMethod("BuildStats", BindingFlags.NonPublic | BindingFlags.Static);
+            .GetMethod("BuildStats", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
         static readonly MethodInfo BuildBodyMethod = typeof(RecapScreen)
-            .GetMethod("BuildBody", BindingFlags.NonPublic | BindingFlags.Static);
+            .GetMethod("BuildBody", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
 
         GameLanguage originalLanguage;
 
@@ -98,6 +98,9 @@ namespace LightShadow.Tests.Editor
             try
             {
                 second.question = "3 + 3 = ?";
+                second.options = new[] { "5", "6", "7", "8" };
+                second.correctIndex = 1;
+                second.explanation = "Three and three make six.";
                 var answers = new List<GameManager.AnswerRecord>
                 {
                     new GameManager.AnswerRecord { question = first, chosenIndex = 1, correct = true },
@@ -110,6 +113,7 @@ namespace LightShadow.Tests.Editor
                 StringAssert.Contains("Your answer: 4", body);
                 StringAssert.Contains("Correct answer: 6", body);
                 StringAssert.Contains("Two and two make four.", body);
+                StringAssert.Contains("Three and three make six.", body);
             }
             finally
             {

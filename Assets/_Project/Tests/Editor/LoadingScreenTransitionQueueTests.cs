@@ -12,11 +12,11 @@ namespace LightShadow.Tests.Editor
     public class LoadingScreenTransitionQueueTests
     {
         static readonly FieldInfo PendingSceneField =
-            typeof(LoadingScreen).GetField("pendingScene", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(LoadingScreen).GetField("pendingScene", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         static readonly FieldInfo InTransitionField =
-            typeof(LoadingScreen).GetField("inTransition", BindingFlags.NonPublic | BindingFlags.Static);
+            typeof(LoadingScreen).GetField("inTransition", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
         static readonly MethodInfo RunTransitionMethod =
-            typeof(LoadingScreen).GetMethod("RunTransition", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(LoadingScreen).GetMethod("RunTransition", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
         GameObject host;
         LoadingScreen screen;

@@ -14,7 +14,7 @@ namespace LightShadow.Tests.Editor
     public class HUDLanguageRefreshTests
     {
         static readonly MethodInfo AwakeMethod =
-            typeof(HUDController).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            typeof(HUDController).GetMethod("Awake", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
         GameObject host;
         HUDController hud;
