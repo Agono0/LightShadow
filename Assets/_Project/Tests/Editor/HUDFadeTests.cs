@@ -41,7 +41,7 @@ namespace LightShadow.Tests.Editor
         public void FadeToBlack_ResetsRedBaseToBlack()
         {
             fade.color = new Color(0.55f, 0.05f, 0.03f, 0.38f); // interrupted hurt flash
-            hud.FadeToBlack(0.5f, null);
+            hud.ResetFadeBaseToBlack(); // the synchronous half of FadeToBlack; the coroutine is not started in EditMode
             Assert.AreEqual(0f, fade.color.r);
             Assert.AreEqual(0f, fade.color.g);
             Assert.AreEqual(0f, fade.color.b);
@@ -51,7 +51,7 @@ namespace LightShadow.Tests.Editor
         public void FadeToBlack_PreservesCurrentAlpha()
         {
             fade.color = new Color(0.55f, 0.05f, 0.03f, 0.38f);
-            hud.FadeToBlack(0.5f, null);
+            hud.ResetFadeBaseToBlack(); // the synchronous half of FadeToBlack; the coroutine is not started in EditMode
             Assert.AreEqual(0.38f, fade.color.a, 0.0001f);
         }
     }

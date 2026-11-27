@@ -10,9 +10,7 @@ namespace LightShadow.Tests.Editor
 {
     // HUD chalk-message queue: QueueMessage shows immediately when idle and
     // enqueues while a message is up; Update hands off on timer expiry;
-    // ShowMessage clears queued beats. These tests assert the REAL current
-    // behavior, including that a handoff routes through ShowMessage and
-    // therefore clears any deeper queue.
+    // ShowMessage clears queued beats; the timer hand-off is lossless FIFO.
     public class HUDMessageQueueTests
     {
         static readonly MethodInfo AwakeMethod =
@@ -53,8 +51,7 @@ namespace LightShadow.Tests.Editor
 
         void ExpireTimer()
         {
-            MessageTimerField.SetValue(hud, 0.00001f);
-            UpdateMethod.Invoke(hud, null);
+            hud.AdvanceMessageTimer(1000f);
         }
 
         [Test]
@@ -95,17 +92,16 @@ namespace LightShadow.Tests.Editor
         }
 
         [Test]
-        public void Handoff_ShowsNextBeat_AndClearsDeeperQueue_CurrentBehavior()
+        public void Handoff_IsLosslessFifo()
         {
-            // The handoff routes through ShowMessage, whose clear drops any
-            // beats queued behind the one being shown. Pins the CURRENT
-            // behavior; if the queue is ever made lossless this test should
-            // change with it deliberately.
             hud.ShowMessage("Current", 4f);
             hud.QueueMessage("Beat B", 4f);
             hud.QueueMessage("Beat C", 4f);
             ExpireTimer();
             Assert.AreEqual("Beat B", message.text);
+            Assert.AreEqual(1, QueueCount);
+            ExpireTimer();
+            Assert.AreEqual("Beat C", message.text);
             Assert.AreEqual(0, QueueCount);
         }
     }

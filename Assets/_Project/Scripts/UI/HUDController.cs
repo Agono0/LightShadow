@@ -133,21 +133,26 @@ namespace LightShadow.UI
             // Tab peeks at the objective list; the touch button calls ToggleObjectives().
             if (Input.GetKeyDown(KeyCode.Tab)) ToggleObjectives();
 
-            if (messageTimer > 0f)
+            AdvanceMessageTimer(Time.deltaTime);
+        }
+
+        // Public so Editor tests can drive the queue without a play-mode clock.
+        public void AdvanceMessageTimer(float deltaSeconds)
+        {
+            if (messageTimer <= 0f) return;
+            messageTimer -= deltaSeconds;
+            if (messageTimer > 0f) return;
+
+            if (messageQueue.Count > 0)
             {
-                messageTimer -= Time.deltaTime;
-                if (messageTimer <= 0f)
-                {
-                    if (messageQueue.Count > 0)
-                    {
-                        QueuedMessage next = messageQueue.Dequeue();
-                        ShowMessage(next.text, next.seconds);
-                    }
-                    else if (messageText != null)
-                    {
-                        messageText.gameObject.SetActive(false);
-                    }
-                }
+                // Lossless FIFO hand-off: show the next beat WITHOUT the
+                // urgent-message clear, so deeper beats survive.
+                QueuedMessage next = messageQueue.Dequeue();
+                DisplayMessage(next.text, next.seconds);
+            }
+            else if (messageText != null)
+            {
+                messageText.gameObject.SetActive(false);
             }
         }
 
@@ -189,7 +194,7 @@ namespace LightShadow.UI
             }
             SetFadeAlpha(0f);
             // Restore black so the next FadeToBlack does not fade in red.
-            if (fadeImage != null) fadeImage.color = new Color(0f, 0f, 0f, fadeImage.color.a);
+            ResetFadeBaseToBlack();
             fadeRoutine = null;
         }
 
@@ -252,6 +257,11 @@ namespace LightShadow.UI
             if (messageText == null || string.IsNullOrEmpty(text)) return;
             // An urgent message takes over: clear any stale queued beats.
             messageQueue.Clear();
+            DisplayMessage(text, seconds);
+        }
+
+        void DisplayMessage(string text, float seconds)
+        {
             lastMessageSource = text;
             messageText.text = Localization.TrPresent(text);
             ApplyLanguageUI();
@@ -318,6 +328,11 @@ namespace LightShadow.UI
             // black fade starting mid-flash would fade to red (HUD review).
             if (fadeImage != null) fadeImage.color = new Color(0f, 0f, 0f, fadeImage.color.a);
             fadeRoutine = StartCoroutine(FadeRoutine(1f, seconds, onBlack));
+        }
+
+        public void ResetFadeBaseToBlack()
+        {
+            if (fadeImage != null) fadeImage.color = new Color(0f, 0f, 0f, fadeImage.color.a);
         }
 
         public void FadeIn(float seconds)
