@@ -28,6 +28,41 @@ pack ships its original `License.txt` inside its folder under `Assets/ThirdParty
 | leafy_grass (2K JPG) | https://polyhaven.com/a/leafy_grass | CC0 1.0 | Charlotte Baglioni | 2026-10-30 | Mat_Art_Grass (garden ground) |
 | quatrefoil_jacquard_fabric (2K JPG) | https://polyhaven.com/a/quatrefoil_jacquard_fabric | CC0 1.0 | colormass, Rico Cilliers | 2026-10-30 | Mat_Art_Fabric (stage backdrop) |
 
+### OpenGameArt CC0 SFX/ambience additions (downloaded + verified 2026-11-27)
+
+License verified on each asset's own page ("License(s): CC0"); originals + a License.txt ship in
+each folder under `Assets/ThirdParty/`. Selective import (only the files listed).
+
+| Asset / Pack | Source URL | License | Author | Imported at | Used for |
+| --- | --- | --- | --- | --- | --- |
+| Heartbeat sounds | https://opengameart.org/content/heartbeat-sounds | CC0 1.0 | bart | 2026-11-27 | heartbeat loops (SFX_Heartbeat_0 slow / SFX_Heartbeat_1 fast) for low-Calm + Hide snapshot |
+| horror breathing | https://opengameart.org/content/horror-breathing | CC0 1.0 | primbal | 2026-11-27 | scared breathing loop (SFX_Breath_Scared) |
+| wind whoosh loop | https://opengameart.org/content/wind-whoosh-loop | CC0 1.0 | sketchman3 | 2026-11-27 | wind-through-broken-glass gust loop (SFX_WindBrokenGlass_0) |
+| johnny whispers | https://opengameart.org/content/johnny-whispers | CC0 1.0 | iamoneabe | 2026-11-27 | Shadow whisper burst (SFX_Whisper_Burst, drop-in id) |
+| electric buzz | https://opengameart.org/content/electric-buzz | CC0 1.0 | themightyglider | 2026-11-27 | fluorescent tube hum loop (SFX_FluorescentHum_0) |
+| crickets ambient noise (loopable) | https://opengameart.org/content/crickets-ambient-noise-loopable | CC0 1.0 | wolfgang | 2026-11-27 | courtyard night crickets bed (AMB_Crickets) |
+| Lost in a bad place (horror ambience loop) | https://opengameart.org/content/lost-in-a-bad-place-horror-ambience-loop | CC0 1.0 | congusbongus | 2026-11-27 | library-wing drone (MUS_Drone_Library from lost_1; lost_2 kept as alternate in ThirdParty) |
+| Abandoned passages (horror ambience loop) | https://opengameart.org/content/abandoned-passages-horror-ambience-loop | CC0 1.0 | congusbongus | 2026-11-27 | science-wing drone (MUS_Drone_Science from freezer) |
+| 100 CC0 metal and wood SFX (selected) | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | CC0 1.0 | rubberduck | 2026-11-27 | building creaks (SFX_BuildingCreak_0-2 from wood_cracking_01-03); rest of the pack not imported |
+
+Per-file download URLs (exact files taken 2026-11-27; page URLs in the table above):
+
+| Original file | Exact file URL | Imported as |
+| --- | --- | --- |
+| heartbeat_slow_0.wav | https://opengameart.org/sites/default/files/heartbeat_slow_0.wav | Assets/_Project/Audio/SFX/SFX_Heartbeat_0.wav (original in Assets/ThirdParty/OGAHeartbeatCC0/) |
+| heartbeat_fast_0.wav | https://opengameart.org/sites/default/files/heartbeat_fast_0.wav | Assets/_Project/Audio/SFX/SFX_Heartbeat_1.wav (original in Assets/ThirdParty/OGAHeartbeatCC0/) |
+| horrorbreathing.ogg | https://opengameart.org/sites/default/files/horrorbreathing.ogg | Assets/_Project/Audio/SFX/SFX_Breath_Scared.ogg (original in Assets/ThirdParty/OGABreathingCC0/) |
+| wind woosh loop.ogg (renamed wind_woosh_loop.ogg) | https://opengameart.org/sites/default/files/wind%20woosh%20loop.ogg | Assets/_Project/Audio/SFX/SFX_WindBrokenGlass_0.ogg (original in Assets/ThirdParty/OGAWindWhooshCC0/) |
+| johnnywhispers.wav | https://opengameart.org/sites/default/files/johnnywhispers.wav | Assets/_Project/Audio/SFX/SFX_Whisper_Burst.wav (original in Assets/ThirdParty/OGAWhispersCC0/) |
+| buzz.ogg | https://opengameart.org/sites/default/files/buzz.ogg | Assets/_Project/Audio/SFX/SFX_FluorescentHum_0.ogg (original in Assets/ThirdParty/OGAElectricBuzzCC0/) |
+| crickets-oneloop.mp3 | https://opengameart.org/sites/default/files/crickets-oneloop.mp3 | Assets/_Project/Audio/Ambience/AMB_Crickets.mp3 (original in Assets/ThirdParty/OGACricketsCC0/) |
+| lost_1.ogg | https://opengameart.org/sites/default/files/lost_1.ogg | Assets/_Project/Audio/Music/MUS_Drone_Library.ogg (original in Assets/ThirdParty/OGALostInABadPlaceCC0/) |
+| lost_2.ogg | https://opengameart.org/sites/default/files/lost_2.ogg | kept in Assets/ThirdParty/OGALostInABadPlaceCC0/ as alternate (not imported) |
+| freezer.ogg | https://opengameart.org/sites/default/files/freezer.ogg | Assets/_Project/Audio/Music/MUS_Drone_Science.ogg (original in Assets/ThirdParty/OGAAbandonedPassagesCC0/) |
+| wood_cracking_01.ogg (inside 100-CC0-wood-metal-SFX.zip) | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | Assets/_Project/Audio/SFX/SFX_BuildingCreak_0.ogg (original in Assets/ThirdParty/OGAMetalWoodCC0/) |
+| wood_cracking_02.ogg (inside 100-CC0-wood-metal-SFX.zip) | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | Assets/_Project/Audio/SFX/SFX_BuildingCreak_1.ogg (original in Assets/ThirdParty/OGAMetalWoodCC0/) |
+| wood_cracking_03.ogg (inside 100-CC0-wood-metal-SFX.zip) | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | Assets/_Project/Audio/SFX/SFX_BuildingCreak_2.ogg (original in Assets/ThirdParty/OGAMetalWoodCC0/) |
+
 ### Fonts (Phase 1, downloaded + verified 2026-11-19)
 
 All five families ship their original license text next to the import:
@@ -107,3 +142,49 @@ Download volume: Kenney packs 21.5 MB zips + Poly Haven 67 MB (24 × 2K JPG) ≈
 
 - OFL 1.1 fonts require no attribution but ship their full license text in
   `Assets/_Project/Fonts/Licenses/`; the OFL FAQ is https://openfontlicense.org (verified 2026-11-19).
+
+## ambientCG CC0 texture sets - walls (workstream C, downloaded + verified 2026-11-27)
+## ambientCG CC0 texture sets - decals (workstream C, downloaded + verified 2026-11-27)
+
+## OpenGameArt music + ambience pack (added 2026-11-27, workstream B music selections)
+
+All six tracks are OpenGameArt submissions marked CC0 1.0 on their pages (license
+bar re-verified 2026-11-27; CC0 permits redistribution of raw files in this public repo).
+Page URL and exact file URL are recorded per track in Docs/ASSET_MANIFEST.md.
+
+- "Paranoid Truth" by Tsorthan Grove - CC0 - full mix used (NOT the Solo variant)
+- "Horror Atmosphere" by SubspaceAudio (Juhani Junkala) - CC0 - loop-ready ogg
+- "First Light Particles" by Yoiyami - CC0 - page notice explicitly allows standalone soundtrack use and derivative works
+- "A New Start (short solo piano)" by Wolfgang_ - CC0 - ending alternate only
+- "Determined Pursuit (epic orchestra loop)" by Emma_MA - CC0 - page notice: public domain as of Jan 2017, no attribution
+- "AMB Morning Sounds (Perfect Loop)" by Kresiek The Furry - CC0 - perfect-loop dawn ambience
+## Grab3D + OpenGameArt model fills (added 2026-11-27, workstream D candidates)
+
+Grab3D models are site-wide CC0 1.0 (license page https://grab3d.com/license/ verified
+2026-11-27: "every model on Grab3D is dedicated to the public domain under CC0 1.0...
+Pass it on: share the original or your changed version, on your own site too").
+Each Grab3D model page shows "License CC0 1.0 - public domain" and ships its own
+LICENSE.txt + manifest.json under /dl/<slug>/. OpenGameArt pages re-verified CC0 on
+2026-11-27. Per-file hashes, triangle counts and exact output paths are recorded in
+Docs/ASSET_MANIFEST.md (rows land with this PR, register v2).
+
+| Model | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SM_Prop_SchoolDesk.fbx | https://grab3d.com/models/furniture/school-desk/ | https://grab3d.com/dl/school-desk/school-desk.fbx | CC0 1.0 | Grab3D | 6,536 tris, 2K textures, FBX 7400, 0.74 x 0.51 x 0.76 m |
+| SM_Prop_SchoolLocker.fbx | https://grab3d.com/models/furniture/school-locker/ | https://grab3d.com/dl/school-locker/school-locker.fbx | CC0 1.0 | Grab3D | 13,044 tris, 2K textures, FBX 7400 |
+| SM_Prop_Lighter.obj + T_Prop_Lighter.jpg | https://opengameart.org/content/lighter | https://opengameart.org/sites/default/files/Lighter.zip | CC0 1.0 | plaggy | 1,024 faces / 709 verts, obj + texture |
+## ambientCG CC0 texture sets - props (workstream C, downloaded + verified 2026-11-27)
+
+License verified at https://ambientcg.com/license (CC0 1.0; no attribution required).
+2K JPG sets; Albedo/Normal/Roughness imported, smoothness twins generated (roughness
+inverted into alpha, house convention). Android 1K override follows the existing
+Concrete texture metas. CC0: no attribution list entries needed.
+
+| Set | Source URL | License | Author | Imported at | Maps to |
+| --- | --- | --- | --- | --- | --- |
+| PaintedPlaster016 (2K JPG) | https://ambientcg.com/view?id=PaintedPlaster016 | CC0 1.0 | ambientCG | 2026-11-27 | T_PeelingPlaster_* / Mat_Art_PeelingPlaster |
+| Concrete033 (2K JPG) | https://ambientcg.com/view?id=Concrete033 | CC0 1.0 | ambientCG | 2026-11-27 | T_MoldConcrete_* / Mat_Art_MoldConcrete |
+| Tiles140 (2K JPG) | https://ambientcg.com/view?id=Tiles140 | CC0 1.0 | ambientCG | 2026-11-27 | T_StainedTile_* / Mat_Art_StainedTile |
+| SurfaceImperfections015 (2K JPG) | https://ambientcg.com/view?id=SurfaceImperfections015 | CC0 1.0 | ambientCG | 2026-11-27 | T_DustImperfection_* detail/decal overlay (no material) |
+| PaintedMetal006 (2K JPG) | https://ambientcg.com/view?id=PaintedMetal006 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustedPaintedMetal_* / Mat_Art_RustedPaintedMetal |
+| Metal064 (2K JPG) | https://ambientcg.com/view?id=Metal064 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustMetal_* / Mat_Art_RustMetal |

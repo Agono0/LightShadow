@@ -129,7 +129,15 @@ namespace LightShadow.Audio
             Apply(ResolvePersistent(), SecondsFor(state, previousState));
         }
 
-        void OnMemoryFlash(int a, int b) => BeginMemoryFlash();
+        void OnMemoryFlash(int a, int b)
+        {
+            BeginMemoryFlash();
+            // The memory-flash piano (Docs/AUDIO_CUES.md MUS_MemoryTheme): a
+            // one-shot under the overlay that ducks everything but Voice/Music.
+            // Null-safe: no clip in the library, no sound.
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayMusicOnce(SfxRegistry.Clip("MUS_MemoryTheme"));
+        }
 
         void OnDawnStarted()
         {

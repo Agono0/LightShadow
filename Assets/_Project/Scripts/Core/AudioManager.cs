@@ -13,10 +13,16 @@ namespace LightShadow.Core
         public AudioSource musicSource;
         public AudioSource ambienceSource;
         public AudioSource sfxSource;
+        public AudioSource voiceSource;
 
         void Awake()
         {
             Instance = this;
+            // Reverb zone mix policy (Docs/REVERB_ZONES.md): voice stays dry
+            // so narration reads as inner voice in every room. Music and SFX
+            // keep the default mix (1) and take the room's reverb; UI clicks
+            // share sfxSource until a dedicated UI source exists.
+            if (voiceSource != null) voiceSource.reverbZoneMix = 0f;
         }
 
         void OnDestroy()
@@ -33,6 +39,18 @@ namespace LightShadow.Core
             musicSource.Play();
         }
 
+        // One-shot music (the memory-flash piano): plays without looping and
+        // without the already-playing guard, so a flash always restarts the
+        // theme. AdaptiveMusic.UpdateBed re-asserts the looped bed afterwards.
+        public void PlayMusicOnce(AudioClip clip)
+        {
+            if (clip == null || musicSource == null) return;
+            musicSource.Stop();
+            musicSource.clip = clip;
+            musicSource.loop = false;
+            musicSource.Play();
+        }
+
         public void StopMusic()
         {
             if (musicSource != null) musicSource.Stop();
@@ -45,6 +63,23 @@ namespace LightShadow.Core
             ambienceSource.clip = clip;
             ambienceSource.loop = true;
             ambienceSource.Play();
+        }
+
+        // Story voiceover: one line at a time, interrupting itself, never
+        // looping. Generated clips play through here (VoiceoverPlayer) so a
+        // new node line always cuts the previous one off.
+        public void PlayVoice(AudioClip clip)
+        {
+            if (clip == null || voiceSource == null) return;
+            voiceSource.Stop();
+            voiceSource.clip = clip;
+            voiceSource.loop = false;
+            voiceSource.Play();
+        }
+
+        public void StopVoice()
+        {
+            if (voiceSource != null) voiceSource.Stop();
         }
 
         public void PlaySfx(AudioClip clip)
