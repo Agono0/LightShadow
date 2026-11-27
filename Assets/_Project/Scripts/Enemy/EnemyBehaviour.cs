@@ -129,6 +129,17 @@ namespace LightShadow.Enemy
         // P3 noise bus: remember where the noise happened and how far it
         // carries. Whether the Shadow reacts at all is decided in Update (the
         // noise must still be fresh AND inside the radius when checked).
+        // Positional noise (user brief 2026-11-27: distraction throws). The
+        // player-driven noise bus reports at the player's feet; a thrown prop
+        // lands somewhere else entirely, and the wraith goes THERE.
+        public void HearNoiseAt(Vector3 position, float radius)
+        {
+            lastNoisePosition = position;
+            lastNoiseTime = Time.time;
+            lastNoiseRadius = radius;
+            if (state == State.Investigate) investigateTimer = 0f;
+        }
+
         void OnNoiseEmitted(float radius)
         {
             lastNoisePosition = player != null ? player.position : transform.position;

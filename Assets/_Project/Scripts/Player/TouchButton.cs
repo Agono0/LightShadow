@@ -8,7 +8,7 @@ namespace LightShadow.Player
     // no code changes needed to re-purpose a button in the mobile HUD.
     public class TouchButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives, CrankHold, BreathHold, Medkit }
+        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives, CrankHold, BreathHold, Medkit, Throw }
 
         [Header("Wiring")]
         public Kind kind;
@@ -122,6 +122,11 @@ namespace LightShadow.Player
                     break;
                 case Kind.BreathHold:
                     if (hiding != null) hiding.SetBreathHold(true);
+                    break;
+                case Kind.Throw:
+                    // Distraction throws (user brief 2026-11-27): hurls the
+                    // carried prop; the wraith hears where it LANDS.
+                    Gameplay.ThrowableProp.ThrowCarried();
                     break;
                 case Kind.Medkit:
                     // Two-hit health (user brief 2026-11-27): medkits are the
