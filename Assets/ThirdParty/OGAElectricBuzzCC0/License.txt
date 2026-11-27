@@ -1,0 +1,5 @@
+Asset: electric buzz
+Source: https://opengameart.org/content/electric-buzz
+Author: themightyglider (https://opengameart.org/users/themightyglider)
+License: CC0 1.0 - https://creativecommons.org/publicdomain/zero/1.0/ (stated on the asset page, verified 2026-11-27)
+Downloaded: 2026-11-27
