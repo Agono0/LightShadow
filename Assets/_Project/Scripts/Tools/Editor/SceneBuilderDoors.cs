@@ -38,6 +38,15 @@ namespace LightShadow.Tools
             // staff room. More arrive as puzzle rewards in a later batch.
             PlaceMedkit(parent, "Medkit_Infirmary", new Vector3(-21.4f, 1.05f, 0f), palette);
             PlaceMedkit(parent, "Medkit_Staff", new Vector3(-19.8f, 0.98f, 24.5f), palette);
+
+            // Throwable distraction props (user brief 2026-11-27): bottles and
+            // cups that carry, throw and shatter; the wraith hears where they
+            // land, not where Nour stands.
+            PlaceThrowable(parent, "Bottle_Library", new Vector3(-19.5f, 1.0f, -19.5f), palette.metal, true);
+            PlaceThrowable(parent, "Cup_Infirmary", new Vector3(-21.2f, 1.0f, -1.2f), palette.paper, false);
+            PlaceThrowable(parent, "Bottle_Corridor", new Vector3(1.6f, 0.05f, 2f), palette.metal, true);
+            PlaceThrowable(parent, "Beaker_Physics", new Vector3(19.5f, 1.0f, -18.5f), palette.paper, true);
+            PlaceThrowable(parent, "Cup_StaffRoom", new Vector3(-20.6f, 1.0f, 24.0f), palette.paper, false);
         }
 
         // A hinged wooden door in a corridor-wall gap. The root sits at the
@@ -86,6 +95,36 @@ namespace LightShadow.Tools
             pickup.itemId = itemId;
             pickup.displayNameEn = displayEn;
             pickup.displayNameAr = displayAr;
+        }
+
+        // A throwable prop: a small rigidbody bottle/cup on the floor or a
+        // desk. Breakables shatter loudly on a hard landing; soft props thud.
+        static void PlaceThrowable(Transform parent, string name, Vector3 position,
+            Material material, bool breakable)
+        {
+            var prop = new GameObject(name);
+            prop.transform.SetParent(parent, false);
+            prop.transform.localPosition = position;
+
+            GameObject bodyGo = GameObject.CreatePrimitive(breakable ? PrimitiveType.Cylinder : PrimitiveType.Cube);
+            bodyGo.name = "Body";
+            bodyGo.transform.SetParent(prop.transform, false);
+            bodyGo.transform.localPosition = Vector3.zero;
+            bodyGo.transform.localScale = breakable
+                ? new Vector3(0.09f, 0.14f, 0.09f)   // bottle
+                : new Vector3(0.09f, 0.11f, 0.09f);  // cup
+            Renderer renderer = bodyGo.GetComponent<Renderer>();
+            if (renderer != null) renderer.sharedMaterial = material;
+
+            Rigidbody body = prop.AddComponent<Rigidbody>();
+            body.mass = 0.4f;
+            // The rigidbody needs a collider on the root for collisions to
+            // reach OnCollisionEnter; the primitive keeps its own.
+            SphereCollider rootCollider = prop.AddComponent<SphereCollider>();
+            rootCollider.radius = 0.12f;
+
+            ThrowableProp throwable = prop.AddComponent<ThrowableProp>();
+            throwable.breakable = breakable;
         }
 
         // A white-cross medkit box prop with the pickup on the root.
