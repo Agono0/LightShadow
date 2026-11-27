@@ -381,3 +381,18 @@ existing-byte provenance on 2026-11-27.
 | SFX_GateCrank_0/1.ogg | https://opengameart.org/content/chain-winch-sounds | https://opengameart.org/sites/default/files/winch.zip (members "winch - Marker #2.wav", "winch - Marker #5.wav") | CC0 1.0 | bart | Act III gate crank |
 | SFX_ChalkWrite_0..2.ogg, SFX_UIPaperTap_0/1.ogg | https://kenney.nl/assets/interface-sounds | existing repo bytes: Assets/ThirdParty/KenneyInterfaceSounds/Audio/ scratch_001..003.ogg, drop_001/002.ogg (no stable archive URL) | CC0 1.0 | Kenney (kenney.nl) | ChalkWrite PROVISIONAL, fit unverified |
 | SFX_GlassShard_0/1.ogg | https://kenney.nl/assets/impact-sounds | existing repo bytes: Assets/ThirdParty/KenneyImpactSounds/Audio/ impactGlass_light_002/003.ogg (no stable archive URL) | CC0 1.0 | Kenney (kenney.nl) | unused pack members |
+## Loading screen art (added 2026-11-27, peer reservation grant)
+
+T_UI_Loading_Night.png is an ORIGINAL in-house script-generated asset - no
+external source, no stock, no third-party license. Same moonlit vertical
+gradient as the night backdrop (blue-teal, thin low-saturation amber-rose band
+at the very bottom) plus a pale moon disc with a soft cool glow; no motif, no
+baked text. Exact parameters in Art/pipeline/generate_ui_procedural.py
+(append-only loading section; the four earlier night-UI outputs are
+byte-unchanged, verified by sha256 before/after). Visual review of the
+rendered PNG was performed on the actual pixels 2026-11-27; no in-editor or
+runtime check. Wiring (LoadingScreen) is the Scripts owner's side.
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| T_UI_Loading_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural asset, no external source; parameters in Art/pipeline/generate_ui_procedural.py |
