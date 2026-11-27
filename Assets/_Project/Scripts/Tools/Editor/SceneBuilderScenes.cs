@@ -716,6 +716,7 @@ namespace LightShadow.Tools
             CreateBoard(prefabs, t, database, "Board_Physics", new Vector3(12f, 1.7f, -21.82f), Quaternion.Euler(0f, 180f, 0f));
             CreateFuse(prefabs, t, "Fuse_Physics", new Vector3(6f, 1.55f, -8.18f), Quaternion.identity,
                 zones.physicsLights, new[] { zones.physics }, "In her classroom the chalk still smelled of jasmine.");
+            CreateOpticsBench(prefabs, t, palette);
         }
 
         static void BuildClassroom(Transform parent, Prefabs prefabs, Palette palette, QuestionDatabase database)
