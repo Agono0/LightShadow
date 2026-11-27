@@ -1,3 +1,4 @@
+using LightShadow.Audio;
 using LightShadow.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,8 +7,10 @@ using UnityEngine.UI;
 namespace LightShadow.UI
 {
     // 01_MainMenu: title, the way into the school, a short controls card, and quit.
-    // The menu is deliberately quiet - one warm light, no music - so the first
-    // step into the dark school does the work.
+    // The menu stays quiet until the audio library ships a MUS_Menu loop: the
+    // hook below plays it when the id exists and keeps the deliberate silence
+    // when it does not, so the first step into the dark school still does the
+    // work either way.
     //
     // Premium pass (additive): when saves exist, ENTER THE SCHOOL opens the save
     // slot panel (D12) instead of starting blind; with no saves it starts a new
@@ -41,6 +44,14 @@ namespace LightShadow.UI
 
         void Start()
         {
+            // The plan's menu pass asks for a menu music loop. Graceful until
+            // the audio library registers the cue: no clip, no music, no error.
+            AudioClip menuMusic = SfxRegistry.Clip("MUS_Menu");
+            if (menuMusic != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayMusic(menuMusic);
+            }
+
             if (EventSystem.current != null && playButton != null)
             {
                 EventSystem.current.SetSelectedGameObject(playButton.gameObject);
