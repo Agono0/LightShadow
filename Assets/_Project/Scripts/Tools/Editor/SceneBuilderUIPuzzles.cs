@@ -160,5 +160,72 @@ namespace LightShadow.Tools
             ctrl.hintButton = hintButton;
             ctrl.closeButton = close;
         }
+
+        // Optics-bench overlay (workstream 5), first used by the science lab:
+        // three rotor buttons (90-degree steps), a beam diagram, a test button.
+        static void BuildOpticsPanel(Transform root)
+        {
+            RectTransform dim = MakeFullScreen(root, "OpticsPanel", new Color(0f, 0f, 0f, 0.82f), true);
+            OpticsUIController ctrl = dim.gameObject.AddComponent<OpticsUIController>();
+
+            RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 680f), PanelDark, false).rectTransform;
+
+            Text title = MakeText(card, "Title", "", 30, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 268f), new Vector2(640f, 48f), FontStyle.Bold, true);
+
+            Text diagram = MakeText(card, "Diagram", "", 24, Paper, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 196f), new Vector2(680f, 36f), FontStyle.Bold);
+
+            Button[] rotors = new Button[3];
+            Text[] rotorLabels = new Text[3];
+            for (int i = 0; i < 3; i++)
+            {
+                float x = -220f + i * 220f;
+                rotors[i] = MakeButton(card, "Rotor" + (i + 1), "", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, 0.5f), new Vector2(x, 92f), new Vector2(200f, 76f), ButtonDark, 21, out rotorLabels[i]);
+            }
+
+            Text feedback = MakeText(card, "Feedback", "", 23, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 8f), new Vector2(640f, 36f));
+
+            Text hint = MakeText(card, "Hint", "", 20, Dim, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -46f), new Vector2(640f, 56f));
+
+            Text testLabel;
+            Button test = MakeButton(card, "Test", "TEST THE BEAM", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(0f, -132f), new Vector2(340f, 60f), ButtonWarm, 24, out testLabel);
+            Localize(testLabel, "اختبر الشعاع");
+
+            Text hintLabel;
+            Button hintButton = MakeButton(card, "Hint", "HINT", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(-196f, -232f), new Vector2(220f, 50f), ButtonDark, 20, out hintLabel);
+            Localize(hintLabel, "تلميح");
+
+            Text closeLabel;
+            Button close = MakeButton(card, "Close", "STEP AWAY", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(196f, -232f), new Vector2(220f, 50f), ButtonDark, 20, out closeLabel);
+            Localize(closeLabel, "ابتعد");
+
+            Text footer = MakeText(card, "Footer", "1-3 rotate, Enter tests   ·   the world does not pause", 15, Dim,
+                TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(0f, 20f), new Vector2(640f, 24f));
+            Localize(footer, "1-3 تدوير و Enter يختبر   ·   العالم لا يتوقف");
+
+            ctrl.panel = dim.gameObject;
+            ctrl.titleText = title;
+            ctrl.diagramText = diagram;
+            ctrl.rotorButtons = rotors;
+            ctrl.rotorLabels = rotorLabels;
+            ctrl.testButton = test;
+            ctrl.feedbackText = feedback;
+            ctrl.hintText = hint;
+            ctrl.hintButton = hintButton;
+            ctrl.closeButton = close;
+        }
     }
 }
