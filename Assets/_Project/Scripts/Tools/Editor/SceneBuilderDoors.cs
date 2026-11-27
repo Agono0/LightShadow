@@ -47,6 +47,12 @@ namespace LightShadow.Tools
             PlaceThrowable(parent, "Bottle_Corridor", new Vector3(1.6f, 0.05f, 2f), palette.metal, true);
             PlaceThrowable(parent, "Beaker_Physics", new Vector3(19.5f, 1.0f, -18.5f), palette.paper, true);
             PlaceThrowable(parent, "Cup_StaffRoom", new Vector3(-20.6f, 1.0f, 24.0f), palette.paper, false);
+
+            // Movable crates (item 18): shove them to slow a chase or block a
+            // doorway; the scrape is loud and positional, so it is a gamble.
+            PlaceCrate(parent, "Crate_CorridorNorth", new Vector3(1.4f, 0.35f, 14f), palette);
+            PlaceCrate(parent, "Crate_Classroom", new Vector3(-18.5f, 0.35f, 12f), palette);
+            PlaceCrate(parent, "Crate_PhysicsLab", new Vector3(18f, 0.35f, -12f), palette);
         }
 
         // A hinged wooden door in a corridor-wall gap. The root sits at the
@@ -63,11 +69,14 @@ namespace LightShadow.Tools
             hinge.transform.localPosition = Vector3.zero;
 
             // Panel: thin wooden slab with a handle knob on the corridor side.
+            // Layer 0, NOT LevelLayer: the NavMesh bake collects LevelLayer
+            // colliders, and a baked-in panel would seal the doorway forever -
+            // runtime passage is the DoorController's carving obstacle alone.
             Box(hinge.transform, "Panel", new Vector3(0f, 1.025f, 0.475f),
-                new Vector3(0.08f, 2.05f, 0.95f), palette.wood, true);
+                new Vector3(0.08f, 2.05f, 0.95f), palette.wood, true, 0);
             float handleSide = x < 0f ? 0.07f : -0.07f;
             Box(hinge.transform, "Handle", new Vector3(handleSide, 1.0f, 0.82f),
-                new Vector3(0.05f, 0.05f, 0.14f), palette.metal, false);
+                new Vector3(0.05f, 0.05f, 0.14f), palette.metal, false, 0);
 
             DoorController door = root.AddComponent<DoorController>();
             door.hinge = hinge.transform;
@@ -95,6 +104,28 @@ namespace LightShadow.Tools
             pickup.itemId = itemId;
             pickup.displayNameEn = displayEn;
             pickup.displayNameAr = displayAr;
+        }
+
+        // A heavy wooden crate the player can shove (PlayerPush); its scrapes
+        // carry. Default layer, so the NavMesh bake ignores it - the wraith
+        // paths around it only while its obstacle is active... no obstacle:
+        // it is small enough for the agent to bump past, which reads fine.
+        static void PlaceCrate(Transform parent, string name, Vector3 position, Palette palette)
+        {
+            var crate = new GameObject(name);
+            crate.transform.SetParent(parent, false);
+            crate.transform.localPosition = position;
+
+            // Layer 0 too: a baked-in crate would leave a permanent hole in
+            // the NavMesh where it used to sit.
+            GameObject box = Box(crate.transform, "Body", Vector3.zero, new Vector3(0.7f, 0.7f, 0.7f),
+                palette.wood, true, 0);
+
+            Rigidbody body = crate.AddComponent<Rigidbody>();
+            body.mass = 40f;
+            body.constraints = RigidbodyConstraints.FreezeRotation;
+
+            crate.AddComponent<PushableProp>();
         }
 
         // A throwable prop: a small rigidbody bottle/cup on the floor or a
