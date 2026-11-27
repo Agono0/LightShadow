@@ -30,6 +30,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       code: ${{ steps.filter.outputs.code }}
+      player: ${{ steps.filter.outputs.player }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,13 +39,25 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "player=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git diff --name-only "origin/${{ github.base_ref }}...HEAD" | tee /tmp/changed.txt
+          # code: anything Unity compiles or imports (EditMode tests run).
           if grep -qE '^(Assets|ProjectSettings|Packages|\.github)/' /tmp/changed.txt; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           else
             echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+          # player: code changes that can reach a player build. EditMode test
+          # files (Assets/_Project/Tests/) are Editor-only and never ship, so
+          # a PR that touches only those skips the three player builds. The
+          # required check names still report success (no-op jobs).
+          if grep -E '^(Assets|ProjectSettings|Packages|\.github)/' /tmp/changed.txt \
+              | grep -qvE '^Assets/_Project/Tests/'; then
+            echo "player=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "player=false" >> "$GITHUB_OUTPUT"
           fi
 
   test-editmode:
@@ -58,27 +71,43 @@ jobs:
       pull-requests: write
     steps:
       - if: needs.changes.outputs.code == 'true'
-        name: Free runner disk space (GameCI editor image + project do not fit otherwise)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: true
-          large-packages: true
-          swap-storage: true
+        name: Free runner disk space (fast parallel rm; apt purge only if still short)
+        run: |
+          df -h / | tail -1
+          sudo swapoff -a || true
+          ( sudo rm -rf /usr/local/lib/android & \
+            sudo rm -rf /usr/share/dotnet & \
+            sudo rm -rf /opt/ghc /usr/local/.ghcup & \
+            sudo rm -rf /usr/share/swift /usr/local/share/boost & \
+            docker system prune -af >/dev/null 2>&1 & \
+            wait )
+          avail_kb=$(df --output=avail / | tail -1)
+          df -h / | tail -1
+          if [ "$avail_kb" -lt 26000000 ]; then
+            echo "Still under ~25 GB free: falling back to the slow apt cleanup"
+            sudo apt-get remove -y '^aspnetcore-.*' '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*' azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri >/dev/null 2>&1 || true
+            sudo apt-get autoremove -y >/dev/null 2>&1 || true
+            df -h / | tail -1
+          fi
+
 
       - if: needs.changes.outputs.code == 'true'
         uses: actions/checkout@v4
 
-      # Library cache mirrors the build jobs so repeat runs stay fast.
+      # Library cache policy (all jobs): PRs only RESTORE (they can read the
+      # caches main saved); main pushes SAVE a fresh entry after a green run.
+      # Before: every PR ref saved its own 1.5-3 GB Library entries, which
+      # pushed the repo past the 10 GB cache quota and evicted main's, and the
+      # fixed key meant a saved cache was never refreshed.
       - if: needs.changes.outputs.code == 'true'
-        uses: actions/cache@v4
+        name: Restore Library cache
+        uses: actions/cache/restore@v4
         with:
           path: Library
-          key: Library-test-editmode-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: Library-test-editmode-
+          key: Library-test-editmode-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
+          restore-keys: |
+            Library-test-editmode-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-
+            Library-test-editmode-
 
       - if: needs.changes.outputs.code == 'true'
         name: Run EditMode tests
@@ -90,6 +119,13 @@ jobs:
         with:
           unityVersion: auto
           testMode: EditMode
+
+      - if: success() && needs.changes.outputs.code == 'true' && github.ref == 'refs/heads/main'
+        name: Save Library cache (main only)
+        uses: actions/cache/save@v4
+        with:
+          path: Library
+          key: Library-test-editmode-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
 
       # Docs-only PRs still need the required check name to report success.
       - if: needs.changes.outputs.code != 'true'
@@ -109,45 +145,58 @@ jobs:
           - abi: armeabi-v7a
             method: BuildAndroidArmV7Batch
     steps:
-      - if: needs.changes.outputs.code == 'true'
-        name: Free runner disk space (GameCI android image + project do not fit otherwise)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: true
-          large-packages: true
-          swap-storage: true
+      - if: needs.changes.outputs.player == 'true'
+        name: Free runner disk space (fast parallel rm; apt purge only if still short)
+        run: |
+          df -h / | tail -1
+          sudo swapoff -a || true
+          ( sudo rm -rf /usr/local/lib/android & \
+            sudo rm -rf /usr/share/dotnet & \
+            sudo rm -rf /opt/ghc /usr/local/.ghcup & \
+            sudo rm -rf /usr/share/swift /usr/local/share/boost & \
+            docker system prune -af >/dev/null 2>&1 & \
+            wait )
+          avail_kb=$(df --output=avail / | tail -1)
+          df -h / | tail -1
+          if [ "$avail_kb" -lt 26000000 ]; then
+            echo "Still under ~25 GB free: falling back to the slow apt cleanup"
+            sudo apt-get remove -y '^aspnetcore-.*' '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*' azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri >/dev/null 2>&1 || true
+            sudo apt-get autoremove -y >/dev/null 2>&1 || true
+            df -h / | tail -1
+          fi
 
-      - if: needs.changes.outputs.code == 'true'
+
+      - if: needs.changes.outputs.player == 'true'
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      - if: needs.changes.outputs.code == 'true'
-        name: Cache Library (import cache per ABI)
-        uses: actions/cache@v4
+      # One shared Android Library cache for both ABIs (about 3 GB instead of
+      # two 3 GB entries). The arm64 job saves it on main; both ABIs restore.
+      - if: needs.changes.outputs.player == 'true'
+        name: Restore Library cache (Android, shared by both ABIs)
+        uses: actions/cache/restore@v4
         with:
           path: Library
-          key: Library-Android-${{ matrix.abi }}-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          key: Library-Android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
           restore-keys: |
-            Library-Android-${{ matrix.abi }}-
+            Library-Android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-
             Library-Android-
 
-      - if: needs.changes.outputs.code == 'true'
-        name: Cache Gradle dependencies (Maven Central flake shield)
-        uses: actions/cache@v4
+      # The Unity container runs with HOME=/github/home, which the action
+      # maps to RUNNER_TEMP/_github_home; Gradle's cache lives under it.
+      # (Unverified until the first main run saves it; an empty path is
+      # skipped silently by actions/cache.)
+      - if: needs.changes.outputs.player == 'true'
+        name: Restore Gradle cache
+        uses: actions/cache/restore@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          path: ${{ runner.temp }}/_github_home/.gradle
+          key: gradle-android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
           restore-keys: |
             gradle-android-
 
-      - if: needs.changes.outputs.code == 'true'
+      - if: needs.changes.outputs.player == 'true'
         name: Build ${{ matrix.abi }} APK
         uses: game-ci/unity-builder@v4
         env:
@@ -159,7 +208,7 @@ jobs:
           unityVersion: auto
           buildMethod: LightShadow.Tools.SceneBuilder.${{ matrix.method }}
 
-      - if: needs.changes.outputs.code == 'true'
+      - if: needs.changes.outputs.player == 'true'
         name: Upload ${{ matrix.abi }} APK
         uses: actions/upload-artifact@v4
         with:
@@ -169,39 +218,63 @@ jobs:
           compression-level: 0
           retention-days: 14
 
+      - if: success() && needs.changes.outputs.player == 'true' && github.ref == 'refs/heads/main' && matrix.abi == 'arm64-v8a'
+        name: Save Library cache (main, arm64 job only)
+        uses: actions/cache/save@v4
+        with:
+          path: Library
+          key: Library-Android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
+
+      - if: success() && needs.changes.outputs.player == 'true' && github.ref == 'refs/heads/main' && matrix.abi == 'arm64-v8a'
+        name: Save Gradle cache (main, arm64 job only)
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/_github_home/.gradle
+          key: gradle-android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
+
   build-windows:
     name: build-windows
     runs-on: ubuntu-latest
     timeout-minutes: 90
     needs: changes
     steps:
-      - if: needs.changes.outputs.code == 'true'
-        name: Free runner disk space (GameCI windows-mono image + project do not fit otherwise)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          docker-images: true
-          large-packages: true
-          swap-storage: true
+      - if: needs.changes.outputs.player == 'true'
+        name: Free runner disk space (fast parallel rm; apt purge only if still short)
+        run: |
+          df -h / | tail -1
+          sudo swapoff -a || true
+          ( sudo rm -rf /usr/local/lib/android & \
+            sudo rm -rf /usr/share/dotnet & \
+            sudo rm -rf /opt/ghc /usr/local/.ghcup & \
+            sudo rm -rf /usr/share/swift /usr/local/share/boost & \
+            docker system prune -af >/dev/null 2>&1 & \
+            wait )
+          avail_kb=$(df --output=avail / | tail -1)
+          df -h / | tail -1
+          if [ "$avail_kb" -lt 26000000 ]; then
+            echo "Still under ~25 GB free: falling back to the slow apt cleanup"
+            sudo apt-get remove -y '^aspnetcore-.*' '^dotnet-.*' '^llvm-.*' 'php.*' '^mongodb-.*' '^mysql-.*' azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri >/dev/null 2>&1 || true
+            sudo apt-get autoremove -y >/dev/null 2>&1 || true
+            df -h / | tail -1
+          fi
 
-      - if: needs.changes.outputs.code == 'true'
+
+      - if: needs.changes.outputs.player == 'true'
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      - if: needs.changes.outputs.code == 'true'
-        name: Cache Library (import cache for StandaloneWindows64)
-        uses: actions/cache@v4
+      - if: needs.changes.outputs.player == 'true'
+        name: Restore Library cache (StandaloneWindows64)
+        uses: actions/cache/restore@v4
         with:
           path: Library
-          key: Library-StandaloneWindows64-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          key: Library-StandaloneWindows64-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
           restore-keys: |
+            Library-StandaloneWindows64-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-
             Library-StandaloneWindows64-
 
-      - if: needs.changes.outputs.code == 'true'
+      - if: needs.changes.outputs.player == 'true'
         name: Build Windows player (StandaloneWindows64, Mono — project default backend)
         uses: game-ci/unity-builder@v4
         env:
@@ -214,7 +287,7 @@ jobs:
           customImage: unityci/editor:ubuntu-6000.4.0f1-windows-mono-4.0.0
           buildMethod: LightShadow.Tools.SceneBuilder.BuildWindowsBatch
 
-      - if: needs.changes.outputs.code == 'true'
+      - if: needs.changes.outputs.player == 'true'
         name: Upload Windows player
         uses: actions/upload-artifact@v4
         with:
@@ -222,6 +295,13 @@ jobs:
           path: Builds/Windows/
           if-no-files-found: error
           retention-days: 14
+
+      - if: success() && needs.changes.outputs.player == 'true' && github.ref == 'refs/heads/main'
+        name: Save Library cache (main only)
+        uses: actions/cache/save@v4
+        with:
+          path: Library
+          key: Library-StandaloneWindows64-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
 
   release:
     name: release
