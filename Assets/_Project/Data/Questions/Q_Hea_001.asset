@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Carbohydrates break down into glucose, the body's fastest source of
     fuel.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي مادة غذائية هي المصدر الرئيسي السريع للطاقة في الجسم؟
+  optionsAr:
+  - الكربوهيدرات
+  - الحديد
+  - فيتامين ج
+  - الماء
+  explanationAr: الكربوهيدرات تتحلل إلى جلوكوز، وهو أسرع وقود يمد الجسم بالطاقة.

@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_Sci_019
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: Which part of the brain keeps you balanced when you walk or stand?
+  options:
+  - The cerebellum
+  - The lungs
+  - The stomach
+  - The skull
+  correctIndex: 0
+  category: 0
+  difficulty: 2
+  explanation: The cerebellum, at the back of the brain, fine-tunes your balance and movement.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: أي جزء من الدماغ يحفظ توازنك عندما تمشين أو تقفين؟
+  optionsAr:
+  - المخيخ
+  - الرئتان
+  - المعدة
+  - الجمجمة
+  explanationAr: المخيخ في مؤخرة الدماغ يضبط توازنك وحركتك بدقة.

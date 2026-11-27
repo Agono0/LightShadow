@@ -313,6 +313,13 @@ namespace LightShadow.Tools
             BuildEntrance(level.transform, prefabs, palette, database);
             BuildGate(level.transform, zones, prefabs, palette, database);
             BuildStoryPlaques(level.transform);
+            BuildHideSpots(level.transform, palette);
+
+            // Premium pass §8.3: one reverb zone per interior room (structural —
+            // the distances are computed from the room bounds, no GameConfig
+            // fields). Added before the bake: the zone colliders are triggers on
+            // the Default layer, so the Level-layer bake mask never collects them.
+            AttachReverbZones(level.transform);
 
             BakeNavMesh(surface);
 
@@ -379,6 +386,12 @@ namespace LightShadow.Tools
 
             // The brightness option acts through URP post-exposure and ambient lift.
             systems.AddComponent<BrightnessController>();
+
+            // P3 menace director: the Shadow pacing gauge (plan 4.12).
+            MenaceDirector menace = systems.AddComponent<MenaceDirector>();
+            menace.config = config;
+            menace.enemy = behaviour;
+            menace.player = player.transform;
 
             // Real-audio pass: register the imported CC0 clip library (idempotent;
             // consumers keep synthesised fallbacks when a clip is missing).
@@ -456,6 +469,17 @@ namespace LightShadow.Tools
             WallX(parent, 2.65f, -27f, -16f, 3.2f, palette.wall);
             WallX(parent, 2.65f, -14f, 10f, 3.2f, palette.wall);
             WallX(parent, 2.65f, 12f, 27f, 3.2f, palette.wall);
+
+            // ---- locked wing doors (decor) -----------------------------------
+            // Grille-door hosts in the classroom and staff-room doorways. No
+            // colliders, so the walk gaps and the NavMesh stay exactly as
+            // built; the art pass swaps in the SM_Arch_DoorGrille hero mesh,
+            // and the wood-material box is its fallback while the FBX has
+            // not shipped.
+            Box(parent, "Door_Classroom", new Vector3(-2.65f, 1.025f, 10.5f),
+                new Vector3(0.06f, 2.05f, 0.95f), palette.wood, false);
+            Box(parent, "Door_Staff", new Vector3(-2.65f, 1.025f, 22.5f),
+                new Vector3(0.06f, 2.05f, 0.95f), palette.wood, false);
 
             // ---- entrance hall ------------------------------------------------
             WallX(parent, -7f, -33f, -27f, 3.2f, palette.wall);
@@ -910,7 +934,66 @@ namespace LightShadow.Tools
                 new Color(0.80f, 0.74f, 0.60f));
         }
 
-        // ------------------------------------------------------------ furniture
+        // ------------------------------------------------- hiding (P3, plan 4.12)
+
+        // P3 hiding v1 (plan 4.12): six hide spots. Two lockers lean on the
+        // east corridor wall (new greybox props, baked into the NavMesh), two
+        // hide under the existing teacher desks (classroom + staff room), two
+        // peek from the main-hall stage curtains. Each spot is a thin solid
+        // plate the interact ray can hit plus a hidePoint with capsule
+        // clearance; EnemySight treats a hidden player as unseen.
+        static void BuildHideSpots(Transform parent, Palette palette)
+        {
+            var spots = Group("HideSpots", parent);
+            Transform t = spots.transform;
+
+            // The two corridor lockers themselves (Level layer: the NavMesh
+            // bake routes the Shadow around them).
+            Box(t, "Locker_Corridor_1", new Vector3(2.1f, 1.1f, -5f), new Vector3(0.7f, 2.2f, 1.0f), palette.metal);
+            Box(t, "Locker_Corridor_2", new Vector3(2.1f, 1.1f, 8f), new Vector3(0.7f, 2.2f, 1.0f), palette.metal);
+
+            // (position, yaw, interact plate centre, plate size, hidePoint local, display name)
+            CreateHideSpot(t, "Hide_Locker_1", new Vector3(1.73f, 0f, -5f), 0f,
+                new Vector3(0f, 1.05f, 0f), new Vector3(0.1f, 2.1f, 1.0f),
+                new Vector3(-0.45f, 0f, 0f), "the corridor locker");
+            CreateHideSpot(t, "Hide_Locker_2", new Vector3(1.73f, 0f, 8f), 0f,
+                new Vector3(0f, 1.05f, 0f), new Vector3(0.1f, 2.1f, 1.0f),
+                new Vector3(-0.45f, 0f, 0f), "the corridor locker");
+            CreateHideSpot(t, "Hide_Desk_Classroom", new Vector3(-12f, 0f, 15.76f), 0f,
+                new Vector3(0f, 1.0f, 0.05f), new Vector3(2.4f, 2.0f, 0.12f),
+                new Vector3(0f, 0f, -0.42f), "the teacher's desk");
+            CreateHideSpot(t, "Hide_Desk_Staff", new Vector3(-12f, 0f, 22.26f), 0f,
+                new Vector3(0f, 1.0f, 0.05f), new Vector3(3.6f, 2.0f, 0.12f),
+                new Vector3(0f, 0f, -0.45f), "the staff-room desk");
+            CreateHideSpot(t, "Hide_Curtain_Left", new Vector3(-6.5f, 0.3f, 40.5f), 180f,
+                new Vector3(0f, 1.8f, 0.12f), new Vector3(2.6f, 3.6f, 0.14f),
+                new Vector3(0f, 0f, -0.62f), "the stage curtain");
+            CreateHideSpot(t, "Hide_Curtain_Right", new Vector3(6.5f, 0.3f, 40.5f), 180f,
+                new Vector3(0f, 1.8f, 0.12f), new Vector3(2.6f, 3.6f, 0.14f),
+                new Vector3(0f, 0f, -0.62f), "the stage curtain");
+        }
+
+        static void CreateHideSpot(Transform parent, string name, Vector3 position, float yaw,
+            Vector3 plateCenter, Vector3 plateSize, Vector3 hidePointLocal, string displayName)
+        {
+            GameObject spot = new GameObject(name);
+            spot.transform.SetParent(parent, false);
+            spot.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
+
+            // Solid thin plate: the interact ray (triggers ignored) needs it,
+            // and it doubles as sight cover hugging the prop's face.
+            BoxCollider plate = spot.AddComponent<BoxCollider>();
+            plate.center = plateCenter;
+            plate.size = plateSize;
+
+            HideSpot hide = spot.AddComponent<HideSpot>();
+            hide.displayName = displayName;
+
+            GameObject point = new GameObject("HidePoint");
+            point.transform.SetParent(spot.transform, false);
+            point.transform.localPosition = hidePointLocal;
+            hide.hidePoint = point.transform;
+        }
 
         static GameObject Table(Transform parent, string name, Vector3 position, Vector3 size, Material material)
         {
@@ -1094,6 +1177,85 @@ namespace LightShadow.Tools
                 controller = parent.gameObject.AddComponent<LightShadow.Audio.AudioSnapshotController>();
             }
             controller.mixer = AssetDatabase.LoadAssetAtPath<AudioMixer>(AudioMixerTool.MixerPath);
+        }
+
+        // ------------------------------------------------------- reverb zones --
+
+        // Interior rooms and their floor bounds, mirroring the shell walls laid
+        // out in BuildSchoolShell (same literals: the wall spans define the x/z
+        // extents, the height comes from the matching Ceiling call). Presets are
+        // the premium-pass brief §8.3 acoustic tiers: small dry rooms, medium
+        // circulation spaces, one long assembly hall.
+        struct ReverbRoom
+        {
+            public string name;
+            public float minX, maxX, minZ, maxZ;
+            public float height;
+            public AudioReverbPreset preset;
+        }
+
+        static readonly ReverbRoom[] ReverbRooms =
+        {
+            // Small/dry: shelved, furnished or outdoor rooms barely ring.
+            new ReverbRoom { name = "Library",    minX = -22f,  maxX = -2.65f, minZ = -22f, maxZ = -8f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            new ReverbRoom { name = "PhysicsLab", minX = 2.65f, maxX = 22f,    minZ = -22f, maxZ = -8f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            new ReverbRoom { name = "Classroom",  minX = -22f,  maxX = -2.65f, minZ = 4f,   maxZ = 18f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            new ReverbRoom { name = "Garden",     minX = 2.65f, maxX = 22f,    minZ = 4f,   maxZ = 18f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            new ReverbRoom { name = "StaffRoom",  minX = -22f,  maxX = -2.65f, minZ = 20f,  maxZ = 26f,  height = 3.3f, preset = AudioReverbPreset.Room },
+            // Medium: circulation spaces (StoneCorridor is the report §5 medium
+            // preset; Unity's enum has no "MediumRoom" member).
+            new ReverbRoom { name = "Corridor",   minX = -2.65f, maxX = 2.65f, minZ = -27f, maxZ = 27f,  height = 3.3f, preset = AudioReverbPreset.StoneCorridor },
+            new ReverbRoom { name = "Entrance",   minX = -7f,    maxX = 7f,    minZ = -33f, maxZ = -27f, height = 3.3f, preset = AudioReverbPreset.StoneCorridor },
+            // Long: the assembly hall rings like an empty concert space
+            // (Unity spells the preset "Concerthall").
+            new ReverbRoom { name = "MainHall",   minX = -14f,   maxX = 14f,   minZ = 27f,  maxZ = 41f,  height = 4.8f, preset = AudioReverbPreset.Concerthall },
+        };
+
+        // Attaches one AudioReverbZone per interior room. Idempotent: an existing
+        // ReverbZone child is left alone (same guard style as AttachAudioSnapshot).
+        // Falloff comes from the room bounds: minDistance = half of the smaller
+        // floor extent (the fully-wet radius fits inside the room in both
+        // directions), maxDistance = the full floor diagonal. The zone collider
+        // is a trigger on the Default layer — NOT LevelLayer — so the NavMesh
+        // bake (layerMask 1 << LevelLayer, physics colliders) never collects it,
+        // and every project query (interaction ray, EnemySight, the occlusion
+        // probe) passes QueryTriggerInteraction.Ignore, so it blocks no gameplay
+        // ray. Overlapping zones blend, which smooths doorway transitions.
+        static void AttachReverbZones(Transform levelRoot)
+        {
+            for (int i = 0; i < ReverbRooms.Length; i++)
+            {
+                ReverbRoom room = ReverbRooms[i];
+                Transform roomRoot = levelRoot.Find(room.name);
+                if (roomRoot == null)
+                {
+                    // The corridor is shell geometry with no room builder; the
+                    // zone gets its own group so the graph stays named like the
+                    // other rooms.
+                    roomRoot = Group(room.name, levelRoot).transform;
+                }
+
+                if (roomRoot.Find("ReverbZone") != null) continue;
+
+                var zoneGo = new GameObject("ReverbZone");
+                zoneGo.transform.SetParent(roomRoot, false);
+                zoneGo.layer = 0; // Default: see the method comment (bake safety)
+
+                float extentX = room.maxX - room.minX;
+                float extentZ = room.maxZ - room.minZ;
+                zoneGo.transform.localPosition =
+                    new Vector3((room.minX + room.maxX) * 0.5f, 0f, (room.minZ + room.maxZ) * 0.5f);
+
+                BoxCollider bounds = zoneGo.AddComponent<BoxCollider>();
+                bounds.isTrigger = true;
+                bounds.center = new Vector3(0f, room.height * 0.5f, 0f);
+                bounds.size = new Vector3(extentX, room.height, extentZ);
+
+                AudioReverbZone reverb = zoneGo.AddComponent<AudioReverbZone>();
+                reverb.reverbPreset = room.preset;
+                reverb.minDistance = Mathf.Min(extentX, extentZ) * 0.5f;
+                reverb.maxDistance = Mathf.Sqrt(extentX * extentX + extentZ * extentZ);
+            }
         }
     }
 }

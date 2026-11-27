@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: In flat geometry the interior angles of a triangle always total 180
     degrees.
   factSource: NEEDS-FACT-CHECK
+  questionAr: الزوايا الثلاث داخل أي مثلث يكون مجموعها...
+  optionsAr:
+  - 90 درجة
+  - 180 درجة
+  - 270 درجة
+  - 360 درجة
+  explanationAr: في الهندسة المستوية يكون مجموع الزوايا الداخلية للمثلث دائمًا 180 درجة.
