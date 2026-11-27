@@ -384,10 +384,10 @@ The game itself contains **no AI features** — this log is about the developmen
   Docs-only: nothing wired; VO_RECORDING_SPECS.md (PR #7 scope) untouched.
 - What I changed myself: n/a (agent-authored; no human edits yet).
 - Teach-back check: pending - PR review with the owner.
-- Test result: AR present for 73/77 lines. The 4 MISSING are exactly the ending
-  nodes (SN_End_Dawnless, SN_End_FullRecovery, SN_End_HollowEscape,
-  SN_End_PartialMemory): their asset text has drifted from the StoryStrings.cs keys
-  (e.g. "The sky over the school..." vs the key's "...above the school..."), so no
-  matching AR entry exists in the codebase for them - marked MISSING explicitly in
-  the sheet, no approximate mapping used. Assets or StoryStrings keys need
-  reconciling (Scripts are outside the agent lane; flagged for the lead).
+- Test result: AR present for 77/77 lines. First pass used a hand-rolled parser and
+  reported 4 MISSING (the SN_End_* ending nodes) - WRONG: peer re-check with a real
+  YAML parser and exact decoded matching found zero missing. Corrected: assets are
+  now parsed with a real YAML parser (Unity !u! tags) and StoryStrings/Localization
+  with full C# string-literal decoding (regular + verbatim literals), matched
+  exactly against decoded asset text. No MISSING markers remain; no Scripts edits
+  were made at any point.

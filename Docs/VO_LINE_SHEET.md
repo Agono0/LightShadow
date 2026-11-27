@@ -2,9 +2,11 @@
 
 Generated 2026-11-27 from the repo's actual story-node inventory,
 `Assets/_Project/Data/Story/SN_*.asset` (44 nodes - NOT from Docs/Story/SCRIPT.md,
-which is the human-readable twin and has drifted in places). Arabic resolved from
-`StoryStrings.cs` then `Localization.cs` (runtime lookup order; whitespace-normalized
-matching). Speakers per `StoryNode.StorySpeaker` enum.
+which is the human-readable twin and has drifted in places). Assets parsed with a real
+YAML parser (Unity `!u!` tags handled); Arabic resolved from `StoryStrings.cs` then
+`Localization.cs` (runtime lookup order) with full C# string-literal decoding
+(regular + verbatim literals, all escape forms), matched EXACTLY against decoded
+asset text. Speakers per `StoryNode.StorySpeaker` enum.
 
 Inventory reconciliation: `Assets/_Project/Data/Story/` holds 45 `.asset` files =
 44 story nodes (SN_*) + `SO_StoryConfig.asset`. The 44 vs 45 count difference is the
@@ -16,13 +18,7 @@ EN words / 2.6 wps, min 2s, rounded to 0.5s - a recording budget, not a runtime 
 Timed choices also carry their in-game cap. Documentation only: nothing is wired and
 VO_RECORDING_SPECS.md (PR #7 scope) is untouched.
 
-Coverage: 77 lines from 44 nodes; Arabic present for 73, MISSING for 4.
-The 4 missing are exactly the ending nodes (SN_End_Dawnless, SN_End_FullRecovery,
-SN_End_HollowEscape, SN_End_PartialMemory): their asset text has drifted from the
-StoryStrings.cs keys (e.g. "The sky over the school..." vs the key's "The sky
-above the school..."), so no matching Arabic entry exists in the codebase for them.
-Either the assets or the StoryStrings keys need reconciling before those lines can
-be localized.
+Coverage: 77 lines from 44 nodes; exact Arabic pairs present for 77/77 (none missing).
 
 ## Act I
 
@@ -101,7 +97,7 @@ be localized.
 | VO_SN_Act3_08_C2 | SN_Act3_08 | Nour | player choice (Nour inner voice) | I'll come back with a key, not a fence to climb. | سأعود بمفتاح، لا بسياج أتسلقه. | 4 | - |
 | VO_SN_Act3_08_C3 | SN_Act3_08 | Nour | player choice (Nour inner voice) | Say nothing. Some things should stay in the building. | أصمت. بعض الأشياء ينبغي أن تبقى في المبنى. | 3.5 | - |
 | VO_SN_Act3_09 | SN_Act3_09 | Mother | warm, instructive (memory) | Go on, then. Knowledge is the only light that follows a person into the dark. | انطلقي إذاً. المعرفة هي النور الوحيد الذي يتبع المرء في العتمة. | 6 | - |
-| VO_SN_End_Dawnless | SN_End_Dawnless | System | flat, systemic | 'The corridor ends at the gate and the gate does not open fast enough. The crews'' vans turn the corner. The sky does its morning work. | **MISSING AR (no pair in StoryStrings/Localization)** | 10 | - |
-| VO_SN_End_FullRecovery | SN_End_FullRecovery | System | flat, systemic | 'The gate closes behind her. The sky over the school turns from black to grey to a thin, clean gold. | **MISSING AR (no pair in StoryStrings/Localization)** | 7.5 | - |
-| VO_SN_End_HollowEscape | SN_End_HollowEscape | System | flat, systemic | 'The gate closes behind her with a sound like a full stop. | **MISSING AR (no pair in StoryStrings/Localization)** | 4.5 | - |
-| VO_SN_End_PartialMemory | SN_End_PartialMemory | System | flat, systemic | 'The gate closes. The dawn is ordinary and enormous. | **MISSING AR (no pair in StoryStrings/Localization)** | 3.5 | - |
+| VO_SN_End_Dawnless | SN_End_Dawnless | System | flat, systemic | The corridor ends at the gate and the gate does not open fast enough. The crews' vans turn the corner. The sky does its morning work.  The Shadow reaches her not as a hand but as a hush: names gone quiet, a night folded up like a finished exam.  She wakes on the pavement with the box still shut, and the school - patient, gentle, terrible - keeps her mother's memory the way a library keeps a book nobody borrowed.  Dawn comes. It simply comes without her. | ينتهي الممر عند البوابة، والبوابة لا تنفتح بالسرعة الكافية. سيارات الفرق تدور على الزاوية. السماء تقوم بعمل الصباح.  يصل الظل إليها لا كيدٍ بل كخفوت: أسماء صارت هادئة، ليلة مطوية كورقة امتحان انتهى وقتها.  تفيق على الرصيف والصندوق ما زال مغلقًا، والمدرسة - الصبورة، الرقيقة، المرعبة - تحفظ ذاكرة أمها كما تحفظ المكتبة كتابًا لم يستعره أحد.  يأتي الفجر. يأتي ببساطة دونها. | 33.5 | - |
+| VO_SN_End_FullRecovery | SN_End_FullRecovery | System | flat, systemic | The gate closes behind her. The sky over the school turns from black to grey to a thin, clean gold.  On the pavement she opens the box: bookmark, paper, jasmine, note, programme, mug. Six small true things. She reads the lesson plans to the last page - the one line she has been climbing toward all night.  At a first-floor window the Shadow stands like a student kept after class, and watches the light walk away without her.  Knowledge is the only light that follows a person into the dark. Tonight it followed Nour all the way out. | تُغلق البوابة خلفها. تتحول السماء فوق المدرسة من الأسود إلى الرمادي إلى ذهب رقيق صافٍ.  على الرصيف تفتح الصندوق: فاصل الكتاب، ورقة الامتحان، الياسمين، الورقة المثبّتة، البرنامج، الكوب. ستة أشياء صغيرة صادقة. تقرأ خطط الدروس إلى الصفحة الأخيرة - السطر الذي صعدت نحوه الليلة كلها.  في نافذة الطابق الأول يقف الظل كتلميذ حُبس بعد الحصة، يشاهد النور يغادر دون أن يحمله.  المعرفة هي النور الوحيد الذي يتبع المرء في العتمة. الليلة رافق نورًا كل الطريق إلى الخارج. | 37.5 | - |
+| VO_SN_End_HollowEscape | SN_End_HollowEscape | System | flat, systemic | The gate closes behind her with a sound like a full stop.  She came for six pieces of a person and left with a handful. The box is light. Light boxes are easy to run with; that is the trouble.  Behind her the building opens its arms to the crews and gives up what it kept, and she will spend years half-remembering that there was something she meant to bring.  The morning is very bright and there is almost nothing in her hands. | تُغلق البوابة خلفها بصوت يشبه نقطة النهاية.  جاءت لأجل ست قطع من إنسانة وخرجت بقبضة محدودة. الصندوق خفيف. الصناديق الخفيفة سهلة الجري بها؛ هذه هي المشكلة.  خلفها يفتح المبنى ذراعيه لفرق الهدم ويسلّم ما احتفظ به، وستقضي سنوات تتذكر نصف تذكر أن هناك شيئًا قصدت إحضاره.  الصباح ساطع جدًا، ولا يكاد شيء في يديها. | 32 | - |
+| VO_SN_End_PartialMemory | SN_End_PartialMemory | System | flat, systemic | The gate closes. The dawn is ordinary and enormous.  The box is not full. She can name the missing pieces - which is its own kind of remembering - and the pieces she has, she has read aloud, checked, and corrected, the way her mother taught her to study.  Some of the voice is gone. Not all of it. Never all of it.  She carries the box home the way you carry a lit lamp through wind: close, and careful. | تُغلق البوابة. الفجر عادي وهائل.  الصندوق ليس ممتلئًا. تستطيع أن تسمّي القطع الناقصة - وهذا نوع آخر من التذكر - وما لديها قرأته بصوت عالٍ، وراجعته، وصوّبته، كما علّمتها أمها أن تراجع.  بعض الصوت ذهب. ليس كلّه. ليس كلّه أبدًا.  تحمل الصندوق إلى البيت كما يحمل المرء مصباحًا مضيئًا عبر الريح: قريبًا من الصدر، وبحذر. | 31 | - |
