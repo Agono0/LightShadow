@@ -244,6 +244,20 @@ Voice continuity with prior generated batches is UNVERIFIED. Authority:
 user's 2026-11-27 5:35 PM EET acceptance of the 28 ending clips. Validator
 PASS is a format check only, not a rights check.
 
+## P0 SFX: wraith roam / ambush stinger / breath near (added 2026-11-27, peer-approved picks, provisional)
+
+Licenses re-verified on the source pages 2026-11-27: all CC0 1.0, no attribution
+needed. Roam is a 0.00-7.00 s segment of a continuous whisper bed with 150 ms
+fade-in + 400 ms fade-out at the edges (no silence gaps exist in the source;
+boundaries arbitrary). BreathNear is published as a one-shot (peer ruling), loop
+seam unverified. No audition was possible in the agent environment: suitability
+of every clip is UNVERIFIED (per-row human_check).
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SFX_WraithRoam_0.ogg | https://opengameart.org/content/whispers-in-the-fog | https://opengameart.org/sites/default/files/whispers_in_the_fog.ogg | CC0 1.0 | Ruhinre | segment 0.00-7.00s + short fades; whisper bed |
+| SFX_WraithAmbushStinger_0.ogg | https://opengameart.org/content/string-and-piano-horror-stings | https://opengameart.org/sites/default/files/abyss.ogg | CC0 1.0 | congusbongus | full file; string/piano horror sting 7.5s |
+| SFX_WraithBreathNear_0.ogg | https://opengameart.org/content/ghost-breath | https://opengameart.org/sites/default/files/ghostbreath.flac | CC0 1.0 | qubodup | one-shot only; loop seam unverified |
 ## P0 SFX: throw whoosh / impacts / crate scrape (added 2026-11-27, peer-approved picks)
 
 Licenses re-verified on the source pages 2026-11-27: all CC0 1.0, no attribution
@@ -265,3 +279,29 @@ UNVERIFIED (per-row human_check).
 | SFX_KeyPickup_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | keys_02.ogg from zip; key jingle 0.36s after trim |
 | SFX_DoorUnlock_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | lock_open_01.ogg from zip; lock open click 0.60s after trim |
 | SFX_DoorLockedRattle_0.ogg | https://opengameart.org/content/trying-to-unlock-sound | https://opengameart.org/sites/default/files/trying_to_unlock.mp3 | CC0 1.0 | pauliuw | locked-handle jiggle 0.61s after trim |
+
+## P2 UI: night-UI textures (added 2026-11-27, peer-approved route A + procedural exception)
+
+T_UI_Panel_Night.png and T_UI_Button_Night.png are recolored/composed
+derivatives of Kenney "Fantasy UI Borders" (license verified on the source
+page 2026-11-27: CC0 1.0, no attribution needed). Source member: Double-style
+panel-000, re-rasterized from the pack's vector source (fantasy-ui-borders.svg)
+at target size and two-tone tinted; the button is a 9-slice composition of the
+same member's frame/fill pieces. Zip sha256
+59532da3bd61195a425585455b40baa6cbf1eda8227c42adcef31a535a737769; exact steps
+and parameters in Art/pipeline/generate_ui_procedural.py. T_UI_Glow_Night.png
+and T_UI_Backdrop_Night.png are ORIGINAL script-generated assets (radial glow;
+plain moonlit vertical gradient, no motif) - no external source, no stock, no
+third-party license. Visual review of all four rendered PNGs was performed on
+the actual pixels 2026-11-27; no in-editor or runtime check. Palette:
+blue-teal night; frames are soft cyan #8FC3CE (peer retint 2026-11-27: the
+original warm amber frame read gold/brass and was rejected); the warm accent
+lives only in the lantern-like glow #F2C078 and a thin low-saturation
+amber-rose band #AC8378 at the very bottom of the backdrop; no orange, gold,
+browns or brass in the frames. The four
+existing placeholders (UI_Panel/UI_Button/UI_Glow/UI_Backdrop) are untouched.
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| T_UI_Panel_Night.png, T_UI_Button_Night.png | https://opengameart.org/content/fantasy-ui-borders | https://opengameart.org/sites/default/files/kenney_fantasy-ui-borders.zip | CC0 1.0 | Kenney | recolored derivatives of Double panel-000: vector re-raster + two-tone tint (panel), 9-slice composition (button) |
+| T_UI_Glow_Night.png, T_UI_Backdrop_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural assets, no external source; parameters in Art/pipeline/generate_ui_procedural.py |

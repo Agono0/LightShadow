@@ -331,6 +331,8 @@ namespace LightShadow.Tools
                 new Vector2(-428f, 56f), 84f, 13);
             AddMobileButton(mobileRoot.transform, "MedkitButton", "MEDKIT", TouchButton.Kind.Medkit,
                 new Vector2(-542f, 56f), 84f, 12);
+            AddMobileButton(mobileRoot.transform, "ThrowButton", "THROW", TouchButton.Kind.Throw,
+                new Vector2(-656f, 56f), 84f, 12);
 
             mobileRoot.AddComponent<TouchControlsScaler>();
 
