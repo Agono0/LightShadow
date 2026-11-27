@@ -357,3 +357,18 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: pending Lead batch run — expected `AudioMixerTool.EnsureBatch` → `RESULT: PASS`
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
+
+### 2026-11-27 — feat/audio-core-sfx: 43 core SFX imports + Docs/ASSET_MANIFEST.md + manifest validator — Instinct agent (for Ahmed)
+- Tool used: Instinct (AI agent)
+- What AI provided: selected 43 CC0 clips from the already-licensed Kenney packs
+  (Interface/Impact/RPG) for the cue-sheet P1/P2 ids, copied them into
+  Assets/_Project/Audio/SFX/ with hand-authored fresh-GUID importer .meta files
+  (ADPCM/mono/DecompressOnLoad per MASTER_PLAN §8.4), wrote the 62-row audio
+  asset manifest and Art/pipeline/validate_asset_manifest.py, and updated the
+  ASSET_LICENSES.md pack usage notes.
+- What I changed myself: n/a (agent-authored; no human edits yet).
+- Teach-back check: pending — PR review with the owner.
+- Test result: validator prints RESULT: PASS locally (62 rows). No Unity on this
+  machine: import correctness (meta format, levels, audition) needs human/CI
+  verification. Files are not wired to any consumer; wiring is the Scripts
+  owner's side (mapping sent).
