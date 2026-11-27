@@ -88,16 +88,6 @@ namespace LightShadow.UI
                     // bar lesson, PR #49).
                     OnHealthChanged(health.Normalized);
                 }
-
-                PlayerHealth health = gm.player != null ? gm.player.GetComponentInChildren<PlayerHealth>() : null;
-                if (health != null)
-                {
-                    health.Changed += OnHealthChanged;
-                    health.Hit += OnHealthHit;
-                    // Paint immediately: the bar must never sit stale (battery
-                    // bar lesson, PR #49).
-                    OnHealthChanged(health.Normalized);
-                }
             }
 
             RefreshObjectives();
