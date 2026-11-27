@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Gutenberg's printing press (around 1440) could produce copies far
     more quickly than hand-copying, so prices fell.
   factSource: NEEDS-FACT-CHECK
+  questionAr: لماذا أصبحت الكتب أرخص بكثير في أوروبا بعد أربعينيات القرن الخامس عشر؟
+  optionsAr:
+  - اخترع أهل أوروبا الورق في ذلك الوقت
+  - طبعت المطابع النصوص أسرع بكثير مما يستطيعه الناساخون بأيديهم
+  - صغرت أحجام الكتب
+  - أصبح المؤلفون يكتبون أسرع
+  explanationAr: مطبعة غوتنبرغ (نحو 1440) أنتجت النسخ أسرع كثيرًا من النسخ اليدوي، فهبطت الأسعار.

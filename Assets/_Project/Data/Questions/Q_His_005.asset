@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Neil Armstrong stepped onto the Moon on 20 July 1969 during the Apollo
     11 mission.
   factSource: NEEDS-FACT-CHECK
+  questionAr: من أول إنسان مشى على سطح القمر؟
+  optionsAr:
+  - يوري غاغارين
+  - نيل أرمسترونج
+  - بز ألدرين
+  - جون جلين
+  explanationAr: وضع نيل أرمسترونج قدميه على القمر في 20 يوليو 1969 خلال مهمة أبولو 11.

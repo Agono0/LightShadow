@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: 'Order: Declaration of Independence 1776, French Revolution 1789,
     First World War ends 1918, Berlin Wall falls 1989.'
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي من هذه الأحداث وقع أولًا؟
+  optionsAr:
+  - الثورة الفرنسية
+  - إعلان الاستقلال الأمريكي
+  - سقوط سور برلين
+  - نهاية الحرب العالمية الأولى
+  explanationAr: 'الترتيب: إعلان الاستقلال 1776، ثم الثورة الفرنسية 1789، ثم نهاية الحرب العالمية الأولى 1918، ثم سقوط سور برلين 1989.'

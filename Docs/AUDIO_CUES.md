@@ -131,6 +131,7 @@ Reverb zones / mixer wiring are B.4 and are coordinated separately.
 | MUS_MemoryTheme | memory-flash solo piano | one-shot | Music | new id (Memory snapshot ducks all but Voice/Music) | Pixabay `Besides The Motion` — vetted | P2 |
 | MUS_Ending_Bittersweet | Partial Memory ending | one-shot | Music | new id | Pixabay `Asagiri` — vetted | P1 |
 | MUS_Ending_HollowCold | Hollow Escape ending | one-shot/soft loop | Music | new id | Pixabay `Cold Winter Night` — vetted | P1 |
+| MUS_Menu | main-menu loop (PR #24 hook: `SfxRegistry.Clip("MUS_Menu")` via `AudioManager.PlayMusic`; no-ops until registered) | loop | Music | new id | ALIASES `MUS_MemoryTheme` - same shared clip (First Light Particles, Yoiyami, CC0); one asset, one register row; needs a `MUS_Menu` library field + bootstrap line from the Scripts owner pointing at the same clip GUID | P2 |
 | AMB_DawnBirds / AMB_DawnCity / AMB_DawnCityFar | dawn set layers | loop | Ambience | new id | Pixabay SFX (SOURCING Part 3) — vetted | P2 |
 | (procedural AdaptiveMusic layers) | tension/pulse/calm pads | — | Music | stays as fallback per brief | in-house | keep |
 

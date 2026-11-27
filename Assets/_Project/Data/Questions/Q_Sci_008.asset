@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Earth's gravity pulls the Moon toward it; the Moon's sideways motion
     keeps it from falling in.
   factSource: NEEDS-FACT-CHECK
+  questionAr: ما القوة التي تُبقي القمر في مداره حول الأرض؟
+  optionsAr:
+  - المغناطيسية
+  - الجاذبية
+  - الاحتكاك
+  - الكهرباء
+  explanationAr: جاذبية الأرض تجذب القمر نحوها، وحركته الجانبية تمنعه من السقوط في داخلها.

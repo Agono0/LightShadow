@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Machu Picchu was built by the Inca in the fifteenth century in the
     Andes of Peru.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي حضارة قديمة هي التي بنت ماتشو بيتشو؟
+  optionsAr:
+  - الأزتيك
+  - المايا
+  - الإنكا
+  - الأولمك
+  explanationAr: بنى الإنكا ماتشو بيتشو في القرن الخامس عشر في جبال الأنديز ببيرو.

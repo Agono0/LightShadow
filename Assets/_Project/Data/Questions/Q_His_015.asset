@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_His_015
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: The Great Library, one of the most famous libraries of the ancient world, was in which city?
+  options:
+  - Alexandria
+  - Athens
+  - Rome
+  - Babylon
+  correctIndex: 0
+  category: 2
+  difficulty: 1
+  explanation: The Great Library of Alexandria in Egypt collected scrolls from across the ancient world.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: المكتبة الكبرى، إحدى أشهر مكتبات العالم القديم، كانت في أي مدينة؟
+  optionsAr:
+  - الإسكندرية
+  - أثينا
+  - روما
+  - بابل
+  explanationAr: جمعت المكتبة الكبرى في الإسكندرية بمصر اللفائف العلمية من أنحاء العالم القديم.
