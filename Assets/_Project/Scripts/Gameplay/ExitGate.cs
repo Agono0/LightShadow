@@ -14,6 +14,8 @@ namespace LightShadow.Gameplay
         public BoxCollider escapeZone;
         public GameObject dawnChaseRoot;
         public AudioClip powerClip;
+        [Tooltip("Finale wiring puzzle on the gate console. When set and unsolved, a powered-up gate routes through it instead of powering directly.")]
+        public GateCircuitPuzzle circuitPuzzle;
 
         public bool Powered { get; private set; }
 
@@ -33,6 +35,22 @@ namespace LightShadow.Gameplay
                 return;
             }
 
+            // Finale pass: with the fuses restored, the console's wiring board
+            // stands between the player and the crank until it is solved.
+            if (circuitPuzzle != null && !circuitPuzzle.Solved)
+            {
+                circuitPuzzle.Interact(interactor);
+                return;
+            }
+
+            Power();
+        }
+
+        // Called by the gate circuit puzzle when every feed is routed. Same
+        // power-up path as a direct crank turn.
+        public void PowerFromPuzzle()
+        {
+            if (Powered) return;
             Power();
         }
 

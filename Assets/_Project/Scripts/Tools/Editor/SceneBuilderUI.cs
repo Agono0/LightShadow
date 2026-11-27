@@ -303,6 +303,7 @@ namespace LightShadow.Tools
             BuildCardSortPanel(root);
             BuildOpticsPanel(root);
             BuildSequencePanel(root);
+            BuildCircuitPanel(root);
 
             // ---- pause overlay ----------------------------------------------
             BuildPause(root, pause);

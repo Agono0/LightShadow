@@ -858,6 +858,7 @@ namespace LightShadow.Tools
 
             ExitGate exit = gate.GetComponent<ExitGate>();
             exit.dawnChaseRoot = zones.dawnLights;
+            CreateGateCircuit(gate.transform, exit, palette);
 
             // The console gets a little glow so it is findable in the dark.
             Box(gate.transform, "ConsoleGlow", new Vector3(2.75f, 1.6f, 0.53f), new Vector3(0.4f, 0.06f, 0.04f),
