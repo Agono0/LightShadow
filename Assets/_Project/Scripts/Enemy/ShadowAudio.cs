@@ -18,6 +18,9 @@ namespace LightShadow.Enemy
         AudioClip patrolClip;
         AudioClip chaseClip;
         AudioClip stingerClip;
+        AudioClip ambushClip;
+        AudioClip breathClip;
+        float nextBreathTime;
         EnemyBehaviour.State lastState;
         float smoothedVolume;
 
@@ -60,6 +63,12 @@ namespace LightShadow.Enemy
             stingerClip = LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_2");
             if (stingerClip == null) stingerClip = BuildStinger("SFX_Shadow_Stinger");
 
+            // Wraith-specific CC0 clips (P0 group 4) win over the generic moans.
+            AudioClip roam = LightShadow.Audio.Sfx.Pick("SFX_WraithRoam");
+            if (roam != null) patrolClip = roam;
+            ambushClip = LightShadow.Audio.Sfx.Pick("SFX_WraithAmbushStinger");
+            breathClip = LightShadow.Audio.Sfx.Pick("SFX_WraithBreathNear");
+
             growlSource.clip = patrolClip;
             growlSource.Play();
             lastState = EnemyBehaviour.State.Patrol;
@@ -77,6 +86,11 @@ namespace LightShadow.Enemy
             EnemyBehaviour.State state = behaviour.CurrentState;
             if (state != lastState)
             {
+                if (state == EnemyBehaviour.State.Ambush && ambushClip != null)
+                {
+                    stingerSource.PlayOneShot(ambushClip);
+                }
+
                 if (state == EnemyBehaviour.State.Chase || state == EnemyBehaviour.State.Repelled)
                 {
                     if (stingerClip != null) stingerSource.PlayOneShot(stingerClip);
@@ -99,6 +113,13 @@ namespace LightShadow.Enemy
             float distance = player != null
                 ? Vector3.Distance(transform.position, player.position)
                 : maxHearDistance;
+            if (breathClip != null && distance < 5f && Time.time >= nextBreathTime
+                && state != EnemyBehaviour.State.Repelled)
+            {
+                stingerSource.PlayOneShot(breathClip, 0.6f);
+                nextBreathTime = Time.time + Mathf.Max(4f, breathClip.length + 1.5f);
+            }
+
             float proximity = Mathf.Clamp01(1f - distance / maxHearDistance);
             float target = Mathf.Lerp(0.10f, 0.65f, proximity);
             if (state == EnemyBehaviour.State.Chase) target *= 1.25f;

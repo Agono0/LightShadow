@@ -342,3 +342,19 @@ existing placeholders (UI_Panel/UI_Button/UI_Glow/UI_Backdrop) are untouched.
 | --- | --- | --- | --- | --- | --- |
 | T_UI_Panel_Night.png, T_UI_Button_Night.png | https://opengameart.org/content/fantasy-ui-borders | https://opengameart.org/sites/default/files/kenney_fantasy-ui-borders.zip | CC0 1.0 | Kenney | recolored derivatives of Double panel-000: vector re-raster + two-tone tint (panel), 9-slice composition (button) |
 | T_UI_Glow_Night.png, T_UI_Backdrop_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural assets, no external source; parameters in Art/pipeline/generate_ui_procedural.py |
+
+## Loading screen art (added 2026-11-27, peer reservation grant)
+
+T_UI_Loading_Night.png is an ORIGINAL in-house script-generated asset - no
+external source, no stock, no third-party license. Same moonlit vertical
+gradient as the night backdrop (blue-teal, thin low-saturation amber-rose band
+at the very bottom) plus a pale moon disc with a soft cool glow; no motif, no
+baked text. Exact parameters in Art/pipeline/generate_ui_procedural.py
+(append-only loading section; the four earlier night-UI outputs are
+byte-unchanged, verified by sha256 before/after). Visual review of the
+rendered PNG was performed on the actual pixels 2026-11-27; no in-editor or
+runtime check. Wiring (LoadingScreen) is the Scripts owner's side.
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| T_UI_Loading_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural asset, no external source; parameters in Art/pipeline/generate_ui_procedural.py |

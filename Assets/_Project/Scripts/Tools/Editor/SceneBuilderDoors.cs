@@ -100,6 +100,8 @@ namespace LightShadow.Tools
             Box(key.transform, "KeyShaft", position, new Vector3(0.04f, 0.16f, 0.03f), palette.lamp, false);
             Box(key.transform, "KeyRing", position + new Vector3(0f, 0.12f, 0f),
                 new Vector3(0.07f, 0.07f, 0.03f), palette.lamp, true, LevelLayer);
+            TryAddModelVisual(key.transform, "Assets/_Project/Models/SM_Key.glb", "KeyModel",
+                position + new Vector3(0f, 0.05f, 0f), 0.22f, false, key.transform);
             ItemPickup pickup = key.AddComponent<ItemPickup>();
             pickup.itemId = itemId;
             pickup.displayNameEn = displayEn;
@@ -125,6 +127,8 @@ namespace LightShadow.Tools
             body.mass = 40f;
             body.constraints = RigidbodyConstraints.FreezeRotation;
 
+            TryAddModelVisual(crate.transform, "Assets/_Project/Models/SM_Crate.glb", "CrateModel",
+                new Vector3(0f, -0.35f, 0f), 0.7f, true, crate.transform);
             crate.AddComponent<PushableProp>();
         }
 
@@ -168,6 +172,8 @@ namespace LightShadow.Tools
                 new Vector3(0.20f, 0.012f, 0.06f), palette.lamp, false);
             Box(kit.transform, "CrossV", position + new Vector3(0f, 0.115f, 0f),
                 new Vector3(0.06f, 0.012f, 0.20f), palette.lamp, false);
+            TryAddModelVisual(kit.transform, "Assets/_Project/Models/SM_Medkit.glb", "MedkitModel",
+                position, 0.34f, false, kit.transform);
             kit.AddComponent<MedkitPickup>();
         }
     }
