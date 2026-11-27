@@ -57,6 +57,17 @@ namespace LightShadow.Audio
         [Tooltip("Memory-scene theme; the main menu reuses the same clip via the MUS_Menu alias (Docs/AUDIO_CUES.md). Assigned by the audio import pass.")]
         public AudioClip memoryTheme;
 
+        [Header("Chase + ending alternates + ambiences (OpenGameArt CC0, workstream B)")]
+        [Tooltip("Chase loop (Emma_MA, Determined Pursuit). Swaps onto the music source when the pulse layer dominates.")]
+        public AudioClip chasePulse;
+        [Tooltip("Ending ALTERNATE only (Wolfgang_, A New Start): PartialMemory/HollowEscape. Does not replace HopeGold/DawnlessGrey.")]
+        public AudioClip endingHopeAlt;
+        [Tooltip("Dawn ambience for the ending scene (Kresiek, AMB Morning Sounds).")]
+        public AudioClip dawnBirds;
+        [Tooltip("School dread audition candidates (Tsorthan Grove / SubspaceAudio). Registered, not yet consumed.")]
+        public AudioClip schoolDreadA;
+        public AudioClip schoolDreadB;
+
         [Header("Music bed (Phase 1, Kevin MacLeod CC-BY)")]
         [Tooltip("Explore/Stalk tension bed layered under the procedural AdaptiveMusic pads.")]
         public AudioClip musicBedLongNoteOne;

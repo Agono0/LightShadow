@@ -100,6 +100,16 @@ namespace LightShadow.Tools
             library.endingHopeGold = ImportPlaced(MusicFolder, "MUS_Ending_HopeGold.mp3");
             library.endingDawnlessGrey = ImportPlaced(MusicFolder, "MUS_Ending_DawnlessGrey.mp3");
 
+            // ---- workstream B music/ambience (OpenGameArt CC0, Docs/AUDIO_CUES.md) ----
+            // Same placed-file pattern: the peer's import PRs drop the files
+            // under _Project; the tool configures importers and links fields.
+            library.memoryTheme = ImportPlaced(MusicFolder, "MUS_MemoryTheme.wav");
+            library.chasePulse = ImportPlaced(MusicFolder, "MUS_ChasePulse.wav");
+            library.endingHopeAlt = ImportPlaced(MusicFolder, "MUS_Ending_HopeAlt.wav");
+            library.dawnBirds = ImportPlaced(AmbFolder, "AMB_DawnBirds.ogg");
+            library.schoolDreadA = ImportPlaced(AmbFolder, "AMB_SchoolDreadA.mp3");
+            library.schoolDreadB = ImportPlaced(AmbFolder, "AMB_SchoolDreadB.ogg");
+
             EditorUtility.SetDirty(library);
             AssetDatabase.SaveAssets();
             return "Audio library built at " + LibraryPath;
