@@ -358,6 +358,17 @@ The game itself contains **no AI features** — this log is about the developmen
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
 
+### 2026-11-27 — Mobile stretch fix: native-resolution guard + safe-area fitter — Abdelrhman Mohamed
+- Tool used: Instinct (AI coding agent)
+- What AI provided: diagnosis that `GameSettings.ApplyResolution` forced a picked resolution on
+  Android (framebuffer stretched to fill a different-aspect display); the mobile gate in
+  `ApplyResolution`; `SafeAreaFitter` (fits canvas content to `Screen.safeArea`); the
+  `SceneBuilderUI.CreateCanvas` change parenting every canvas's content under a `SafeArea` child.
+- What I changed myself: pending review — changes land through the PR workflow (AGENTS.md rule 9).
+- Teach-back check: pending — explained in the PR body (why forcing a resolution distorts on 20:9
+  phones, and why the safe-area child only insets on notched devices).
+- Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
+  no local Unity editor available.
 ### 2026-11-27 — feat/audio-core-sfx: 43 core SFX imports + Docs/ASSET_MANIFEST.md + manifest validator — Instinct agent (for Ahmed)
 - Tool used: Instinct (AI agent)
 - What AI provided: selected 43 CC0 clips from the already-licensed Kenney packs
