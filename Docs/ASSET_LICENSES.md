@@ -156,3 +156,14 @@ Page URL and exact file URL are recorded per track in Docs/ASSET_MANIFEST.md.
 - "A New Start (short solo piano)" by Wolfgang_ - CC0 - ending alternate only
 - "Determined Pursuit (epic orchestra loop)" by Emma_MA - CC0 - page notice: public domain as of Jan 2017, no attribution
 - "AMB Morning Sounds (Perfect Loop)" by Kresiek The Furry - CC0 - perfect-loop dawn ambience
+## ambientCG CC0 texture sets - props (workstream C, downloaded + verified 2026-11-27)
+
+License verified at https://ambientcg.com/license (CC0 1.0; no attribution required).
+2K JPG sets; Albedo/Normal/Roughness imported, smoothness twins generated (roughness
+inverted into alpha, house convention). Android 1K override follows the existing
+Concrete texture metas. CC0: no attribution list entries needed.
+
+| Set | Source URL | License | Author | Imported at | Maps to |
+| --- | --- | --- | --- | --- | --- |
+| PaintedMetal006 (2K JPG) | https://ambientcg.com/view?id=PaintedMetal006 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustedPaintedMetal_* / Mat_Art_RustedPaintedMetal |
+| Metal064 (2K JPG) | https://ambientcg.com/view?id=Metal064 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustMetal_* / Mat_Art_RustMetal |
