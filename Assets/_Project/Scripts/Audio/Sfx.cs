@@ -22,6 +22,14 @@ namespace LightShadow.Audio
                 case "SFX_PowerSurge": return CaptionKeys.PowerHum;
                 case "SFX_GateSlam":
                 case "SFX_DoorSteelBang": return CaptionKeys.DoorSlam;
+                case "SFX_GlassShard":
+                case "SFX_GlassCrack": return "Glass breaking";
+                case "SFX_CrateScrape": return "Crate scraping";
+                case "SFX_Crank":
+                case "SFX_GateCrank": return "Crank turning";
+                case "SFX_DoorLockedRattle": return "Door locked";
+                case "SFX_ThrowWhoosh": return "Object thrown";
+                case "SFX_WraithBreathNear": return "Heavy breathing nearby";
                 case "SFX_ShadowHiss":
                 case "SFX_ShadowMoan":
                 case "SFX_WraithRoam":

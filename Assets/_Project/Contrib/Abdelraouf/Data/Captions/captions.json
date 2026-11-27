@@ -30,6 +30,48 @@
       "textEn": "Shadow growl",
       "textAr": "زئير الظل",
       "seconds": 3.0
+    },
+    {
+      "keyEn": "Glass breaking",
+      "textEn": "Glass breaking",
+      "textAr": "زجاج يتكسر",
+      "seconds": 2.5
+    },
+    {
+      "keyEn": "Crate scraping",
+      "textEn": "Crate scraping",
+      "textAr": "صندوق يُسحب",
+      "seconds": 2.5
+    },
+    {
+      "keyEn": "Crank turning",
+      "textEn": "Crank turning",
+      "textAr": "مقبض يدور",
+      "seconds": 2.5
+    },
+    {
+      "keyEn": "Door locked",
+      "textEn": "Door locked",
+      "textAr": "الباب مقفل",
+      "seconds": 2.0
+    },
+    {
+      "keyEn": "Object thrown",
+      "textEn": "Object thrown",
+      "textAr": "شيء يُقذف",
+      "seconds": 2.0
+    },
+    {
+      "keyEn": "Heavy breathing nearby",
+      "textEn": "Heavy breathing nearby",
+      "textAr": "أنفاس ثقيلة قريبة",
+      "seconds": 3.0
+    },
+    {
+      "keyEn": "Wraith moan",
+      "textEn": "Wraith moan",
+      "textAr": "أنين الشبح",
+      "seconds": 3.0
     }
   ]
 }
