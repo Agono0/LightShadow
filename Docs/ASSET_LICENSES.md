@@ -220,6 +220,20 @@ import test was possible here: scale/pivot, materials and motion are UNVERIFIED
 | --- | --- | --- | --- | --- | --- |
 | SM_Wraith_GhostSkull.glb | https://poly.pizza/m/TX8r9WBXpe | https://static.poly.pizza/0716bf8e-1894-4a90-8d10-34868975a239.glb.br | CC0 1.0 | Quaternius | mesh Ghost_Skull, 3,144 tris, 8 clips; pack https://quaternius.com/packs/ultimatemonsters.html |
 
+## P0 SFX: female hurt hit / heavy (added 2026-11-27, peer-approved pick)
+
+License re-verified on the source page 2026-11-27: CC0 1.0, author states on the
+page "use however you like, no credit required". Both clips are segments of one
+source file (exact offsets recorded per row in Docs/ASSET_MANIFEST.md), processed
+before import (segment extract, silence trim -50 dB/20 ms, peak normalized to
+-3.0 dBFS, Vorbis q4 44.1 kHz mono). No audition was possible in the agent
+environment: segments were chosen by silence/duration structure only and their
+sound-fit is provisional and UNVERIFIED (per-row human_check).
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SFX_HurtHit_0.ogg | https://opengameart.org/content/female-hurt-grunts-groans | https://opengameart.org/sites/default/files/female_hurt_grunts_groans_1.ogg | CC0 1.0 | Nocturnal_Vanguard (AuraVoice) | segment 3.73-4.09s; short grunt; female voice |
+| SFX_HurtHeavy_0.ogg | https://opengameart.org/content/female-hurt-grunts-groans | https://opengameart.org/sites/default/files/female_hurt_grunts_groans_1.ogg | CC0 1.0 | Nocturnal_Vanguard (AuraVoice) | segment 4.93-6.08s; longer groan; same source file |
 ## P1 models + dust mote texture (added 2026-11-27, peer-approved picks with explicit exceptions)
 
 Licenses verified 2026-11-27: all Quaternius model pages show Public Domain (CC0);
