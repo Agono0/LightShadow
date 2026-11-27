@@ -227,6 +227,19 @@ namespace LightShadow.Tools
             Image batteryFill = MakeBar(root, "BatteryBar", new Vector2(36f, -88f), new Vector2(250f, 12f),
                 new Color(0.55f, 0.82f, 0.90f), "BATTERY", out batteryLabel);
 
+            // ---- inventory strip (carried items, hidden while empty) ---------
+            RectTransform stripRoot = MakeRect(root, "InventoryStrip", new Vector2(0f, 1f),
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(36f, -120f),
+                new Vector2(1400f, 40f));
+            Text chipTemplate = MakeText(stripRoot, "ChipTemplate", "", 18, Paper, TextAnchor.MiddleLeft,
+                new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                Vector2.zero, new Vector2(220f, 34f));
+            chipTemplate.gameObject.SetActive(false);
+            InventoryStripUI strip = canvas.gameObject.AddComponent<InventoryStripUI>();
+            strip.stripRoot = stripRoot;
+            strip.chipTemplate = chipTemplate;
+            stripRoot.gameObject.SetActive(false);
+
             // ---- prompt, message, crosshair ---------------------------------
             Text prompt = MakeText(root, "PromptText", "", 23, Paper, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),

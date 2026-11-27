@@ -61,7 +61,11 @@ namespace LightShadow.Gameplay
                 return;
             }
 
-            if (PuzzleManager.Instance != null && !PuzzleManager.Instance.IsSolved(masterKeyPuzzleId))
+            // The master key is a real carried item once the item system is in
+            // a save; the puzzle-solved check keeps older saves working.
+            bool hasMasterKey = Inventory.Has("master_key")
+                || (PuzzleManager.Instance != null && PuzzleManager.Instance.IsSolved(masterKeyPuzzleId));
+            if (!hasMasterKey)
             {
                 gm.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
