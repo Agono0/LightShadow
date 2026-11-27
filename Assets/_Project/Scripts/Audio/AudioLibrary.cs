@@ -23,6 +23,29 @@ namespace LightShadow.Audio
         [Header("Player")]
         public AudioClip[] footstepConcrete;
         public AudioClip[] footstepWood;
+        public AudioClip[] footstepCarpet;
+        public AudioClip[] footstepGrass;
+
+        [Header("World interactions (finish-the-game audio map)")]
+        public AudioClip[] doorOpen;
+        public AudioClip[] doorClose;
+        public AudioClip[] paperRustle;
+        public AudioClip[] clothRustle;
+        public AudioClip[] glassShuffle;
+        public AudioClip doorSteelBang;
+        public AudioClip gateSlam;
+        public AudioClip lockerOpen;
+        public AudioClip lockerClose;
+        public AudioClip fuseClunk;
+        public AudioClip lockClick;
+        public AudioClip puzzleSuccess;
+        public AudioClip puzzleFail;
+        public AudioClip pageFlutter;
+        public AudioClip flashlightClick;
+        public AudioClip chargeChime;
+        public AudioClip chairFold;
+        public AudioClip glassCrack;
+        public AudioClip schoolBell;
 
         [Header("The Shadow (CC0 moans, qubodup)")]
         public AudioClip[] shadowMoans;
