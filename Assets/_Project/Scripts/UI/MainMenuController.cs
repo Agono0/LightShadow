@@ -44,13 +44,9 @@ namespace LightShadow.UI
 
         void Start()
         {
-            // The plan's menu pass asks for a menu music loop. Graceful until
-            // the audio library registers the cue: no clip, no music, no error.
-            AudioClip menuMusic = SfxRegistry.Clip("MUS_Menu");
-            if (menuMusic != null && AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlayMusic(menuMusic);
-            }
+            // User decision (2026-11-27): no background music, not even in the
+            // menu. The MUS_Menu clip stays registered in the library for a
+            // possible return; nothing loops.
 
             if (EventSystem.current != null && playButton != null)
             {

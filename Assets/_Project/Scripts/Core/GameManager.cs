@@ -80,6 +80,13 @@ namespace LightShadow.Core
 
         void Start()
         {
+
+
+            // No background music anywhere (user decision 2026-11-27): stop whatever
+
+            // looped in from the menu. Endings start their own one-shot afterwards.
+
+            if (AudioManager.Instance != null) AudioManager.Instance.StopMusic();
             // A previous run may have been paused or slowed when the scene ended.
             Time.timeScale = 1f;
             if (database != null) database.ResetBag();

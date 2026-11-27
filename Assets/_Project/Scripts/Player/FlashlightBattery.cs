@@ -119,15 +119,20 @@ namespace LightShadow.Player
                 && pad != null && pad.buttonNorth.isPressed;
             IsFocused = IsOn && (touchFocus || desktopFocusHeld || padFocusHeld);
 
-            if (IsOn && config != null)
+            if (IsOn)
             {
+                // Config must never gate dying (user report: the light stayed
+                // on at 0): fall back to sane defaults when it is unwired.
+                float focusMult = config != null ? config.focusBatteryDrainMultiplier : 4f;
+                float batterySeconds = config != null ? config.batterySeconds : 240f;
                 // Plan 4.6: the focused beam drains 4x (focusBatteryDrainMultiplier).
-                float drainMultiplier = IsFocused ? Mathf.Max(1f, config.focusBatteryDrainMultiplier) : 1f;
-                battery -= Time.deltaTime * drainMultiplier / Mathf.Max(1f, config.batterySeconds);
+                float drainMultiplier = IsFocused ? Mathf.Max(1f, focusMult) : 1f;
+                battery -= Time.deltaTime * drainMultiplier / Mathf.Max(1f, batterySeconds);
                 if (battery <= 0f)
                 {
                     battery = 0f;
                     switchedOn = false;
+                    IsFocused = false;
                     OnBatteryEmpty.Invoke();
                 }
                 // Repaint the HUD bar only when the fraction actually moved a
@@ -156,6 +161,7 @@ namespace LightShadow.Player
         public void AddBattery(float fraction)
         {
             battery = Mathf.Clamp01(battery + fraction);
+            lastBatteryNotified = battery;
             OnBatteryChanged.Invoke(battery);
             ApplyState();
         }

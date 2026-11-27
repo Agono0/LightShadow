@@ -18,11 +18,13 @@ namespace LightShadow.Gameplay
             GameManager gm = GameManager.Instance;
             if (gm != null && gm.config != null) fraction = gm.config.batteryPickupFraction;
 
-            if (gm != null && gm.player != null)
-            {
-                Player.FlashlightBattery flashlight = gm.player.GetComponentInChildren<Player.FlashlightBattery>();
-                if (flashlight != null) flashlight.AddBattery(fraction);
-            }
+            Player.FlashlightBattery flashlight = gm != null && gm.player != null
+                ? gm.player.GetComponentInChildren<Player.FlashlightBattery>()
+                : null;
+            // Fallback: never eat the pickup without charging (user report:
+            // the bar did not fill on pickup in some scenes).
+            if (flashlight == null) flashlight = Object.FindAnyObjectByType<Player.FlashlightBattery>();
+            if (flashlight != null) flashlight.AddBattery(fraction);
 
             if (pickupClip == null) pickupClip = Core.ProceduralSfx.Pickup;
             if (pickupClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(pickupClip);

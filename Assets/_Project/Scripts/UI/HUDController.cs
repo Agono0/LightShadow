@@ -60,7 +60,13 @@ namespace LightShadow.UI
             if (gm != null)
             {
                 BrightIdeaMeter meter = gm.GetMeter();
-                if (meter != null) meter.OnChanged.AddListener(OnMeterChanged);
+                if (meter != null)
+                {
+                    meter.OnChanged.AddListener(OnMeterChanged);
+                    // Paint immediately: the start-of-scene invoke can land
+                    // before the HUD subscribes, leaving a stale bar.
+                    OnMeterChanged(meter.Normalized);
+                }
 
                 FlashlightBattery flashlight = gm.player != null
                     ? gm.player.GetComponentInChildren<FlashlightBattery>()
@@ -69,6 +75,7 @@ namespace LightShadow.UI
                 {
                     flashlight.OnBatteryChanged.AddListener(OnBatteryChanged);
                     flashlight.OnBatteryEmpty.AddListener(OnBatteryEmpty);
+                    OnBatteryChanged(flashlight.Battery01);
                 }
             }
 
