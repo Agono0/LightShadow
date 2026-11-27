@@ -24,8 +24,8 @@ namespace LightShadow.Gameplay
         {
             Inventory.Add("medkit");
 
-            if (pickupClip == null) pickupClip = ProceduralSfx.Pickup;
             if (pickupClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(pickupClip);
+            else LightShadow.Audio.Sfx.Play("SFX_Pickup", ProceduralSfx.Pickup);
 
             GameManager gm = GameManager.Instance;
             if (gm != null) gm.ShowMessage("Medkit packed. Press H when she needs it.", 4f);
