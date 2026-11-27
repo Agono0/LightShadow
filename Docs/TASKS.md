@@ -104,7 +104,7 @@ items — both listed in "Open items" at the bottom.
 - [x] Reverb zones + occlusion (premium-pass brief §8.3, deferred from the
       mixer PR): builder-generated `AudioReverbZone` per interior room
       (Library/PhysicsLab/Classroom/Garden/StaffRoom = Room, Corridor/Entrance
-      = MediumRoom, MainHall = ConcertHall; distances from the room bounds)
+      = StoneCorridor (Unity has no MediumRoom member), MainHall = Concerthall; distances from the room bounds)
       and `AudioOcclusionProbe` on the player camera — interval linecasts
       muffle blocked 3D sources (lazy low-pass 2400 Hz + −6 dB dip,
       GameConfig fields). *(P3)*
