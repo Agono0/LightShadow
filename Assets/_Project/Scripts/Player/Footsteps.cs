@@ -42,9 +42,7 @@ namespace LightShadow.Player
 
         void Update()
         {
-            int concreteCount = SfxRegistry.VariantCount("SFX_FootstepConcrete");
-            int woodCount = SfxRegistry.VariantCount("SFX_FootstepWood");
-            if (player == null || concreteCount == 0)
+            if (player == null || SfxRegistry.VariantCount("SFX_FootstepConcrete") == 0)
             {
                 return;
             }
@@ -78,7 +76,10 @@ namespace LightShadow.Player
         void PlayStep()
         {
             // Corridors and classrooms mix concrete and wood; the concrete set
-            // is the base with an occasional wood plank step.
+            // is the base with an occasional wood plank step. Variant counts
+            // come from the registry, so growing a pack needs no script edit.
+            int concreteCount = SfxRegistry.VariantCount("SFX_FootstepConcrete");
+            int woodCount = SfxRegistry.VariantCount("SFX_FootstepWood");
             AudioClip clip = Random.value < 0.75f || woodCount == 0
                 ? SfxRegistry.ClipVariant("SFX_FootstepConcrete", concreteCount)
                 : SfxRegistry.ClipVariant("SFX_FootstepWood", woodCount);
