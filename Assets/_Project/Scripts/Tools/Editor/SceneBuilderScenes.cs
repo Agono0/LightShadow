@@ -865,6 +865,7 @@ namespace LightShadow.Tools
             CreateBoard(prefabs, t, database, "Board_MainHall", new Vector3(-13.82f, 1.7f, 34f), Quaternion.Euler(0f, -90f, 0f));
             CreateFuse(prefabs, t, "Fuse_MainHall", new Vector3(13.82f, 1.55f, 38f), Quaternion.Euler(0f, 90f, 0f),
                 zones.mainHallLights, new[] { zones.mainHall, zones.staff }, "The whole hall hummed when her students read aloud.");
+            CreateStageRig(prefabs, t, palette);
         }
 
         static void BuildEntrance(Transform parent, Prefabs prefabs, Palette palette, QuestionDatabase database)
