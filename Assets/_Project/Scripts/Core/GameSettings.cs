@@ -271,6 +271,12 @@ namespace LightShadow.Core
 
         static void ApplyResolution()
         {
+            // Mobile renders at the panel's native resolution only. Forcing a
+            // picked resolution makes Android scale the framebuffer to fill a
+            // display of a different aspect ratio, which is the stretched look
+            // reported on phones; the resolution/fullscreen rows are a
+            // desktop-only feature.
+            if (Application.isMobilePlatform) return;
             if (resolutions.Count == 0) return;
             Resolution resolution = resolutions[Mathf.Clamp(ResolutionIndex, 0, resolutions.Count - 1)];
             if (resolution.width <= 0 || resolution.height <= 0) return;

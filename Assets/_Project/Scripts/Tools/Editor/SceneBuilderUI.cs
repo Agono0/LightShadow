@@ -187,7 +187,7 @@ namespace LightShadow.Tools
         public static Canvas BuildBootstrapUI()
         {
             Canvas canvas = CreateCanvas("UI_Bootstrap");
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
 
             MakeFullScreen(root, "Background", new Color(0.01f, 0.01f, 0.014f, 1f), false);
             MakeImage(root, "Glow", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
@@ -213,7 +213,7 @@ namespace LightShadow.Tools
         public static SchoolUI BuildSchoolUI(Transform player)
         {
             Canvas canvas = CreateCanvas("UI_School");
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
 
             HUDController hud = canvas.gameObject.AddComponent<HUDController>();
             PauseMenu pause = canvas.gameObject.AddComponent<PauseMenu>();
@@ -471,7 +471,7 @@ namespace LightShadow.Tools
 
         public static SettingsPanelController BuildSettingsPanel(Canvas canvas)
         {
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
             RectTransform dim = MakeFullScreen(root, "SettingsPanel", new Color(0f, 0f, 0f, 0.88f), true);
 
             SettingsPanelController controller = canvas.gameObject.AddComponent<SettingsPanelController>();
@@ -539,7 +539,7 @@ namespace LightShadow.Tools
         public static MainMenuController BuildMainMenuUI()
         {
             Canvas canvas = CreateCanvas("UI_MainMenu");
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
             MainMenuController controller = canvas.gameObject.AddComponent<MainMenuController>();
 
             // Painted night backdrop for the 2D fallback menu; the live 3D
@@ -682,7 +682,7 @@ namespace LightShadow.Tools
         public static EndingController BuildEndingUI()
         {
             Canvas canvas = CreateCanvas("UI_Ending");
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
             EndingController ending = canvas.gameObject.AddComponent<EndingController>();
 
             // The dawn is a real 3D set now, so the UI only supplies a soft glow
@@ -780,6 +780,13 @@ namespace LightShadow.Tools
 
             RectTransform rect = go.GetComponent<RectTransform>();
             Stretch(rect);
+
+            // All content parents under this child so notched phones keep HUD
+            // text and touch controls inside the safe area. Full-screen
+            // devices leave the anchors at 0..1, so nothing else changes.
+            RectTransform safe = MakeRect(canvas.transform, "SafeArea", Vector2.zero, Vector2.one,
+                new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            safe.gameObject.AddComponent<SafeAreaFitter>();
 
             // Wire the bundled font set onto every canvas binder (idempotent
             // per canvas). The serialized references ride inside the built
