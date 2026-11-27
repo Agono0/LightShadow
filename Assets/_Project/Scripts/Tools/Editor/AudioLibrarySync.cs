@@ -14,6 +14,7 @@ namespace LightShadow.Tools
     {
         const string LibraryPath = "Assets/_Project/Audio/AudioLibrary.asset";
         const string SfxFolder = "Assets/_Project/Audio/SFX";
+        const string AmbienceFolder = "Assets/_Project/Audio/Ambience";
 
         // Registry id -> AudioLibrary field. Arrays are numbered families;
         // singles map 1:1. Pure mapping, unit-tested in EditMode.
@@ -29,6 +30,21 @@ namespace LightShadow.Tools
                 case "SFX_FootstepLeaves": return "footstepLeaves";
                 case "SFX_FootstepMud": return "footstepMud";
                 case "SFX_Breath_Tired": return "breathTired";
+                case "SFX_KeyPickup": return "keyPickup";
+                case "SFX_DoorUnlock": return "doorUnlock";
+                case "SFX_DoorLockedRattle": return "doorLockedRattle";
+                case "SFX_MedkitUse": return "medkitUse";
+                case "SFX_HurtHit": return "hurtHit";
+                case "SFX_HurtHeavy": return "hurtHeavy";
+                case "SFX_Respawn": return "respawn";
+                case "SFX_ThrowWhoosh": return "throwWhoosh";
+                case "SFX_ThrowImpactSoft": return "throwImpactSoft";
+                case "SFX_ThrowImpactHard": return "throwImpactHard";
+                case "SFX_CrateScrape": return "crateScrape";
+                case "SFX_WraithRoam": return "wraithRoam";
+                case "SFX_WraithAmbushStinger": return "wraithAmbushStinger";
+                case "SFX_WraithBreathNear": return "wraithBreathNear";
+                case "AMB_SchoolyardNight": return "ambienceYard";
                 default: return null;
             }
         }
@@ -38,9 +54,23 @@ namespace LightShadow.Tools
             "SFX_FootstepConcrete", "SFX_FootstepWood", "SFX_FootstepCarpet",
             "SFX_FootstepGrass", "SFX_FootstepGravel", "SFX_FootstepLeaves",
             "SFX_FootstepMud",
+            "SFX_KeyPickup",
+            "SFX_DoorUnlock",
+            "SFX_DoorLockedRattle",
+            "SFX_MedkitUse",
+            "SFX_HurtHit",
+            "SFX_HurtHeavy",
+            "SFX_Respawn",
+            "SFX_ThrowWhoosh",
+            "SFX_ThrowImpactSoft",
+            "SFX_ThrowImpactHard",
+            "SFX_CrateScrape",
+            "SFX_WraithRoam",
+            "SFX_WraithAmbushStinger",
+            "SFX_WraithBreathNear",
         };
 
-        static readonly string[] SingleIds = { "SFX_Breath_Tired" };
+        static readonly string[] SingleIds = { "SFX_Breath_Tired", "AMB_SchoolyardNight" };
 
         [MenuItem("LightShadow/Sync Audio Library")]
         public static void SyncMenu()
@@ -112,7 +142,7 @@ namespace LightShadow.Tools
 
         static AudioClip LoadClip(string name)
         {
-            string[] guids = AssetDatabase.FindAssets(name + " t:AudioClip", new[] { SfxFolder });
+            string[] guids = AssetDatabase.FindAssets(name + " t:AudioClip", new[] { SfxFolder, AmbienceFolder });
             for (int i = 0; i < guids.Length; i++)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guids[i]);
