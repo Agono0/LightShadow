@@ -298,8 +298,6 @@ history and stay untouched (append-only).
   limited` — Unity 6000.4 deprecates that target, so the x86_64 matrix entry and batch method
   were removed and the pipeline corrected on this branch.
 
-
-
 ### 2026-11-19 — Docs/SOURCING_FONTS_MUSIC.md (premium-pass font + music sourcing) — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) with WebSearch/WebFetch license-and-URL verification.
 - What AI provided: verified sourcing doc — 5 font families (Noto Naskh Arabic, Cairo, Reem Kufi,
