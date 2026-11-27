@@ -135,10 +135,5 @@ namespace LightShadow.Gameplay
             hinge.localRotation = target;
             swing = null;
         }
-
-        static void Play(AudioClip clip)
-        {
-            if (clip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(clip);
-        }
     }
 }
