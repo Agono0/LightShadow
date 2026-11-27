@@ -114,6 +114,12 @@ namespace LightShadow.UI
         public void StartNewNight()
         {
             Time.timeScale = 1f;
+            // New game must not inherit the previous run (audit 2.3): the story
+            // director survives scene loads, and the hint log and a deferred
+            // restore can still be pending after quit-to-menu.
+            SaveSystem.ClearPendingRestore();
+            LightShadow.Story.StoryDirector.ResetForNewRun();
+            LightShadow.Contrib.Abdelraouf.HintLog.HintLogRecord.Clear();
             RunResults.Reset();
             LoadingScreen.Transition(SceneNames.School);
         }

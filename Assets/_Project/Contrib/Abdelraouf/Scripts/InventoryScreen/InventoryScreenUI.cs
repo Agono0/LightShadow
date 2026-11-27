@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using LightShadow.Core;
 using LightShadow.Player;
 using LightShadow.UI;
@@ -21,7 +22,7 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
     // ExternalInputLocked is a shared static bool with no ownership tracking.
     // This screen therefore (a) refuses to open while any other system holds
     // the lock or an overlay is up, and (b) clears the lock only when it set
-    // it itself (weOwnInputLock). That is the strongest guarantee the bool
+    // it itself (an OverlayStack token). That is the strongest guarantee the bool
     // API allows; a system that sets the lock AFTER this screen opened cannot
     // be detected. Reported to the owner's side.
     //
@@ -54,7 +55,7 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
         readonly List<Image> slotBackgrounds = new List<Image>();
         readonly List<Text> slotLabels = new List<Text>();
 
-        bool weOwnInputLock;
+        InputLockToken inputLock;
         bool cursorWasLocked;
         float pollClock;
         int lastKnownCount = -1;
@@ -101,11 +102,7 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
             Localization.LanguageChanged -= OnLanguageChanged;
             // Never leave the player locked behind a destroyed screen, and
             // never clear a lock another system owns.
-            if (weOwnInputLock)
-            {
-                PlayerController.ExternalInputLocked = false;
-                weOwnInputLock = false;
-            }
+            OverlayStack.Release(ref inputLock);
             if (Instance == this) Instance = null;
         }
 
@@ -122,8 +119,8 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
 
             RefreshFromInventory();
 
-            PlayerController.ExternalInputLocked = true;
-            weOwnInputLock = true;
+            // Dismissable: Esc/Start close this screen before pause opens.
+            inputLock = OverlayStack.Acquire("Inventory", true, true, Close);
 
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
@@ -141,12 +138,8 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
             if (!IsOpen) return;
             root.SetActive(false);
 
-            if (weOwnInputLock)
-            {
-                PlayerController.ExternalInputLocked = false;
-                weOwnInputLock = false;
-            }
-            if (cursorWasLocked && !Application.isMobilePlatform && !PauseMenu.IsOpen)
+            OverlayStack.Release(ref inputLock);
+            if (cursorWasLocked && !Application.isMobilePlatform && !PauseMenu.IsOpen && !OverlayStack.WantsFreeCursor)
             {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;

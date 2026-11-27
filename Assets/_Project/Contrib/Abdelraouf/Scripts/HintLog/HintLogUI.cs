@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using LightShadow.Contrib.Abdelraouf.Hints;
 using LightShadow.Contrib.Abdelraouf.Journal;
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using LightShadow.Core;
 using LightShadow.Player;
 using LightShadow.UI;
@@ -46,7 +47,7 @@ namespace LightShadow.Contrib.Abdelraouf.HintLog
         Text controlsText;
         Text closeButtonLabel;
 
-        bool weOwnInputLock;
+        InputLockToken inputLock;
         bool cursorWasLocked;
 
         public static HintLogUI EnsureExists()
@@ -85,11 +86,7 @@ namespace LightShadow.Contrib.Abdelraouf.HintLog
             HintService.HintShown -= OnHintShown;
             SaveSystem.SaveApplied -= OnSaveApplied;
             Localization.LanguageChanged -= OnLanguageChanged;
-            if (weOwnInputLock)
-            {
-                PlayerController.ExternalInputLocked = false;
-                weOwnInputLock = false;
-            }
+            OverlayStack.Release(ref inputLock);
             if (Instance == this) Instance = null;
         }
 
@@ -106,8 +103,8 @@ namespace LightShadow.Contrib.Abdelraouf.HintLog
 
             Refresh();
 
-            PlayerController.ExternalInputLocked = true;
-            weOwnInputLock = true;
+            // Dismissable: Esc/Start close this screen before pause opens.
+            inputLock = OverlayStack.Acquire("HintLog", true, true, Close);
 
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
@@ -125,12 +122,8 @@ namespace LightShadow.Contrib.Abdelraouf.HintLog
             if (!IsOpenInstance) return;
             root.SetActive(false);
 
-            if (weOwnInputLock)
-            {
-                PlayerController.ExternalInputLocked = false;
-                weOwnInputLock = false;
-            }
-            if (cursorWasLocked && !Application.isMobilePlatform && !PauseMenu.IsOpen)
+            OverlayStack.Release(ref inputLock);
+            if (cursorWasLocked && !Application.isMobilePlatform && !PauseMenu.IsOpen && !OverlayStack.WantsFreeCursor)
             {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;

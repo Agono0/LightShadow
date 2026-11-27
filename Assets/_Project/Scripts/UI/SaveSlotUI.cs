@@ -277,6 +277,8 @@ namespace LightShadow.UI
                 // survive into the fresh run (audit A3).
                 SaveSystem.ClearPendingRestore();
                 StoryDirector.ResetForNewRun();
+                // Stale hints must not leak into the new run (overlay review).
+                LightShadow.Contrib.Abdelraouf.HintLog.HintLogRecord.Clear();
                 RunResults.Reset();
             }
 
