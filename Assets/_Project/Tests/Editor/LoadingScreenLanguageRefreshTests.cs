@@ -48,7 +48,7 @@ namespace LightShadow.Tests.Editor
         [TearDown]
         public void TearDown()
         {
-            if (host != null) Object.DestroyImmediate(host); // runs OnDestroy: unsubscribes
+            if (host != null) UnityEngine.Object.DestroyImmediate(host); // runs OnDestroy: unsubscribes
             Localization.SetLanguage(originalLanguage);
         }
 
@@ -104,7 +104,7 @@ namespace LightShadow.Tests.Editor
             }
             finally
             {
-                Object.DestroyImmediate(bareGo);
+                UnityEngine.Object.DestroyImmediate(bareGo);
             }
         }
     }
