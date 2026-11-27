@@ -61,7 +61,7 @@ namespace LightShadow.Gameplay
                     IsLocked = false;
                     PlayerFreed = true;
                     ApplyPassage();
-                    Play(ProceduralSfx.Power); // the lock clicks open
+                    LightShadow.Audio.Sfx.Play("SFX_DoorUnlock", ProceduralSfx.Power); // the lock clicks open
                     if (GameManager.Instance != null)
                     {
                         GameManager.Instance.ShowMessage("Unlocked with the " + Inventory.DisplayName(keyId) + ".", 3f);
@@ -69,7 +69,7 @@ namespace LightShadow.Gameplay
                 }
                 else
                 {
-                    Play(ProceduralSfx.Wrong); // the locked rattle
+                    LightShadow.Audio.Sfx.Play("SFX_DoorLockedRattle", ProceduralSfx.Wrong); // the locked rattle
                     if (GameManager.Instance != null)
                     {
                         GameManager.Instance.ShowMessage("Locked. The key must be somewhere in this school.", 3f);
@@ -89,7 +89,7 @@ namespace LightShadow.Gameplay
             IsOpen = open;
             if (swing != null) StopCoroutine(swing);
             swing = StartCoroutine(Swing(open ? openAngle : 0f));
-            Play(ProceduralSfx.Click); // placeholder creak until bro's door audio ships
+            LightShadow.Audio.Sfx.Play(open ? "SFX_DoorOpen" : "SFX_DoorClose", ProceduralSfx.Click);
         }
 
         void Update()
