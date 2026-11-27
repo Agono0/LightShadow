@@ -207,13 +207,19 @@ namespace LightShadow.Tools
                 new Vector3(0.04f, 0.22f, 0.14f), palette.wood, true, LevelLayer);
 
             // The master key on a hook inside the locker (a small bright prop;
-            // the real key model arrives with bro's model batch).
+            // the real key model arrives with bro's model batch). It is a real
+            // item: the pickup sits on the key root, nearer to the ray hit than
+            // the locker's puzzle component, so a solved locker offers the key.
             var key = new GameObject("MapReward_MasterKey");
             key.transform.SetParent(root.transform, false);
             Box(key.transform, "KeyShaft", new Vector3(-21.2f, 1.0f, 23f),
                 new Vector3(0.04f, 0.16f, 0.03f), palette.lamp, false);
             Box(key.transform, "KeyRing", new Vector3(-21.2f, 1.12f, 23f),
-                new Vector3(0.07f, 0.07f, 0.03f), palette.lamp, false);
+                new Vector3(0.07f, 0.07f, 0.03f), palette.lamp, true, LevelLayer);
+            ItemPickup keyPickup = key.AddComponent<ItemPickup>();
+            keyPickup.itemId = "master_key";
+            keyPickup.displayNameEn = "the master key";
+            keyPickup.displayNameAr = "المفتاح الرئيسي";
             key.SetActive(false);
 
             MapLockerPuzzle puzzle = root.AddComponent<MapLockerPuzzle>();

@@ -46,6 +46,7 @@ namespace LightShadow.Core
             public bool gatePowered;
             public string storyJson = "";      // Narrative's StoryDirector state blob
             public string puzzleJson = "";     // PuzzleManager blob: solved wing-puzzle ids
+            public string inventoryJson = "";  // Inventory blob: carried item ids
             public float playSeconds;
             public string savedAtUtc;
         }
