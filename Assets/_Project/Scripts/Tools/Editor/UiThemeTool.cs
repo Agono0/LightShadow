@@ -117,10 +117,12 @@ namespace LightShadow.Tools
         {
             int width = 256, height = 128;
             var pixels = new Color[width * height];
-            var fillTop = new Color(0.184f, 0.169f, 0.145f, 0.98f);
-            var fillBottom = new Color(0.106f, 0.096f, 0.082f, 0.98f);
-            var border = new Color(0.55f, 0.44f, 0.26f, 0.75f);
-            var highlight = new Color(0.98f, 0.92f, 0.78f, 0.10f);
+            // Moonlit-night retheme (user brief 2026-11-27): slate fills and a
+            // moon-silver border replace the old muddy browns.
+            var fillTop = new Color(0.16f, 0.19f, 0.25f, 0.98f);
+            var fillBottom = new Color(0.09f, 0.11f, 0.15f, 0.98f);
+            var border = new Color(0.52f, 0.60f, 0.72f, 0.70f);
+            var highlight = new Color(0.85f, 0.90f, 1f, 0.08f);
 
             for (int y = 0; y < height; y++)
             {

@@ -165,12 +165,14 @@ namespace LightShadow.Tools
             }
         }
 
-        static readonly Color Warm = new Color(1f, 0.86f, 0.62f);
-        static readonly Color Paper = new Color(0.90f, 0.88f, 0.80f);
-        static readonly Color Dim = new Color(0.55f, 0.55f, 0.58f);
-        static readonly Color PanelDark = new Color(0.055f, 0.055f, 0.065f, 0.97f);
-        static readonly Color ButtonDark = new Color(0.16f, 0.15f, 0.14f, 0.95f);
-        static readonly Color ButtonWarm = new Color(0.36f, 0.25f, 0.13f, 0.98f);
+        // Moonlit-night theme (user brief 2026-11-27: retire the browns):
+        // moon-silver text, slate panels, a moonstone-blue primary CTA.
+        static readonly Color Warm = new Color(0.84f, 0.89f, 0.98f);
+        static readonly Color Paper = new Color(0.85f, 0.87f, 0.91f);
+        static readonly Color Dim = new Color(0.52f, 0.55f, 0.62f);
+        static readonly Color PanelDark = new Color(0.045f, 0.055f, 0.075f, 0.97f);
+        static readonly Color ButtonDark = new Color(0.13f, 0.15f, 0.19f, 0.95f);
+        static readonly Color ButtonWarm = new Color(0.28f, 0.36f, 0.50f, 0.98f);
 
         public sealed class SchoolUI
         {
@@ -194,13 +196,13 @@ namespace LightShadow.Tools
                 new Vector2(0.5f, 0.5f), new Vector2(0f, 40f), new Vector2(900f, 600f), KnobSprite,
                 new Color(1f, 0.72f, 0.36f, 0.07f), false);
 
-            Text title = MakeText(root, "Title", "LIGHT SHADOW", 64, new Color(0.95f, 0.89f, 0.77f), TextAnchor.MiddleCenter,
+            Text title = MakeText(root, "Title", "LIGHT SHADOW", 64, new Color(0.88f, 0.92f, 1.0f), TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0f, 80f), new Vector2(1200f, 90f), FontStyle.Bold, true);
             Localize(title);
 
             Text loading = MakeText(root, "Loading", "A game for good  ·  no combat, no gore", 19,
-                new Color(0.55f, 0.53f, 0.49f), TextAnchor.MiddleCenter,
+                new Color(0.52f, 0.56f, 0.64f), TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0f, 10f), new Vector2(800f, 28f));
             Localize(loading);
@@ -635,10 +637,10 @@ namespace LightShadow.Tools
 
             MakeImage(root, "Glow", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f), new Vector2(0f, 300f), new Vector2(1500f, 1000f), GlowSprite,
-                new Color(1f, 0.72f, 0.36f, 0.055f), false);
+                new Color(0.55f, 0.65f, 0.90f, 0.05f), false);
 
             Text eyebrow = MakeText(root, "Eyebrow", "AL-NOOR SECONDARY SCHOOL  ·  THE LAST NIGHT", 18,
-                new Color(0.62f, 0.58f, 0.50f), TextAnchor.MiddleCenter,
+                new Color(0.55f, 0.60f, 0.70f), TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0f, 105f), new Vector2(1200f, 30f));
             Localize(eyebrow);
@@ -997,9 +999,12 @@ namespace LightShadow.Tools
             // Warm caller colours (the primary CTA) get a warm multiplier;
             // everything else keeps the neutral theme button.
             bool warm = background.r - background.b > 0.1f;
+            bool cool = background.b - background.r > 0.1f;
             image.color = warm
                 ? new Color(1.32f, 1.18f, 0.96f, background.a)
-                : new Color(1f, 1f, 1f, background.a);
+                : cool
+                    ? new Color(0.95f, 1.08f, 1.28f, background.a)
+                    : new Color(1f, 1f, 1f, background.a);
             image.raycastTarget = true;
 
             Button button = rect.gameObject.AddComponent<Button>();
