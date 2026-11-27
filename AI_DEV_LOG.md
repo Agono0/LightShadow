@@ -357,3 +357,25 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: pending Lead batch run — expected `AudioMixerTool.EnsureBatch` → `RESULT: PASS`
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
+
+## 2026-11-27 (late) - Voice line sheet from the verified story inventory (PR #16)
+- Task: A-workstream voice kit deliverable - a per-line recording sheet for VO casting.
+- What AI provided: Docs/VO_LINE_SHEET.md with 77 lines extracted from the repo's
+  actual story-node inventory - the 44 Assets/_Project/Data/Story/SN_*.asset nodes
+  (+ SO_StoryConfig.asset reconciliation for the 44 vs 45 file count), NOT from
+  Docs/Story/SCRIPT.md, which has drifted from the assets. Line IDs VO_<nodeId> and
+  VO_<nodeId>_C<n> in asset order, grouped by act, with speaker (StoryNode
+  .StorySpeaker enum), suggested emotion (casting hint only), EN text, AR text and a
+  max-seconds budget (EN words / 2.6 wps, min 2s; timed choices also carry their
+  in-game cap). Arabic resolved in the runtime lookup order (StoryStrings.cs first,
+  then Localization.cs) with whitespace-normalized matching for YAML folding.
+  Docs-only: nothing wired; VO_RECORDING_SPECS.md (PR #7 scope) untouched.
+- What I changed myself: n/a (agent-authored; no human edits yet).
+- Teach-back check: pending - PR review with the owner.
+- Test result: AR present for 73/77 lines. The 4 MISSING are exactly the ending
+  nodes (SN_End_Dawnless, SN_End_FullRecovery, SN_End_HollowEscape,
+  SN_End_PartialMemory): their asset text has drifted from the StoryStrings.cs keys
+  (e.g. "The sky over the school..." vs the key's "...above the school..."), so no
+  matching AR entry exists in the codebase for them - marked MISSING explicitly in
+  the sheet, no approximate mapping used. Assets or StoryStrings keys need
+  reconciling (Scripts are outside the agent lane; flagged for the lead).
