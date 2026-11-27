@@ -43,7 +43,8 @@ namespace LightShadow.Tools
             }
 
             // Question bank integrity (doc 4.1 and T13): at least 60 valid
-            // questions, every one draft-marked for the human fact-check.
+            // questions, every one draft-marked for the human fact-check and
+            // carrying full Arabic fields (task P4; HasArabic + explanationAr).
             QuestionDatabase database = AssetDatabase.LoadAssetAtPath<QuestionDatabase>(DatabasePath);
             if (database == null)
             {
@@ -52,19 +53,24 @@ namespace LightShadow.Tools
             else
             {
                 int valid = 0;
+                int arabic = 0;
                 var categories = new HashSet<QuestionCategory>();
                 foreach (QuestionData question in database.all)
                 {
                     if (question == null || !question.IsValid) continue;
                     valid++;
                     categories.Add(question.category);
+                    if (question.HasArabic && !string.IsNullOrWhiteSpace(question.explanationAr)) arabic++;
                     if (string.IsNullOrEmpty(question.factSource)) problems.Add("Question " + question.name + " has no fact source.");
                 }
 
                 report.AppendLine("Question bank: " + valid + " valid / " + database.all.Count + " linked");
                 report.AppendLine("Question categories: " + categories.Count + "/6");
+                report.AppendLine("Question Arabic fields: " + arabic + "/" + valid);
                 if (valid < 60) problems.Add("Question bank has " + valid + " valid questions; the project document asks for 60+.");
                 if (categories.Count < 6) problems.Add("Question bank is missing one or more categories.");
+                if (arabic < valid) problems.Add("Question bank: " + (valid - arabic) + " of " + valid
+                    + " valid questions lack full Arabic fields (questionAr/optionsAr/explanationAr).");
             }
 
             EditorSceneManager.OpenScene(SchoolPath, OpenSceneMode.Single);
@@ -92,6 +98,22 @@ namespace LightShadow.Tools
                 if (player.GetComponent<InteractionRaycaster>() == null) problems.Add("School: player has no InteractionRaycaster.");
                 if (player.GetComponentInChildren<Camera>() == null) problems.Add("School: player has no camera.");
                 if (player.GetComponentInChildren<Light>() == null) problems.Add("School: player has no flashlight light.");
+
+                // P3 horror systems ride the player rig.
+                if (player.GetComponent<NoiseEmitter>() == null) problems.Add("School: player has no NoiseEmitter.");
+                if (player.GetComponent<FlashlightCrank>() == null) problems.Add("School: player has no FlashlightCrank.");
+                if (player.GetComponent<HidingSystem>() == null) problems.Add("School: player has no HidingSystem.");
+                if (player.GetComponentInChildren<CalmEffectsController>() == null)
+                {
+                    problems.Add("School: player camera has no CalmEffectsController.");
+                }
+
+                // Premium pass §8.3: the occlusion probe rides the camera next
+                // to the AudioListener.
+                if (player.GetComponentInChildren<LightShadow.Audio.AudioOcclusionProbe>() == null)
+                {
+                    problems.Add("School: player camera has no AudioOcclusionProbe.");
+                }
             }
 
             EnemyBehaviour shadow = Object.FindAnyObjectByType<EnemyBehaviour>();
@@ -125,6 +147,7 @@ namespace LightShadow.Tools
             int boards = Object.FindObjectsByType<QuizBoard>(FindObjectsInactive.Include).Length;
             int gates = Object.FindObjectsByType<ExitGate>(FindObjectsInactive.Include).Length;
             int zones = Object.FindObjectsByType<LitZone>(FindObjectsInactive.Include).Length;
+            int hideSpots = Object.FindObjectsByType<HideSpot>(FindObjectsInactive.Include).Length;
 
             report.AppendLine("Fuse boxes: " + fuses + " (need 3)");
             report.AppendLine("Fragments: " + fragments + " (need 6)");
@@ -132,6 +155,7 @@ namespace LightShadow.Tools
             report.AppendLine("Quiz boards: " + boards + " (need at least 6)");
             report.AppendLine("Lit zones: " + zones + " (need 5)");
             report.AppendLine("Exit gates: " + gates + " (need 1)");
+            report.AppendLine("Hide spots: " + hideSpots + " (need 6)");
 
             if (fuses != 3) problems.Add("School: expected 3 fuse boxes, found " + fuses + ".");
             if (fragments != 6) problems.Add("School: expected 6 fragments, found " + fragments + ".");
@@ -139,6 +163,34 @@ namespace LightShadow.Tools
             if (boards < 6) problems.Add("School: expected at least 6 quiz boards, found " + boards + ".");
             if (zones != 5) problems.Add("School: expected 5 lit zones, found " + zones + ".");
             if (gates != 1) problems.Add("School: expected 1 exit gate, found " + gates + ".");
+            if (hideSpots < 6) problems.Add("School: expected at least 6 hide spots, found " + hideSpots + ".");
+
+            // Premium pass §8.3: every interior room gets a reverb zone with a
+            // usable collider and falloff range (8 expected: Library, PhysicsLab,
+            // Classroom, Garden, StaffRoom, Corridor, Entrance, MainHall).
+            AudioReverbZone[] reverbZones = Object.FindObjectsByType<AudioReverbZone>(FindObjectsInactive.Include);
+            report.AppendLine("Reverb zones: " + reverbZones.Length + " (need at least 6)");
+            if (reverbZones.Length < 6)
+            {
+                problems.Add("School: expected at least 6 reverb zones, found " + reverbZones.Length + ".");
+            }
+            foreach (AudioReverbZone zone in reverbZones)
+            {
+                if (zone.GetComponent<Collider>() == null)
+                {
+                    problems.Add("School: reverb zone '" + zone.name + "' has no collider.");
+                }
+                if (zone.maxDistance <= zone.minDistance)
+                {
+                    problems.Add("School: reverb zone '" + zone.name + "' maxDistance must exceed minDistance.");
+                }
+            }
+
+            // P3 menace director: the Shadow pacing gauge lives on the Systems.
+            if (Object.FindAnyObjectByType<MenaceDirector>() == null)
+            {
+                problems.Add("School: Systems has no MenaceDirector.");
+            }
 
             NavMeshSurface surface = Object.FindAnyObjectByType<NavMeshSurface>();
             if (surface == null) problems.Add("School: no NavMeshSurface.");
@@ -199,7 +251,10 @@ namespace LightShadow.Tools
             RecapScreen recap = Object.FindAnyObjectByType<RecapScreen>();
             if (ending == null) problems.Add("Ending: no EndingController.");
             if (recap == null) problems.Add("Ending: no RecapScreen.");
-            else if (recap.recapText == null || recap.quitButton == null) problems.Add("Ending: recap is not wired.");
+            else if (recap.recapText == null || recap.quitButton == null || recap.savePngButton == null)
+            {
+                problems.Add("Ending: recap is not wired (including the SAVE PNG button).");
+            }
             if (ending != null)
             {
                 if (ending.sun == null) problems.Add("Ending: the sun is not wired.");
@@ -274,6 +329,99 @@ namespace LightShadow.Tools
                         problems.Add("Mixer: exposed parameter missing: " + parameter + ".");
                     }
                 }
+
+            // ------------------------------------------------- P2 hero props
+            // The 14 Blender FBX models must be imported, every registered
+            // FBX material (the three Mat_Story_* slots included) must resolve
+            // to its canonical asset, and the built scenes must carry the
+            // hero swap instances. Swap counts are reported per model name.
+            string[] heroNames = ArtImporter.HeroModelNames();
+            int heroFbxCount = 0;
+            foreach (string heroName in heroNames)
+            {
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(ArtImporter.HeroModelsFolder + "/" + heroName + ".fbx") != null)
+                {
+                    heroFbxCount++;
+                }
+                else
+                {
+                    problems.Add("Hero FBX not imported (run ArtImporter.ImportAllBatch): " + heroName);
+                }
+            }
+            report.AppendLine("Hero FBX assets: " + heroFbxCount + "/" + heroNames.Length);
+
+            var heroSwapCounts = new SortedDictionary<string, int>();
+            int heroNullMaterialSlots = 0;
+            foreach (string scenePath in new[] { SchoolPath, EndingPath })
+            {
+                if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null) continue;
+                EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+                foreach (GameObject rootObject in EditorSceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    foreach (Transform node in rootObject.GetComponentsInChildren<Transform>(true))
+                    {
+                        if (!node.name.StartsWith("ArtModel_", StringComparison.Ordinal)) continue;
+                        foreach (Renderer renderer in node.GetComponentsInChildren<Renderer>(true))
+                        {
+                            foreach (Material material in renderer.sharedMaterials)
+                            {
+                                if (material == null) heroNullMaterialSlots++;
+                            }
+                        }
+                        foreach (string heroName in heroNames)
+                        {
+                            if (!node.name.Contains(heroName)) continue;
+                            heroSwapCounts.TryGetValue(heroName, out int swapCount);
+                            heroSwapCounts[heroName] = swapCount + 1;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            var swapSummary = new List<string>();
+            foreach (KeyValuePair<string, int> pair in heroSwapCounts)
+            {
+                swapSummary.Add(pair.Key + "=" + pair.Value);
+            }
+            report.AppendLine("Hero swaps: " + (swapSummary.Count > 0 ? string.Join(", ", swapSummary) : "none"));
+            if (heroNullMaterialSlots > 0)
+            {
+                problems.Add("Hero swap instances carry " + heroNullMaterialSlots + " null material slot(s).");
+            }
+
+            string[] heroMaterialNames = ArtImporter.HeroMaterialNames();
+            var missingHeroMaterials = new List<string>();
+            foreach (string materialName in heroMaterialNames)
+            {
+                if (AssetDatabase.LoadAssetAtPath<Material>(ArtMaterialsFolder + "/" + materialName + ".mat") == null)
+                {
+                    missingHeroMaterials.Add(materialName);
+                }
+            }
+            report.AppendLine("Hero materials: " + (heroMaterialNames.Length - missingHeroMaterials.Count)
+                + "/" + heroMaterialNames.Length
+                + (missingHeroMaterials.Count > 0 ? " (missing: " + string.Join(", ", missingHeroMaterials) + ")" : ""));
+            if (missingHeroMaterials.Count > 0)
+            {
+                problems.Add("Hero material assets missing, run ArtImporter first: "
+                    + string.Join(", ", missingHeroMaterials));
+            }
+
+            // The three P2 story materials need their specific looks, not just
+            // presence (covered by the map check above): emissive LED,
+            // transparent glass.
+            Material storyLed = AssetDatabase.LoadAssetAtPath<Material>(ArtMaterialsFolder + "/Mat_Story_LED.mat");
+            if (storyLed != null && !storyLed.IsKeywordEnabled("_EMISSION"))
+            {
+                problems.Add("Mat_Story_LED has no emission enabled.");
+            }
+            Material storyGlass = AssetDatabase.LoadAssetAtPath<Material>(ArtMaterialsFolder + "/Mat_Story_Glass.mat");
+            if (storyGlass != null && storyGlass.GetFloat("_Surface") != 1f)
+            {
+                problems.Add("Mat_Story_Glass is not set up as a transparent surface.");
+            }
+
             }
 
             report.AppendLine();

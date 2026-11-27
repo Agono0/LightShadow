@@ -25,3 +25,10 @@ MonoBehaviour:
   explanation: Photosynthesis builds the plant's body from carbon dioxide in the
     air. Experiments tracing carbon show the soil adds very little mass.
   factSource: NEEDS-FACT-CHECK
+  questionAr: نبات ينمو من بذرة صغيرة ويصير شجرة كبيرة؛ أغلب كتلته الجديدة يأتي من...
+  optionsAr:
+  - التربة
+  - الماء الذي سُقيت به
+  - ثاني أكسيد الكربون في الهواء
+  - ضوء الشمس
+  explanationAr: التمثيل الضوئي يبني جسم النبات من ثاني أكسيد الكربون في الهواء؛ وتجارب تتبع الكربون تثبت أن التربة لا تضيف إلا كتلة ضئيلة جدًا.

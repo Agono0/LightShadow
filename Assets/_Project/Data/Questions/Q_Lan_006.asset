@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: A group of lions is a pride; a group of wolves is a pack and a group
     of sheep is a flock.
   factSource: NEEDS-FACT-CHECK
+  questionAr: ماذا يُسمى جمع الأسود؟
+  optionsAr:
+  - قطيع
+  - أُسرة
+  - سرب
+  - زمرة
+  explanationAr: مجموعة الأسود تُسمى أُسرة، ومجموعة الذئاب زمرة، ومجموعة الخراف سرب.

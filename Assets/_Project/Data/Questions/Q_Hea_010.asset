@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Lentils are legumes rich in plant protein and fibre, with very little
     fat.
   factSource: NEEDS-FACT-CHECK
+  questionAr: العدس مصدر أساسي لأي مادة غذائية؟
+  optionsAr:
+  - البروتين
+  - فيتامين ج
+  - الكالسيوم
+  - الدهون
+  explanationAr: العدس من البقوليات، غني بالبروتين النباتي والألياف، وقليل الدهون جدًا.

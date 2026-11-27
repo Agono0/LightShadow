@@ -21,7 +21,8 @@ Fast orientation for humans and AI agents. Verify cheaply; never re-derive from 
 4. Third-party assets live read-only under `Assets/ThirdParty/<pack>/`; copy-and-adjust into
    `_Project/`. Log every download in `Docs/ASSET_LICENSES.md` before use.
 5. Question `factSource` stays `NEEDS-FACT-CHECK` unless a human verified it. Never claim review.
-6. Log every AI-assisted change in `AI_DEV_LOG.md` (template at top of that file).
+6. Log every AI-assisted change as a fragment file `AI_DEV_LOG.d/<YYYYMMDD>-<slug>.md`
+   (one per PR; template at the top of `AI_DEV_LOG.md`). Never append to the shared tail.
 7. Commit .meta files next to assets; never commit `Library/ Temp/ Logs/ Builds/ UserSettings/`.
 8. No jumping; walk/sprint/crouch only. The Shadow is "enemy behaviour" (FSM), never "AI".
 9. **PR-only:** never push directly to `main`. All changes land through pull requests that

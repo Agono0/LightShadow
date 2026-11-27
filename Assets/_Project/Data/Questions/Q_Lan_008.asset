@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 2
   explanation: Ancient means very old; modern means belonging to the present time.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي كلمة معناها عكس كلمة «ancient»؟
+  optionsAr:
+  - قديم
+  - حديث
+  - تاريخي
+  - عتيق
+  explanationAr: «ancient» تعني قديمًا جدًا، و«modern» تعني ما هو من الزمن الحاضر.
