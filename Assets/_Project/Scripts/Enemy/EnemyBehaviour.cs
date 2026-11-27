@@ -22,7 +22,7 @@ namespace LightShadow.Enemy
     [RequireComponent(typeof(NavMeshAgent))]
     public class EnemyBehaviour : MonoBehaviour
     {
-        public enum State { Patrol, Stalk, Chase, Repelled, Investigate, ForcedCooldown, Search }
+        public enum State { Patrol, Stalk, Chase, Repelled, Investigate, ForcedCooldown, Search, Ambush }
 
         [Header("Wiring")]
         public GameConfig config;
@@ -42,6 +42,15 @@ namespace LightShadow.Enemy
 
         State state = State.Patrol;
         int waypointIndex;
+        // Dynamic roaming (user brief 2026-11-27): the wraith wanders the
+        // whole school at random instead of looping a scripted route. The
+        // recent list stops it ping-ponging between two corners.
+        readonly System.Collections.Generic.List<int> recentWaypoints = new System.Collections.Generic.List<int>();
+        // Ambush (same brief: "can hide to scare you"): from Patrol it slips
+        // into a dark corner on Nour's path and waits, quiet, until she is on
+        // top of it, then bursts out.
+        float ambushCooldown = 20f;
+        float ambushTimer;
         float sightLostTimer;
         float repelCooldownTimer;
         float catchCooldownTimer;
@@ -188,6 +197,7 @@ namespace LightShadow.Enemy
             float dt = Time.deltaTime;
             if (repelCooldownTimer > 0f) repelCooldownTimer -= dt;
             if (catchCooldownTimer > 0f) catchCooldownTimer -= dt;
+            if (ambushCooldown > 0f) ambushCooldown -= dt;
 
             Vector3 playerPosition = player.position;
             float distance = Vector3.Distance(transform.position, playerPosition);
@@ -251,6 +261,7 @@ namespace LightShadow.Enemy
                 case State.Repelled: UpdateRepelled(); break;
                 case State.Investigate: UpdateInvestigate(dt, playerPosition, distance, effectiveLight, sighted); break;
                 case State.ForcedCooldown: UpdateForcedCooldown(dt); break;
+                case State.Ambush: UpdateAmbush(dt, distance, light); break;
                 case State.Search: UpdateSearch(dt, playerPosition, sighted); break;
             }
         }
@@ -286,6 +297,14 @@ namespace LightShadow.Enemy
 
             bool playerIsDark = light < StalkLightThreshold;
             if (distance <= EngageRadius && (playerIsDark || aggressive)) EnterState(State.Stalk);
+
+            // Ambush: Nour is near but has not engaged yet, and the wraith
+            // slips into cover on her path. Only in the dark, never right
+            // after the last scare.
+            if (playerIsDark && ambushCooldown <= 0f && distance <= 14f && distance > EngageRadius)
+            {
+                EnterState(State.Ambush);
+            }
         }
 
         // ------------------------- Investigate -------------------------
@@ -555,6 +574,17 @@ namespace LightShadow.Enemy
                     investigateTimer = 0f;
                     SetBreathing(true);
                     break;
+                case State.Ambush:
+                    // Slip into cover: stop, go quiet, wait for her.
+                    if (agent != null && agent.isOnNavMesh)
+                    {
+                        agent.isStopped = true;
+                        agent.ResetPath();
+                    }
+                    ambushTimer = 18f;
+                    ambushCooldown = 45f;
+                    SetBreathing(false);
+                    break;
                 case State.ForcedCooldown:
                     // Leaving the wing: patrol pace, quiet, no target fixes
                     // while the timer runs.
@@ -663,10 +693,58 @@ namespace LightShadow.Enemy
             aggressive = value;
         }
 
+        // ------------------------- Ambush -------------------------
+        // Waiting in cover, quiet and still. When Nour walks into it the
+        // wraith bursts out (lunge + whisper) and the normal stalk takes over;
+        // if she never comes, it gives up and roams again.
+        void UpdateAmbush(float dt, float distance, float light)
+        {
+            ambushTimer -= dt;
+            if (ambushTimer <= 0f || light >= StalkLightThreshold)
+            {
+                EnterState(State.Patrol);
+                return;
+            }
+
+            if (distance <= 4.5f)
+            {
+                if (shadowMotion != null) shadowMotion.Lunge(0.55f, 0.32f);
+                if (cameraShake != null) cameraShake.Shake(0.3f, 0.06f);
+                AudioSource burstSource = oneShotSource != null ? oneShotSource : breathingSource;
+                if (burstSource != null && whisperClip != null) burstSource.PlayOneShot(whisperClip);
+                EnterState(State.Stalk);
+            }
+        }
+
+        // Dynamic roam (user brief 2026-11-27): pick a random waypoint the
+        // wraith has not visited lately, so its wandering reads as intent,
+        // not a patrol loop. Falls back to the next waypoint when the route
+        // is tiny.
         void AdvanceWaypoint()
         {
             if (route == null || route.Count == 0) return;
-            waypointIndex = (waypointIndex + 1) % route.Count;
+            int next;
+            if (route.Count <= 2)
+            {
+                next = (waypointIndex + 1) % route.Count;
+            }
+            else
+            {
+                next = waypointIndex;
+                for (int tries = 0; tries < 12; tries++)
+                {
+                    int candidate = UnityEngine.Random.Range(0, route.Count);
+                    if (candidate != waypointIndex && !recentWaypoints.Contains(candidate))
+                    {
+                        next = candidate;
+                        break;
+                    }
+                }
+                if (next == waypointIndex) next = (waypointIndex + 1) % route.Count;
+            }
+            waypointIndex = next;
+            recentWaypoints.Add(next);
+            if (recentWaypoints.Count > 4) recentWaypoints.RemoveAt(0);
             Transform waypoint = route.Get(waypointIndex);
             if (waypoint != null) SetDestination(waypoint.position);
         }
