@@ -1,0 +1,116 @@
+# LIGHT SHADOW - VO clip map (generated placeholders, docs only)
+
+Status: DOCUMENTATION ONLY. No script, scene, prefab or AudioLibrary changes by
+this PR; playback wiring is the lead's work. This doc maps the voice line ids
+from `Docs/VO_LINE_SHEET.md` (PR #16) to the generated clip files in PR #28
+(head 07781623f33437aff11639c9cba37ea13ba678db), and records the agreed usage
+policy.
+
+## Policy (agreed with lead, 2026-11-27)
+
+- All 154 clips (77 EN + 77 AR) are GENERATED synthetic placeholders. They are
+  never human-recorded and never final. Any UI, doc or credit that mentions
+  them must say "generated".
+- The final voices are human-recorded per `Docs/VO_RECORDING_SPECS.md`
+  (44 story-node lines x 2 languages; choice lines are not part of the final
+  session). The final-human-voice requirement is unchanged.
+- Choice-variant clips (`_C1`/`_C2`/`_C3` suffixes) stay in the repo as
+  synthetic placeholders but are NOT played: marked UNWIRED and optional. They
+  exist so the folder layout already matches the line sheet; the lead decides
+  if they are ever referenced.
+- Story-node clips are placeholders too: unwired until the lead's playback
+  mapping exists, and replaced by human recordings when the session happens.
+- Fallback stays the existing SAPI narrator for any line without a (final)
+  clip; the mapping data and fallback logic are the lead's scripts
+  (`StoryTeller.cs`), not this doc's PR.
+
+## Verification (2026-11-27, against PR #28 tree)
+
+- 154 clip files total: 77 under `Assets/_Project/Audio/VO/EN/`, 77 under
+  `Assets/_Project/Audio/VO/AR/`; the EN and AR id sets are identical.
+- Every id below appears 1:1 in `Docs/VO_LINE_SHEET.md` at PR #16 head
+  add8f905c8dcffb7f0e8c9641a6cf2cb2108bc1f (77/77 match, no missing, no extra).
+- Naming convention: `VO_<nodeId>.ogg` for story node lines,
+  `VO_<nodeId>_C<n>.ogg` for choice variants of that node.
+
+## Map
+
+| Clip id | EN path | AR path | Kind | Status |
+| --- | --- | --- | --- | --- |
+| VO_SN_Act1_01 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_01.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_01.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_01_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_01_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_01_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_01_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_01_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_01_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_01_C3 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_01_C3.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_01_C3.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_01b | Assets/_Project/Audio/VO/EN/VO_SN_Act1_01b.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_01b.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_02 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_02.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_02.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_02_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_02_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_02_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_02_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_02_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_02_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_02_C3 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_02_C3.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_02_C3.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_02b | Assets/_Project/Audio/VO/EN/VO_SN_Act1_02b.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_02b.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_02t | Assets/_Project/Audio/VO/EN/VO_SN_Act1_02t.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_02t.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_03 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_03.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_03.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_03_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_03_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_03_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_03_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_03_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_03_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_03_C3 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_03_C3.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_03_C3.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_03a | Assets/_Project/Audio/VO/EN/VO_SN_Act1_03a.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_03a.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_03b | Assets/_Project/Audio/VO/EN/VO_SN_Act1_03b.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_03b.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_04 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_04.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_04.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_04_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_04_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_04_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_04_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_04_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_04_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_04b | Assets/_Project/Audio/VO/EN/VO_SN_Act1_04b.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_04b.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act1_05 | Assets/_Project/Audio/VO/EN/VO_SN_Act1_05.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act1_05.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_01 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_01.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_01.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_01_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_01_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_01_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_01_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_01_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_01_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_01_C3 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_01_C3.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_01_C3.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_01_anger | Assets/_Project/Audio/VO/EN/VO_SN_Act2_01_anger.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_01_anger.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_01_calm | Assets/_Project/Audio/VO/EN/VO_SN_Act2_01_calm.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_01_calm.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_01_pass | Assets/_Project/Audio/VO/EN/VO_SN_Act2_01_pass.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_01_pass.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_02 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_02.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_02.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_02_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_02_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_02_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_02_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_02_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_02_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_02_C3 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_02_C3.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_02_C3.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_02b | Assets/_Project/Audio/VO/EN/VO_SN_Act2_02b.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_02b.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_02t | Assets/_Project/Audio/VO/EN/VO_SN_Act2_02t.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_02t.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_03 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_03.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_03.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_03_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_03_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_03_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_03_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_03_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_03_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_03b | Assets/_Project/Audio/VO/EN/VO_SN_Act2_03b.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_03b.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_04 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_04.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_04.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_04_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_04_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_04_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_04_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_04_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_04_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_04_C3 | Assets/_Project/Audio/VO/EN/VO_SN_Act2_04_C3.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_04_C3.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_04_line | Assets/_Project/Audio/VO/EN/VO_SN_Act2_04_line.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_04_line.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_04_pass | Assets/_Project/Audio/VO/EN/VO_SN_Act2_04_pass.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_04_pass.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_04_shaken | Assets/_Project/Audio/VO/EN/VO_SN_Act2_04_shaken.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_04_shaken.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act2_04_stand | Assets/_Project/Audio/VO/EN/VO_SN_Act2_04_stand.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act2_04_stand.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_01 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_01.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_01.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_01_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_01_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_01_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_01_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_01_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_01_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_01_C3 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_01_C3.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_01_C3.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_01b | Assets/_Project/Audio/VO/EN/VO_SN_Act3_01b.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_01b.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_02 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_02.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_02.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_03 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_03.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_03.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_03_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_03_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_03_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_03_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_03_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_03_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_03_C3 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_03_C3.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_03_C3.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_03_bold | Assets/_Project/Audio/VO/EN/VO_SN_Act3_03_bold.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_03_bold.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_03_forgave | Assets/_Project/Audio/VO/EN/VO_SN_Act3_03_forgave.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_03_forgave.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_03_pass | Assets/_Project/Audio/VO/EN/VO_SN_Act3_03_pass.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_03_pass.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_03_shaken | Assets/_Project/Audio/VO/EN/VO_SN_Act3_03_shaken.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_03_shaken.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_04 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_04.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_04.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_04_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_04_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_04_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_04_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_04_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_04_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_04t | Assets/_Project/Audio/VO/EN/VO_SN_Act3_04t.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_04t.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_05 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_05.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_05.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_06 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_06.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_06.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_07 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_07.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_07.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_08 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_08.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_08.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_08_C1 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_08_C1.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_08_C1.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_08_C2 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_08_C2.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_08_C2.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_08_C3 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_08_C3.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_08_C3.ogg | story node line | generated placeholder - unwired |
+| VO_SN_Act3_09 | Assets/_Project/Audio/VO/EN/VO_SN_Act3_09.ogg | Assets/_Project/Audio/VO/AR/VO_SN_Act3_09.ogg | story node line | generated placeholder - unwired |
+| VO_SN_End_Dawnless | Assets/_Project/Audio/VO/EN/VO_SN_End_Dawnless.ogg | Assets/_Project/Audio/VO/AR/VO_SN_End_Dawnless.ogg | story node line | generated placeholder - unwired |
+| VO_SN_End_FullRecovery | Assets/_Project/Audio/VO/EN/VO_SN_End_FullRecovery.ogg | Assets/_Project/Audio/VO/AR/VO_SN_End_FullRecovery.ogg | story node line | generated placeholder - unwired |
+| VO_SN_End_HollowEscape | Assets/_Project/Audio/VO/EN/VO_SN_End_HollowEscape.ogg | Assets/_Project/Audio/VO/AR/VO_SN_End_HollowEscape.ogg | story node line | generated placeholder - unwired |
+| VO_SN_End_PartialMemory | Assets/_Project/Audio/VO/EN/VO_SN_End_PartialMemory.ogg | Assets/_Project/Audio/VO/AR/VO_SN_End_PartialMemory.ogg | story node line | generated placeholder - unwired |
