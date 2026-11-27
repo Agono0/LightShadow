@@ -300,6 +300,7 @@ namespace LightShadow.Tools
 
             // ---- wing puzzle overlays (workstream 5) -------------------------
             BuildCodeLockPanel(root);
+            BuildCardSortPanel(root);
 
             // ---- pause overlay ----------------------------------------------
             BuildPause(root, pause);

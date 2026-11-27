@@ -677,6 +677,7 @@ namespace LightShadow.Tools
             CreateBoard(prefabs, t, database, "Board_Library", new Vector3(-9f, 1.7f, -8.18f), Quaternion.identity);
             CreateFuse(prefabs, t, "Fuse_Library", new Vector3(-2.88f, 1.55f, -20f), Quaternion.Euler(0f, 90f, 0f),
                 zones.libraryLights, new[] { zones.library }, "She always said a library card is a key that never rusts.");
+            CreateCatalogueSort(prefabs, t, palette);
         }
 
         static void BuildPhysicsLab(Transform parent, ZoneSet zones, Prefabs prefabs, Palette palette, QuestionDatabase database)
