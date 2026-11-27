@@ -23,6 +23,27 @@ namespace LightShadow.Core
         // Fired after an item lands in the inventory; future HUD badges listen.
         public static event Action<string> ItemAdded;
 
+        // Display names for the HUD strip, keyed by item id. Scene props
+        // (ItemPickup) can be inactive until revealed, so the names live here
+        // instead of on the prop.
+        static readonly Dictionary<string, string> nameEn = new Dictionary<string, string>
+        {
+            { "master_key", "Master key" },
+        };
+        static readonly Dictionary<string, string> nameAr = new Dictionary<string, string>
+        {
+            { "master_key", "المفتاح الرئيسي" },
+        };
+
+        public static string DisplayName(string id)
+        {
+            Dictionary<string, string> table = Localization.Current == GameLanguage.Arabic ? nameAr : nameEn;
+            string name;
+            return table.TryGetValue(id, out name) ? name : id;
+        }
+
+        public static IEnumerable<string> Carried => items;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Hook()
         {
