@@ -48,10 +48,15 @@ namespace LightShadow.Contrib.Usef.LevelLogic
 
             // Key chain: plain pickups today (SceneBuilderDoors.cs says moving them
             // behind puzzle solves is a follow-up).
-            g.Steps.Add(Step("Key_Classroom", StepKind.Pickup, none, none, A("item:classroom_key"),
-                Confidence.Verified, Doors, "Plain ItemPickup, no requirement in the builder."));
-            g.Steps.Add(Step("Key_Staff", StepKind.Pickup, none, none, A("item:staff_key"),
-                Confidence.Verified, Doors, "Plain ItemPickup, no requirement in the builder."));
+            // Updated to the audit-fixes PR: the puzzles also pay these keys
+            // (Gameplay/PuzzleKeyRewards), but both puzzles sit INSIDE the rooms
+            // the keys open, so a spare of each lies outside (library and
+            // infirmary shelves). Without the spares the model reports the
+            // soft-lock (see SchoolLevelModelTests).
+            g.Steps.Add(Step("Key_Classroom_Spare", StepKind.Pickup, none, none, A("item:classroom_key"),
+                Confidence.Verified, Doors, "Spare ItemPickup on the library shelf (open room)."));
+            g.Steps.Add(Step("Key_Staff_Spare", StepKind.Pickup, none, none, A("item:staff_key"),
+                Confidence.Verified, Doors, "Spare ItemPickup on the infirmary shelf (open room)."));
 
             // The only two locked doors (startsLocked with a keyId). The other four
             // wing doors have an empty keyId and never lock.
@@ -62,9 +67,9 @@ namespace LightShadow.Contrib.Usef.LevelLogic
 
             // Wing puzzles. Which room a puzzle sits in is read from its world
             // coordinates against the door positions, so the room gate is Inferred.
-            g.Steps.Add(Puzzle("Puzzle_ChalkboardCipher", A("access:classroom"), none, A("item:battery"),
+            g.Steps.Add(Puzzle("Puzzle_ChalkboardCipher", A("access:classroom"), none, A("item:battery", "item:classroom_key"),
                 Confidence.Inferred, Puzzles,
-                "Reward: battery. Room gate inferred: puzzle at z=16..18, Door_Classroom at z=10."));
+                "Reward: battery and classroom_key (PuzzleKeyRewards). Room gate inferred: puzzle at z=16..18, Door_Classroom at z=10."));
             g.Steps.Add(Puzzle("Puzzle_CatalogueSort", none, none, A("item:battery"),
                 Confidence.Verified, Puzzles, "Reward: battery. Library door never locks."));
             g.Steps.Add(Puzzle("Puzzle_OpticsBench", none, none, A("item:battery"),
@@ -73,9 +78,9 @@ namespace LightShadow.Contrib.Usef.LevelLogic
                 Confidence.Verified, Puzzles, "Reward: battery. No door on the route in the builder."));
             g.Steps.Add(Puzzle("Puzzle_FirstAidOrder", none, none, A("item:fuse"),
                 Confidence.Verified, Puzzles, "Reward: fuse item. Infirmary door never locks."));
-            g.Steps.Add(Puzzle("Puzzle_MapLocker", A("access:staff_room"), none, A("item:master_key"),
+            g.Steps.Add(Puzzle("Puzzle_MapLocker", A("access:staff_room"), none, A("item:master_key", "item:staff_key"),
                 Confidence.Inferred, Puzzles,
-                "Reward: master_key. Room gate inferred: puzzle at z=26, Door_Staff at z=22."));
+                "Reward: master_key, plus staff_key via PuzzleKeyRewards. Map board now at z 25.78, inside the room. Room gate inferred."));
 
             // Three fuse boxes. FuseBox.Interact has no item or puzzle requirement.
             g.Steps.Add(Step("Fuse_Library", StepKind.FuseBox, none, none, A("fuse_box:Fuse_Library"),

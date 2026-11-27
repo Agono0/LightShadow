@@ -18,7 +18,7 @@ editor or on a device; CI is the first compile.
 - Keys: medkit H -> M (H is hints); F is owned by a carried prop (throw), not
   torch toggle/crank, for that press.
 - F0: map board and pins moved inside the staff room (z 25.78); spare staff_key
-  on the infirmary shelf; LevelGraphValidator + SchoolLevelGraph + tests.
+  on the infirmary and library shelves; Contrib/Usef SchoolLevelModel updated to current builders (1.2) with a soft-lock test.
 - F24: StoryDirector maps offered slot to the real choice index.
 - Haptics opt-out preference (HapticsService.Enabled); settings toggle not yet wired.
 - Not done here: auto-rotation and activeInputHandler left as is (landscape-only

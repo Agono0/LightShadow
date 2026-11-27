@@ -48,7 +48,7 @@ namespace LightShadow.Contrib.Usef.LevelLogic.Tests
         {
             List<string> order = LevelGraphValidator.Validate(SchoolLevelModel.Build()).WitnessOrder;
             int Idx(string id) { return order.IndexOf(id); }
-            Assert.Less(Idx("Key_Staff"), Idx("Door_Staff"));
+            Assert.Less(Idx("Key_Staff_Spare"), Idx("Door_Staff"));
             Assert.Less(Idx("Door_Staff"), Idx("Puzzle_MapLocker"));
             Assert.Less(Idx("Puzzle_MapLocker"), Idx("Puzzle_GateCircuit"));
             Assert.Less(Idx("Puzzle_GateCircuit"), Idx("ExitGate"));
@@ -61,14 +61,25 @@ namespace LightShadow.Contrib.Usef.LevelLogic.Tests
             List<string> critical = LevelGraphValidator.CriticalSteps(SchoolLevelModel.Build());
             string[] mustBe =
             {
-                "Key_Staff", "Door_Staff", "Puzzle_MapLocker", "Fuse_Library", "Fuse_Physics",
+                "Key_Staff_Spare", "Door_Staff", "Puzzle_MapLocker", "Fuse_Library", "Fuse_Physics",
                 "Fuse_MainHall", "Puzzle_GateCircuit", "ExitGate",
             };
             foreach (string id in mustBe) CollectionAssert.Contains(critical, id);
             // Optional today: nothing on the route to the gate needs these.
-            string[] optional = { "Key_Classroom", "Door_Classroom", "Puzzle_ChalkboardCipher",
+            string[] optional = { "Key_Classroom_Spare", "Door_Classroom", "Puzzle_ChalkboardCipher",
                 "Puzzle_CatalogueSort", "Puzzle_OpticsBench", "Puzzle_StageLights", "Puzzle_FirstAidOrder" };
             foreach (string id in optional) CollectionAssert.DoesNotContain(critical, id);
+        }
+
+        // The audit F0 shape: with the spare keys removed, both locked rooms
+        // hold the key that opens them, and the validator must say so.
+        [Test]
+        public void WithoutTheSpareKeys_TheModelIsASoftLock()
+        {
+            LevelGraph g = SchoolLevelModel.Build();
+            g.Steps.RemoveAll(s => s.Id == "Key_Staff_Spare" || s.Id == "Key_Classroom_Spare");
+            LevelGraphReport report = LevelGraphValidator.Validate(g);
+            Assert.IsFalse(report.Ok, "the original circular key design must be reported");
         }
 
         // Soft drift guard. If the builders rename a puzzle or key, the model is stale. This
