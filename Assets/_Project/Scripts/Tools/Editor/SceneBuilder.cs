@@ -630,7 +630,7 @@ namespace LightShadow.Tools
             grain.response.Override(0.8f);
 
             ColorAdjustments color = profile.Add<ColorAdjustments>(true);
-            color.postExposure.Override(dawn ? 0.45f : 0.02f);
+            color.postExposure.Override(dawn ? 0.3f : -0.2f);
             color.contrast.Override(dawn ? 4f : 8f);
             color.saturation.Override(dawn ? 12f : -6f);
             color.colorFilter.Override(dawn
@@ -780,22 +780,6 @@ namespace LightShadow.Tools
 
             go.AddComponent<AudioListener>();
             return camera;
-        }
-
-        static Light CreateDirectionalMoon(Transform parent)
-        {
-            var go = new GameObject("Moonlight");
-            go.transform.SetParent(parent, false);
-            go.transform.rotation = Quaternion.Euler(42f, -32f, 0f);
-
-            Light light = go.AddComponent<Light>();
-            light.type = LightType.Directional;
-            light.color = new Color(0.55f, 0.66f, 0.92f);
-            light.intensity = 0.05f; // darkness pass: moon is a hint, not a lamp
-            light.shadows = LightShadows.Soft;
-            light.shadowStrength = 0.6f;
-            light.renderMode = LightRenderMode.ForcePixel;
-            return light;
         }
 
         static Light CreatePointLight(Transform parent, string name, Vector3 localPosition, Color color,
