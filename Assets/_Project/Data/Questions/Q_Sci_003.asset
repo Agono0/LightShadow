@@ -25,3 +25,10 @@ MonoBehaviour:
   explanation: 'Warming speeds molecules up: temperature measures the average energy
     of their motion.'
   factSource: NEEDS-FACT-CHECK
+  questionAr: يُسخَّن قدر من الماء على الموقد؛ ماذا يحدث لجزيئات الماء كلما ازداد حرارة؟
+  optionsAr:
+  - تتباطأ
+  - تتوقف عن الحركة
+  - تتحرك أسرع
+  - تتحول إلى ضوء
+  explanationAr: 'السخونة تُسرِّع الجزيئات: فالحرارة تقيس متوسط طاقة حركتها.'

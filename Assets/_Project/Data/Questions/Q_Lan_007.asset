@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: '"Child" has the irregular plural "children".'
   factSource: NEEDS-FACT-CHECK
+  questionAr: ما جمع الاسم «child»؟
+  optionsAr:
+  - childs
+  - childes
+  - children
+  - childrens
+  explanationAr: الاسم «child» جمعه تكسير «children».

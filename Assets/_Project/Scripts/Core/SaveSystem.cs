@@ -228,6 +228,15 @@ namespace LightShadow.Core
             SceneManager.sceneLoaded += OnSceneLoadedForRestore;
         }
 
+        // Drops a deferred restore that never matched its scene. Called when
+        // the player starts a new game, so a stale save cannot land in the
+        // fresh run when the school scene loads again (audit A3).
+        public static void ClearPendingRestore()
+        {
+            pendingRestore = null;
+            SceneManager.sceneLoaded -= OnSceneLoadedForRestore;
+        }
+
         static void OnSceneLoadedForRestore(Scene scene, LoadSceneMode mode)
         {
             if (pendingRestore == null)

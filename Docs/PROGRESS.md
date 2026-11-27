@@ -80,12 +80,101 @@ See also: `Docs/ROADMAP.md` (plan), `Docs/DECISIONS.md` (why), `Docs/CHANGELOG.m
       documented in PERFORMANCE.md).
 - [x] Windows + Android rebuilt; committed 667fdee + 442315d; merged to main.
 
+## 2026-11-19 — Session 3 — premium integration
+
+All premium phases (P1–P5) landed on the stacked branches and were folded into a
+**single integration PR** from `feat/premium-integration`. Open PRs #5
+(`feat/blender-hero-props`) and #6 (`feat/release-prep`) were closed as
+superseded; merged PRs #3 (`chore/premium-pass-phase0`) and #4
+(`feat/audio-mixer-snapshots`, = P1) are already in `main`.
+
+### What landed (per phase)
+
+- **P1 — fonts + AudioMixer + music** (merged via PR #4): `M_Main.mixer`
+  (Master > Music/Ambience/SFX/Voice/Shadow/UI with duck children + Master
+  low-pass), six snapshots (Explore/Stalk/Chase/Hide/MemoryFlash/Dawn) driven
+  by the Shadow FSM, lit-zone muffle and memory beats; bundled OFL fonts
+  (Noto Naskh Arabic R/B, Cairo, Reem Kufi, Inter, Special Elite — Arabic now
+  renders offline, no OS-font dependency); Kevin MacLeod CC-BY 3.0 music bed
+  + per-ending cues under the procedural AdaptiveMusic fallback.
+- **P2 — Blender hero props** (14 models wired): `Art/` tree (Sources/
+  Pipeline/Previews) with `HeroProps.blend` committed; 14 FBX — SM_Story_
+  {MemoryBox, Card, Bookmark, ExamPaper, Prism, Photograph, Programme, Mug},
+  SM_Player_Flashlight, SM_Wraith_HD, SM_Arch_{DoorGrille, Chalkboard,
+  GateCrank, IronGate} — imported with a `HeroModels` table, story materials
+  (Mat_Story_RedInk/Glass/LED), a hero swap table in SceneBuilderArt/Prefabs
+  (8 chalkboards incl. QuizBoard, memory box + card, 6 story items, 2 door
+  grilles, gate crank, 4 iron-gate segments, player flashlight, Wraith HD on
+  the Shadow), scenes rebuilt. ValidateBatch asserts **14/14 hero FBX +
+  12/12 materials + per-model swap counts**.
+- **P3 — horror & interaction systems** (all 11 systems + wiring + nine
+  review fixes): NoiseEmitter noise bus with per-action hearing radii → Shadow
+  `Investigate` state; crank minigame (hold + circular swipe, capped and loud);
+  MenaceDirector pacing gauge (0–100, forced cool-down, calm guarantee);
+  hiding v1 (hide spots, breath meter, Shadow `Search` state, hiding state
+  cleared on catch/checkpoint, no catch through the spot); banish rebalance
+  (hold the focused beam 2 s at charge ≥ 25 → 20 s retreat, GameConfig fields);
+  calm FX (vignette, heartbeat, beam tremor); 360° inspect view for story
+  items; study-recap PNG export; Android haptics (light = correct, heavy =
+  caught); dev console (editor builds only). Nine review fixes on top
+  (hiding-state reset, F tap-vs-crank split, touch hold vs input lock, shared
+  sight Linecast cache, calm-FX VolumeProfile teardown, EnemyStateChanged
+  comment, recap Debug.Log removal, crank ratchet clock, defensive
+  `VolumeCategories.SetMixer` port).
+- **P4 — Arabic questions 60/60**: `questionAr`/`optionsAr`/`explanationAr`
+  filled for all 60 questions (AI translation, Egyptian-flavoured MSA in the
+  mother's voice; append-only YAML edit, GUIDs untouched); ValidateBatch now
+  asserts "Question Arabic fields: 60/60". **Pending human/native review**;
+  `factSource` stays `NEEDS-FACT-CHECK`. Expansion of the bank to 120 questions
+  is **in progress** (separate agent).
+- **P5 — release assets**: flashlight-emblem app icon pipeline
+  (`Art/Pipeline/ls_icon.py`, Blender EEVEE headless → 1024/512/192/96 PNG;
+  PlayerSettings assignment documented, still a human step); EN/AR store
+  listing + IARC notes + privacy blurb (`Docs/STORE_LISTING.md`); VO recording
+  specs (`Docs/VO_RECORDING_SPECS.md`, 96 delivered files EN+AR per the
+  line-count table).
+
+### Verification results
+
+- `ValidateBatch` **RESULT: PASS** on the integration branch (asserts the P2
+  hero FBX/material/swap counts and the P4 Arabic 60/60 fields, plus the
+  P1 mixer wiring; scenes rebuilt after layout changes).
+- CI `build` workflow green on every merged PR: #3 and #4. Job wall-clock
+  measured via the API on the last green runs (runner-load dependent):
+  Windows 7m12s–8m57s, arm64 9m45s–18m28s, armv7 8m44s–16m08s
+  (runs 44592065316, 44608154090, 44611064124); at merge time PRs #3/#4 were
+  reported around arm64 9m36s / armv7 9m29s / windows 7m48s–8m57s.
+- CI artifact sizes (run 44608154090, PR #4 = P1 content, zipped artifacts):
+  arm64-v8a 88,040,419 B (88.0 MB), armeabi-v7a 86,145,163 B (86.1 MB),
+  Windows 152,043,678 B (152.0 MB) — full table and the delta vs the 73.7 MB
+  APK baseline recorded in `Docs/PERFORMANCE.md`.
+- No Unity runs were used for this documentation pass (docs-only, fast-checks
+  are the gate).
+
+### Remaining open items
+
+- **The single integration PR itself** — pending merge (branch
+  `feat/premium-integration`; its own CI build run not started at the time of
+  writing).
+- **Human-only:** question fact-check (60 + the 120 expansion), Arabic native
+  review, VO recording, PlayerSettings icon assignment, store screenshots
+  (need Unity runs), on-device profiling, signed AAB (owner keystore), store
+  accounts.
+- **Deferred (not started, no commits found):** audio reverb/occlusion pass
+  (checked `feat/horror-systems` — nothing landed); remaining master-plan P2
+  props (optics bench, circuit puzzle, 3 fuse boxes, card catalogue) and the
+  modular key-architecture pass; GI lightmap bake (needs a graphics-device
+  editor run); Pixabay music primaries (bot-protected downloads).
+
 ## Resume notes for the next session
 
-1. Check `git log` + this file; the branch is `feature/premium-pass`.
+1. Check `git log` + this file; the working branch is the stacked
+   `feat/docs-final` (docs reconciliation) to be folded into the single
+   integration PR from `feat/premium-integration`.
 2. Verify `Assets/Settings/Build Profiles/{Windows,Android}.asset` exist; if a batch run ever
    aborts with "Failed to read the specified build profile", rerun
    `Unity.exe -batchmode -quit -nographics -projectPath . -executeMethod LightShadow.Tools.BuildProfileTool.EnsureBatch`.
 3. Verification commands (see `AGENTS.md`): `ValidateBatch`, `BuildAllBatch`,
    `BuildWindowsBatch`, `BuildAndroidBatch`.
-4. Quality gates live in the premium-pass brief; status tracked at the bottom of `Docs/ROADMAP.md` (P4).
+4. Quality gates live in the premium-pass brief; open items are reconciled in
+   `Docs/TASKS.md` (human-only + deferred lists at the bottom).

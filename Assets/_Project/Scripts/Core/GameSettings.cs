@@ -31,6 +31,7 @@ namespace LightShadow.Core
     {
         public const string LanguageKey = "LS_Language";
         public const string ShowFpsKey = "LS_ShowFps";
+        public const string DebugModeKey = "LS_DebugMode";
 
         public static event Action Changed;
 
@@ -44,6 +45,11 @@ namespace LightShadow.Core
         public static float Sensitivity { get; private set; } = 1f;
         public static bool NarratorEnabled { get; private set; } = true;
         public static bool ShowFps { get; private set; } = true;
+
+        // P3 dev console gate: the console (and its DEBUG button) only builds
+        // when this is on. Off by default; dev-only, set via SetDebugMode or
+        // the raw pref key.
+        public static bool DebugMode { get; private set; }
 
         // Quality tier: -1 = auto-detect, 0..3 = Low/Medium/High/Ultra. Stored
         // under the same "ls_qualityTier" key the tier row and
@@ -107,6 +113,7 @@ namespace LightShadow.Core
             Sensitivity = Mathf.Clamp(PlayerPrefs.GetFloat("LS_Sensitivity", 1f), 0.4f, 2.5f);
             NarratorEnabled = PlayerPrefs.GetInt("LS_Narrator", 1) == 1;
             ShowFps = PlayerPrefs.GetInt(ShowFpsKey, 1) == 1;
+            DebugMode = PlayerPrefs.GetInt(DebugModeKey, 0) == 1;
             TierIndex = PlayerPrefs.GetInt("ls_qualityTier", TierAuto);
             // Missing fine-control prefs (fresh install) follow the tier; the
             // legacy literal defaults (2/2/2) are not assumed any more.
@@ -160,6 +167,7 @@ namespace LightShadow.Core
             PlayerPrefs.SetFloat("LS_Sensitivity", Sensitivity);
             PlayerPrefs.SetInt("LS_Narrator", NarratorEnabled ? 1 : 0);
             PlayerPrefs.SetInt(ShowFpsKey, ShowFps ? 1 : 0);
+            PlayerPrefs.SetInt(DebugModeKey, DebugMode ? 1 : 0);
             PlayerPrefs.SetInt("ls_qualityTier", TierIndex);
             PlayerPrefs.SetInt("LS_Shadows", ShadowsIndex);
             PlayerPrefs.SetInt("LS_MSAA", MsaaIndex);
@@ -271,6 +279,12 @@ namespace LightShadow.Core
 
         static void ApplyResolution()
         {
+            // Mobile renders at the panel's native resolution only. Forcing a
+            // picked resolution makes Android scale the framebuffer to fill a
+            // display of a different aspect ratio, which is the stretched look
+            // reported on phones; the resolution/fullscreen rows are a
+            // desktop-only feature.
+            if (Application.isMobilePlatform) return;
             if (resolutions.Count == 0) return;
             Resolution resolution = resolutions[Mathf.Clamp(ResolutionIndex, 0, resolutions.Count - 1)];
             if (resolution.width <= 0 || resolution.height <= 0) return;
@@ -360,6 +374,16 @@ namespace LightShadow.Core
         {
             EnsureLoaded();
             ShowFps = !ShowFps;
+            Save();
+            Changed?.Invoke();
+        }
+
+        // P3 dev console gate setter (off by default; nothing in the shipped
+        // UI touches this).
+        public static void SetDebugMode(bool enabled)
+        {
+            EnsureLoaded();
+            DebugMode = enabled;
             Save();
             Changed?.Invoke();
         }
