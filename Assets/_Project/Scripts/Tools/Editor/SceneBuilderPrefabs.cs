@@ -175,6 +175,9 @@ namespace LightShadow.Tools
             Footsteps footsteps = root.AddComponent<Footsteps>();
             footsteps.player = player;
 
+            // Labored breathing when winded or scared (user brief 2026-11-27).
+            root.AddComponent<PlayerBreathing>();
+
             // P3 horror systems: the noise bus (hearing radii), the crank
             // minigame and hiding v1 all ride the player rig.
             NoiseEmitter noise = root.AddComponent<NoiseEmitter>();
