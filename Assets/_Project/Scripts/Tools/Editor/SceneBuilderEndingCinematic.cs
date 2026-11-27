@@ -110,7 +110,7 @@ namespace LightShadow.Tools
             Transform safe = canvas != null ? canvas.transform.Find("SafeArea") : null;
             if (safe != null)
             {
-                Text subtitle = MakeText(safe, "CinematicSubtitle", "", 30,
+                Text subtitle = SceneBuilderUI.MakeText(safe, "CinematicSubtitle", "", 30,
                     new Color(0.92f, 0.89f, 0.82f), TextAnchor.MiddleCenter,
                     new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
                     new Vector2(0f, 90f), new Vector2(1400f, 120f));
