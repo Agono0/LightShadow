@@ -43,11 +43,23 @@ namespace LightShadow.Player
 
         public bool IsCrouching => crouchHeldByKey || crouchToggle;
         public bool HasMoveInput => keyboardMove.sqrMagnitude > 0.01f || touchMove.sqrMagnitude > 0.01f;
-        public bool IsSprinting => (sprintHeld || sprintFromTouch) && !IsCrouching && HasMoveInput;
+        public bool IsSprinting => (sprintHeld || sprintFromTouch) && !IsCrouching && HasMoveInput && !exhausted && stamina01 > 0f;
+
+        // Stamina (user brief 2026-11-27): about five seconds of sprint, then
+        // she is winded until roughly half recovered. Her breathing
+        // (PlayerBreathing) is the tell - no bar by design.
+        const float SprintSeconds = 5f;
+        const float StaminaRegenPerSecond = 0.16f;  // fraction of a full bar
+        const float ExhaustedRecoverAt = 0.45f;
+        float stamina01 = 1f;
+        bool exhausted;
+        public float Stamina01 => stamina01;
+        public bool IsExhausted => exhausted;
         public Camera PlayerCamera => playerCamera != null ? playerCamera : cameraPivot != null ? cameraPivot.GetComponentInChildren<Camera>() : null;
 
         float WalkSpeed => config != null ? config.walkSpeed : 3f;
         float SprintSpeed => config != null ? config.sprintSpeed : 5f;
+        Vector3 planarVelocity;
         float CrouchSpeed => config != null ? config.crouchSpeed : 1.5f;
         float Sensitivity => (config != null ? config.mouseSensitivity : 2f) * GameSettings.Sensitivity;
 
@@ -215,6 +227,22 @@ namespace LightShadow.Player
             float speed = IsCrouching ? CrouchSpeed : IsSprinting ? SprintSpeed : WalkSpeed;
             Vector3 direction = transform.right * input.x + transform.forward * input.y;
 
+            // Stamina drain/regen.
+            if (IsSprinting)
+            {
+                stamina01 -= Time.deltaTime / SprintSeconds;
+                if (stamina01 <= 0f)
+                {
+                    stamina01 = 0f;
+                    exhausted = true;
+                }
+            }
+            else
+            {
+                stamina01 = Mathf.Clamp01(stamina01 + StaminaRegenPerSecond * Time.deltaTime);
+                if (exhausted && stamina01 >= ExhaustedRecoverAt) exhausted = false;
+            }
+
             if (controller.isGrounded)
             {
                 verticalVelocity = -2f;
@@ -224,7 +252,13 @@ namespace LightShadow.Player
                 verticalVelocity += Physics.gravity.y * Time.deltaTime;
             }
 
-            Vector3 velocity = direction * speed + Vector3.up * verticalVelocity;
+            // Smoothed acceleration (same brief: improve the whole
+            // controller): planar velocity eases toward the target instead of
+            // snapping, so starts and stops stop feeling binary.
+            Vector3 planarTarget = direction * speed;
+            planarVelocity = Vector3.MoveTowards(planarVelocity, planarTarget,
+                (planarTarget.sqrMagnitude > planarVelocity.sqrMagnitude ? 24f : 34f) * Time.deltaTime);
+            Vector3 velocity = planarVelocity + Vector3.up * verticalVelocity;
             controller.Move(velocity * Time.deltaTime);
         }
 
