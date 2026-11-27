@@ -143,6 +143,7 @@ Download volume: Kenney packs 21.5 MB zips + Poly Haven 67 MB (24 × 2K JPG) ≈
 - OFL 1.1 fonts require no attribution but ship their full license text in
   `Assets/_Project/Fonts/Licenses/`; the OFL FAQ is https://openfontlicense.org (verified 2026-11-19).
 
+## ambientCG CC0 texture sets - decals (workstream C, downloaded + verified 2026-11-27)
 
 ## OpenGameArt music + ambience pack (added 2026-11-27, workstream B music selections)
 
@@ -180,5 +181,6 @@ Concrete texture metas. CC0: no attribution list entries needed.
 
 | Set | Source URL | License | Author | Imported at | Maps to |
 | --- | --- | --- | --- | --- | --- |
+| SurfaceImperfections015 (2K JPG) | https://ambientcg.com/view?id=SurfaceImperfections015 | CC0 1.0 | ambientCG | 2026-11-27 | T_DustImperfection_* detail/decal overlay (no material) |
 | PaintedMetal006 (2K JPG) | https://ambientcg.com/view?id=PaintedMetal006 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustedPaintedMetal_* / Mat_Art_RustedPaintedMetal |
 | Metal064 (2K JPG) | https://ambientcg.com/view?id=Metal064 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustMetal_* / Mat_Art_RustMetal |
