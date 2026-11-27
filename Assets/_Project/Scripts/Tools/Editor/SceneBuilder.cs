@@ -275,6 +275,10 @@ namespace LightShadow.Tools
             ApplyArtPass();
             ApplyLighting();
 
+            // Contract H2: contributor level modules run last, on the final
+            // school scene (see SceneBuilderContrib.cs).
+            RunLevelContributions();
+
             // Premium pass: quality-tier URP asset variants (idempotent each run).
             ConfigureQualityForBuild();
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using LightShadow.Player;
@@ -49,6 +50,46 @@ namespace LightShadow.Core
             public string inventoryJson = "";  // Inventory blob: carried item ids
             public float playSeconds;
             public string savedAtUtc;
+
+            // Per-feature blobs for contributor modules (contract H1). Old
+            // saves lack the field and deserialize to an empty list.
+            public List<ContribEntry> contrib = new List<ContribEntry>();
+        }
+
+        [Serializable]
+        public class ContribEntry
+        {
+            public string key;
+            public string json;
+        }
+
+        // Contract H1. Feature modules own one key each ("journal", "hints"...)
+        // and put any JSON string they like under it; the engine never reads it.
+        // Call SetContrib from a SaveCaptured handler and GetContrib from a
+        // SaveApplied handler. GetContrib returns "" when nothing was saved.
+        public static void SetContrib(SaveData data, string key, string json)
+        {
+            if (data == null || string.IsNullOrEmpty(key)) return;
+            if (data.contrib == null) data.contrib = new List<ContribEntry>();
+            for (int i = 0; i < data.contrib.Count; i++)
+            {
+                if (data.contrib[i] != null && data.contrib[i].key == key)
+                {
+                    data.contrib[i].json = json ?? "";
+                    return;
+                }
+            }
+            data.contrib.Add(new ContribEntry { key = key, json = json ?? "" });
+        }
+
+        public static string GetContrib(SaveData data, string key)
+        {
+            if (data == null || data.contrib == null || string.IsNullOrEmpty(key)) return "";
+            for (int i = 0; i < data.contrib.Count; i++)
+            {
+                if (data.contrib[i] != null && data.contrib[i].key == key) return data.contrib[i].json ?? "";
+            }
+            return "";
         }
 
         const string FolderName = "lightshadow/saves";
