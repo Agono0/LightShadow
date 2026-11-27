@@ -17,6 +17,16 @@ The game itself contains **no AI features** — this log is about the developmen
 
 ---
 
+## New entries live in AI_DEV_LOG.d/ (since 2026-11-27)
+
+Every PR logs its AI-assisted changes in its own fragment file
+`AI_DEV_LOG.d/<YYYYMMDD>-<short-slug>.md` (same entry template as below), one
+file per PR. Fragments never share a tail line, so parallel PRs stop
+conflicting with each other here. The entries below are the pre-fragment
+history and stay untouched (append-only).
+
+---
+
 ## Entries
 
 ### 2026-10-19 — Week 1 scaffold: Section 6.6 folder tree, README.md, this log — Abdelrhman Mohamed
