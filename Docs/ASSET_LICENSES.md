@@ -107,3 +107,14 @@ Download volume: Kenney packs 21.5 MB zips + Poly Haven 67 MB (24 × 2K JPG) ≈
 
 - OFL 1.1 fonts require no attribution but ship their full license text in
   `Assets/_Project/Fonts/Licenses/`; the OFL FAQ is https://openfontlicense.org (verified 2026-11-19).
+
+## ambientCG CC0 texture sets - decals (workstream C, downloaded + verified 2026-11-27)
+
+License verified at https://ambientcg.com/license (CC0 1.0; no attribution required).
+2K JPG sets; Albedo/Normal/Roughness imported, smoothness twins generated (roughness
+inverted into alpha, house convention). Android 1K override follows the existing
+Concrete texture metas. CC0: no attribution list entries needed.
+
+| Set | Source URL | License | Author | Imported at | Maps to |
+| --- | --- | --- | --- | --- | --- |
+| SurfaceImperfections015 (2K JPG) | https://ambientcg.com/view?id=SurfaceImperfections015 | CC0 1.0 | ambientCG | 2026-11-27 | T_DustImperfection_* detail/decal overlay (no material) |
