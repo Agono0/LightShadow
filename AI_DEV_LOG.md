@@ -387,3 +387,17 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: validate_asset_manifest.py RESULT: PASS (75 rows). No Unity on
   this machine: import settings, loop seams, levels and wing-fit of the drone
   candidates all need a human audition (marked per-row in the manifest).
+
+## 2026-11-27 (late) - Manifest register v2: family column + exact per-file OGA source URLs
+- Task: peer review follow-up on PR #15 - per-file provenance and base-ID policy.
+- What AI provided: added a `family` column to Docs/ASSET_MANIFEST.md
+  (register_version 2): base asset/cue id shared by numbered variants
+  (id minus trailing _N), equal to id for singles; library/cue references use
+  the base id, numbered suffixes stay runtime-only. Replaced the 13 OGA rows'
+  pack-page source_url with the exact per-file download URL (page URL kept in
+  notes; wood_cracking rows point at the pack zip they ship in). Mirrored the
+  same per-file URL table in Docs/ASSET_LICENSES.md. Extended
+  Art/pipeline/validate_asset_manifest.py to check the family rule.
+- What I changed myself: n/a (agent-authored; no human edits yet).
+- Teach-back check: pending - PR review with the owner.
+- Test result: validate_asset_manifest.py RESULT: PASS (75 rows, v2 schema).

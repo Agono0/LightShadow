@@ -45,6 +45,24 @@ each folder under `Assets/ThirdParty/`. Selective import (only the files listed)
 | Abandoned passages (horror ambience loop) | https://opengameart.org/content/abandoned-passages-horror-ambience-loop | CC0 1.0 | congusbongus | 2026-11-27 | science-wing drone (MUS_Drone_Science from freezer) |
 | 100 CC0 metal and wood SFX (selected) | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | CC0 1.0 | rubberduck | 2026-11-27 | building creaks (SFX_BuildingCreak_0-2 from wood_cracking_01-03); rest of the pack not imported |
 
+Per-file download URLs (exact files taken 2026-11-27; page URLs in the table above):
+
+| Original file | Exact file URL | Imported as |
+| --- | --- | --- |
+| heartbeat_slow_0.wav | https://opengameart.org/sites/default/files/heartbeat_slow_0.wav | Assets/_Project/Audio/SFX/SFX_Heartbeat_0.wav (original in Assets/ThirdParty/OGAHeartbeatCC0/) |
+| heartbeat_fast_0.wav | https://opengameart.org/sites/default/files/heartbeat_fast_0.wav | Assets/_Project/Audio/SFX/SFX_Heartbeat_1.wav (original in Assets/ThirdParty/OGAHeartbeatCC0/) |
+| horrorbreathing.ogg | https://opengameart.org/sites/default/files/horrorbreathing.ogg | Assets/_Project/Audio/SFX/SFX_Breath_Scared.ogg (original in Assets/ThirdParty/OGABreathingCC0/) |
+| wind woosh loop.ogg (renamed wind_woosh_loop.ogg) | https://opengameart.org/sites/default/files/wind%20woosh%20loop.ogg | Assets/_Project/Audio/SFX/SFX_WindBrokenGlass_0.ogg (original in Assets/ThirdParty/OGAWindWhooshCC0/) |
+| johnnywhispers.wav | https://opengameart.org/sites/default/files/johnnywhispers.wav | Assets/_Project/Audio/SFX/SFX_Whisper_Burst.wav (original in Assets/ThirdParty/OGAWhispersCC0/) |
+| buzz.ogg | https://opengameart.org/sites/default/files/buzz.ogg | Assets/_Project/Audio/SFX/SFX_FluorescentHum_0.ogg (original in Assets/ThirdParty/OGAElectricBuzzCC0/) |
+| crickets-oneloop.mp3 | https://opengameart.org/sites/default/files/crickets-oneloop.mp3 | Assets/_Project/Audio/Ambience/AMB_Crickets.mp3 (original in Assets/ThirdParty/OGACricketsCC0/) |
+| lost_1.ogg | https://opengameart.org/sites/default/files/lost_1.ogg | Assets/_Project/Audio/Music/MUS_Drone_Library.ogg (original in Assets/ThirdParty/OGALostInABadPlaceCC0/) |
+| lost_2.ogg | https://opengameart.org/sites/default/files/lost_2.ogg | kept in Assets/ThirdParty/OGALostInABadPlaceCC0/ as alternate (not imported) |
+| freezer.ogg | https://opengameart.org/sites/default/files/freezer.ogg | Assets/_Project/Audio/Music/MUS_Drone_Science.ogg (original in Assets/ThirdParty/OGAAbandonedPassagesCC0/) |
+| wood_cracking_01.ogg (inside 100-CC0-wood-metal-SFX.zip) | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | Assets/_Project/Audio/SFX/SFX_BuildingCreak_0.ogg (original in Assets/ThirdParty/OGAMetalWoodCC0/) |
+| wood_cracking_02.ogg (inside 100-CC0-wood-metal-SFX.zip) | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | Assets/_Project/Audio/SFX/SFX_BuildingCreak_1.ogg (original in Assets/ThirdParty/OGAMetalWoodCC0/) |
+| wood_cracking_03.ogg (inside 100-CC0-wood-metal-SFX.zip) | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | Assets/_Project/Audio/SFX/SFX_BuildingCreak_2.ogg (original in Assets/ThirdParty/OGAMetalWoodCC0/) |
+
 ### Fonts (Phase 1, downloaded + verified 2026-11-19)
 
 All five families ship their original license text next to the import:
