@@ -89,5 +89,76 @@ namespace LightShadow.Tools
             ctrl.hintButton = hintButton;
             ctrl.closeButton = close;
         }
+
+        // Card-sort overlay (workstream 5), first used by the library card
+        // catalogue: one clue card at a time, four drawer buttons.
+        static void BuildCardSortPanel(Transform root)
+        {
+            RectTransform dim = MakeFullScreen(root, "CardSortPanel", new Color(0f, 0f, 0f, 0.82f), true);
+            CardSortUIController ctrl = dim.gameObject.AddComponent<CardSortUIController>();
+
+            RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(780f, 700f), PanelDark, false).rectTransform;
+
+            Text title = MakeText(card, "Title", "", 30, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 274f), new Vector2(660f, 48f), FontStyle.Bold, true);
+
+            Text counter = MakeText(card, "Counter", "", 19, Dim, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 232f), new Vector2(660f, 28f));
+
+            // The index card the clue is written on.
+            MakePanel(card, "IndexCard", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(0f, 138f), new Vector2(620f, 130f),
+                new Color(0.13f, 0.12f, 0.10f, 0.95f), false);
+            Text clue = MakeText(card, "Clue", "", 27, Paper, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 138f), new Vector2(580f, 118f));
+
+            Button[] drawers = new Button[4];
+            Text[] drawerLabels = new Text[4];
+            for (int i = 0; i < 4; i++)
+            {
+                float x = i % 2 == 0 ? -172f : 172f;
+                float y = i < 2 ? 8f : -72f;
+                drawers[i] = MakeButton(card, "Drawer" + (i + 1), "", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, 0.5f), new Vector2(x, y), new Vector2(324f, 66f), ButtonDark, 22, out drawerLabels[i]);
+            }
+
+            Text feedback = MakeText(card, "Feedback", "", 23, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -140f), new Vector2(660f, 36f));
+
+            Text hint = MakeText(card, "Hint", "", 20, Dim, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -188f), new Vector2(660f, 52f));
+
+            Text hintLabel;
+            Button hintButton = MakeButton(card, "Hint", "HINT", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(-196f, -278f), new Vector2(220f, 50f), ButtonDark, 20, out hintLabel);
+            Localize(hintLabel, "تلميح");
+
+            Text closeLabel;
+            Button close = MakeButton(card, "Close", "STEP AWAY", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(196f, -278f), new Vector2(220f, 50f), ButtonDark, 20, out closeLabel);
+            Localize(closeLabel, "ابتعد");
+
+            Text footer = MakeText(card, "Footer", "1-4 or tap a drawer   ·   the world does not pause", 15, Dim,
+                TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(0f, 20f), new Vector2(660f, 24f));
+            Localize(footer, "1-4 أو المس درجًا   ·   العالم لا يتوقف");
+
+            ctrl.panel = dim.gameObject;
+            ctrl.titleText = title;
+            ctrl.counterText = counter;
+            ctrl.clueText = clue;
+            ctrl.feedbackText = feedback;
+            ctrl.hintText = hint;
+            ctrl.drawerButtons = drawers;
+            ctrl.drawerLabels = drawerLabels;
+            ctrl.hintButton = hintButton;
+            ctrl.closeButton = close;
+        }
     }
 }

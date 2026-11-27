@@ -144,6 +144,7 @@ Download volume: Kenney packs 21.5 MB zips + Poly Haven 67 MB (24 × 2K JPG) ≈
   `Assets/_Project/Fonts/Licenses/`; the OFL FAQ is https://openfontlicense.org (verified 2026-11-19).
 
 ## ambientCG CC0 texture sets - walls (workstream C, downloaded + verified 2026-11-27)
+## ambientCG CC0 texture sets - props (workstream C, downloaded + verified 2026-11-27)
 
 License verified at https://ambientcg.com/license (CC0 1.0; no attribution required).
 2K JPG sets; Albedo/Normal/Roughness imported, smoothness twins generated (roughness
@@ -155,3 +156,5 @@ Concrete texture metas. CC0: no attribution list entries needed.
 | PaintedPlaster016 (2K JPG) | https://ambientcg.com/view?id=PaintedPlaster016 | CC0 1.0 | ambientCG | 2026-11-27 | T_PeelingPlaster_* / Mat_Art_PeelingPlaster |
 | Concrete033 (2K JPG) | https://ambientcg.com/view?id=Concrete033 | CC0 1.0 | ambientCG | 2026-11-27 | T_MoldConcrete_* / Mat_Art_MoldConcrete |
 | Tiles140 (2K JPG) | https://ambientcg.com/view?id=Tiles140 | CC0 1.0 | ambientCG | 2026-11-27 | T_StainedTile_* / Mat_Art_StainedTile |
+| PaintedMetal006 (2K JPG) | https://ambientcg.com/view?id=PaintedMetal006 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustedPaintedMetal_* / Mat_Art_RustedPaintedMetal |
+| Metal064 (2K JPG) | https://ambientcg.com/view?id=Metal064 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustMetal_* / Mat_Art_RustMetal |
