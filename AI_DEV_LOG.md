@@ -298,8 +298,6 @@ history and stay untouched (append-only).
   limited` — Unity 6000.4 deprecates that target, so the x86_64 matrix entry and batch method
   were removed and the pipeline corrected on this branch.
 
-
-
 ### 2026-11-19 — Docs/SOURCING_FONTS_MUSIC.md (premium-pass font + music sourcing) — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) with WebSearch/WebFetch license-and-URL verification.
 - What AI provided: verified sourcing doc — 5 font families (Noto Naskh Arabic, Cairo, Reem Kufi,
@@ -690,21 +688,6 @@ history and stay untouched (append-only).
   phones, and why the safe-area child only insets on notched devices).
 - Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
   no local Unity editor available.
-### 2026-11-27 — Audit A5: hide Resolution/Fullscreen settings rows on mobile — Abdelrhman Mohamed
-- Tool used: Instinct (AI coding agent)
-- What AI provided: `SettingsPanelController` now treats the Resolution and Fullscreen rows as
-  desktop-only: on `Application.isMobilePlatform` they are hidden via the existing
-  `ApplyPageVisibility` path (page toggling can never resurrect them) and the surviving page A
-  rows reflow with the builder's own layout formula (y = -120 - i * 64, prev/next at +3) so no
-  dead gap remains. Runs in Awake on both settings panels (pause menu + main menu), which share
-  the one `BuildSettingsPanel` builder.
-- What I changed myself: pending review — changes land through the PR workflow (AGENTS.md rule 9).
-- Teach-back check: pending — PR body explains why hiding goes through ApplyPageVisibility
-  (it is the single place row visibility is decided) and why reflow reuses the builder's
-  constants instead of a layout group (the panel is fixed-position by design).
-- Test result: pending — CI compile + builds are the gate; no local Unity editor. Desktop is
-  untouched (HiddenOnMobile is false, no reflow runs). Closes AUDIT_2.md finding A5.
-
 ### 2026-11-27 — SaveSystem deferred-restore fix (audit A3) — Abdelrhman Mohamed
 - Tool used: Instinct (AI coding agent)
 - What AI provided: `SaveSystem.ClearPendingRestore` and the new-game hook in
