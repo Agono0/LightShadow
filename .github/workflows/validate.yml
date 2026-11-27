@@ -35,6 +35,9 @@ jobs:
             exit 1
           fi
 
+      - name: Asset register validates (rows reference real files, no duplicate ids)
+        run: python3 Art/pipeline/validate_asset_manifest.py
+
       - name: Required files and editor version pin
         run: |
           for f in Assets/_Project/Data/GameConfig.asset Packages/manifest.json \

@@ -107,5 +107,63 @@ namespace LightShadow.Tools
             puzzle.tray = tray.transform;
             puzzle.rewardRoot = battery;
         }
+
+        // Wing puzzle 3 (plan, workstream 5): the science-lab optics bench. A
+        // torch emitter, two mirrors and a prism on Bench_2, a sensor at the
+        // far end, and the lab cabinet's drawer as the payout. The rig is
+        // decorative in the world; the overlay owns the rotations.
+        static void CreateOpticsBench(Prefabs prefabs, Transform parent, Palette palette)
+        {
+            var root = new GameObject("Puzzle_OpticsBench");
+            root.transform.SetParent(parent, false);
+
+            // Bench_2 spans x 12-16 at z -18 with its top near y 0.9.
+            Box(root.transform, "Emitter", new Vector3(12.6f, 1.02f, -18f),
+                new Vector3(0.3f, 0.24f, 0.24f), palette.lamp, true, LevelLayer);
+            GameObject mirrorA = Box(root.transform, "MirrorA", new Vector3(13.4f, 1.06f, -18f),
+                new Vector3(0.06f, 0.32f, 0.26f), palette.metal, true, LevelLayer);
+            mirrorA.transform.localRotation = Quaternion.Euler(0f, 45f, 0f);
+            GameObject prism = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            prism.name = "Prism";
+            prism.transform.SetParent(root.transform, false);
+            prism.transform.localPosition = new Vector3(14f, 1.04f, -18f);
+            prism.transform.localScale = new Vector3(0.16f, 0.14f, 0.16f);
+            Object.DestroyImmediate(prism.GetComponent<Collider>());
+            prism.GetComponent<Renderer>().sharedMaterial = palette.water;
+            GameObject mirrorB = Box(root.transform, "MirrorB", new Vector3(14.6f, 1.06f, -18f),
+                new Vector3(0.06f, 0.32f, 0.26f), palette.metal, true, LevelLayer);
+            mirrorB.transform.localRotation = Quaternion.Euler(0f, -45f, 0f);
+            Box(root.transform, "Sensor", new Vector3(15.4f, 1.02f, -18f),
+                new Vector3(0.2f, 0.24f, 0.24f), palette.indicatorOff, true, LevelLayer);
+
+            // The payout drawer low on the lab cabinet's west face (the cabinet
+            // spans x 19.7-21.3, z -10.2--7.8), sliding west on solve.
+            GameObject drawer = Box(root.transform, "CabinetDrawer", new Vector3(19.64f, 0.62f, -9f),
+                new Vector3(0.16f, 0.34f, 1.2f), palette.wood, true, LevelLayer);
+
+            GameObject battery = (GameObject)PrefabUtility.InstantiatePrefab(prefabs.battery);
+            battery.name = "OpticsReward_Battery";
+            battery.transform.SetParent(root.transform, false);
+            battery.transform.position = new Vector3(19.64f, 0.86f, -9f);
+            battery.SetActive(false);
+
+            OpticsBenchPuzzle puzzle = root.AddComponent<OpticsBenchPuzzle>();
+            puzzle.displayNameEn = "the optics bench";
+            puzzle.displayNameAr = "منصة البصريات";
+            puzzle.hintsEn = new[]
+            {
+                "Light bounces off a mirror at the same angle it arrives.",
+                "The prism bends the beam; it needs the steepest turn of the three.",
+                "Mirror A turns the beam once, the prism twice, Mirror B three quarter-turns.",
+            };
+            puzzle.hintsAr = new[]
+            {
+                "يرتد الضوء عن المرآة بنفس الزاوية التي يصل بها.",
+                "المنشور يكسر الشعاع؛ يحتاج أكبر انعطافة بين العناصر الثلاثة.",
+                "المرآة أ تدور ربع دورة، والمنشور ربعين، والمرآة ب ثلاثة أرباع.",
+            };
+            puzzle.drawer = drawer.transform;
+            puzzle.rewardRoot = battery;
+        }
     }
 }

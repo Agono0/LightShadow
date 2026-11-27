@@ -53,6 +53,10 @@ namespace LightShadow.Audio
         [Header("Ambience")]
         public AudioClip ambienceNight;
 
+        [Header("Memory theme (Yoiyami CC0, shared clip)")]
+        [Tooltip("Memory-scene theme; the main menu reuses the same clip via the MUS_Menu alias (Docs/AUDIO_CUES.md). Assigned by the audio import pass.")]
+        public AudioClip memoryTheme;
+
         [Header("Music bed (Phase 1, Kevin MacLeod CC-BY)")]
         [Tooltip("Explore/Stalk tension bed layered under the procedural AdaptiveMusic pads.")]
         public AudioClip musicBedLongNoteOne;
