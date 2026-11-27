@@ -26,6 +26,7 @@ namespace LightShadow.Tools
             public LitZone physics;
             public LitZone mainHall;
             public LitZone staff;
+            public LitZone infirmary;
             public GameObject libraryLights;
             public GameObject physicsLights;
             public GameObject mainHallLights;
@@ -309,6 +310,7 @@ namespace LightShadow.Tools
             BuildClassroom(level.transform, prefabs, palette, database);
             BuildGarden(level.transform, prefabs, palette, database);
             BuildStaffRoom(level.transform, zones, prefabs, palette, database);
+            BuildInfirmary(level.transform, zones, prefabs, palette, database);
             BuildMainHall(level.transform, zones, prefabs, palette, database);
             BuildEntrance(level.transform, prefabs, palette, database);
             BuildGate(level.transform, zones, prefabs, palette, database);
@@ -449,7 +451,8 @@ namespace LightShadow.Tools
 
             // ---- central corridor, with a door gap for every wing -------------
             WallX(parent, -2.65f, -27f, -16f, 3.2f, palette.wall);
-            WallX(parent, -2.65f, -14f, 10f, 3.2f, palette.wall);
+            WallX(parent, -2.65f, -14f, -3f, 3.2f, palette.wall);
+            WallX(parent, -2.65f, -1f, 10f, 3.2f, palette.wall);
             WallX(parent, -2.65f, 12f, 22f, 3.2f, palette.wall);
             WallX(parent, -2.65f, 24f, 27f, 3.2f, palette.wall);
 
@@ -475,6 +478,10 @@ namespace LightShadow.Tools
             WallX(parent, 22f, -22f, -8f, 3.2f, palette.wall);
             WallZ(parent, -22f, 2.65f, 22f, 3.2f, palette.wall);
             WallZ(parent, -8f, 2.65f, 22f, 3.2f, palette.wall);
+
+            // ---- infirmary (west strip between library and classroom) ------
+            WallX(parent, -22f, -8f, 4f, 3.2f, palette.wall);
+            Ceiling(parent, -22f, -2.65f, -8f, 4f, 3.3f, palette.ceiling);
 
             // ---- classroom ----------------------------------------------------
             WallX(parent, -22f, 4f, 18f, 3.2f, palette.wall);
@@ -506,6 +513,8 @@ namespace LightShadow.Tools
                 Quaternion.Euler(0f, -90f, 0f), 0.045f, 64, new Color(0.82f, 0.76f, 0.62f));
             CreateWorldText(parent, "Label_Staff", "STAFF ROOM", new Vector3(-2.46f, 2.65f, 23f),
                 Quaternion.Euler(0f, -90f, 0f), 0.042f, 64, new Color(0.82f, 0.76f, 0.62f));
+            CreateWorldText(parent, "Label_Infirmary", "INFIRMARY", new Vector3(-2.46f, 2.65f, -2f),
+                Quaternion.Euler(0f, -90f, 0f), 0.045f, 64, new Color(0.82f, 0.76f, 0.62f));
             CreateWorldText(parent, "Label_Physics", "PHYSICS LAB", new Vector3(2.46f, 2.65f, -15f),
                 Quaternion.Euler(0f, 90f, 0f), 0.045f, 64, new Color(0.82f, 0.76f, 0.62f));
             CreateWorldText(parent, "Label_Garden", "GARDEN", new Vector3(2.46f, 2.65f, 11f),
@@ -550,6 +559,10 @@ namespace LightShadow.Tools
             AddLamp(set.libraryLights.transform, new Vector3(-8f, 2.8f, -19f), new Color(1f, 0.80f, 0.52f), 2.6f, 12f);
             AddLamp(set.libraryLights.transform, new Vector3(-16f, 2.8f, -14f), new Color(1f, 0.80f, 0.52f), 2.6f, 12f);
             AddLamp(set.libraryLights.transform, new Vector3(-8f, 2.8f, -10f), new Color(1f, 0.80f, 0.52f), 2.6f, 12f);
+
+            // The infirmary belongs to the library wing: its lamp lives under
+            // the same fuse-controlled root (the staff room / hall precedent).
+            AddLamp(set.libraryLights.transform, new Vector3(-12f, 2.8f, -2f), new Color(0.86f, 0.92f, 1f), 2.2f, 10f);
 
             set.physicsLights = Group("PhysicsLights", parent);
             AddLamp(set.physicsLights.transform, new Vector3(8f, 2.8f, -19f), new Color(0.85f, 0.90f, 1f), 2.5f, 12f);
@@ -609,6 +622,10 @@ namespace LightShadow.Tools
             set.staff = MakeLitZone(parent, "LitZone_Staff", new Vector3(-12f, 0f, 21f),
                 new Vector3(-0.325f, 1.5f, 2.5f), new Vector3(19.35f, 3f, 6.4f), 90f, true,
                 "Her mug is still on the table. The room remembers her.", false);
+
+            set.infirmary = MakeLitZone(parent, "LitZone_Infirmary", new Vector3(-12f, 0f, -2f),
+                new Vector3(-0.325f, 1.5f, 0f), new Vector3(19.35f, 3f, 12f), 90f, true,
+                "White sheets, cold instruments. She patched a hundred scraped knees here.", false);
 
             set.mainHall = MakeLitZone(parent, "LitZone_MainHall", new Vector3(0f, 0f, 28f),
                 new Vector3(0f, 1.5f, 6.5f), new Vector3(27.35f, 3f, 13.4f), 180f, true,
@@ -676,7 +693,7 @@ namespace LightShadow.Tools
             CreateBattery(prefabs, t, "Battery_Library", new Vector3(-19.3f, 0.9f, -12f));
             CreateBoard(prefabs, t, database, "Board_Library", new Vector3(-9f, 1.7f, -8.18f), Quaternion.identity);
             CreateFuse(prefabs, t, "Fuse_Library", new Vector3(-2.88f, 1.55f, -20f), Quaternion.Euler(0f, 90f, 0f),
-                zones.libraryLights, new[] { zones.library }, "She always said a library card is a key that never rusts.");
+                zones.libraryLights, new[] { zones.library, zones.infirmary }, "She always said a library card is a key that never rusts.");
             CreateCatalogueSort(prefabs, t, palette);
         }
 
@@ -797,6 +814,29 @@ namespace LightShadow.Tools
             CreateBattery(prefabs, t, "Battery_Staff", new Vector3(-16f, 0.9f, 23f));
             CreateBoard(prefabs, t, database, "Board_Staff", new Vector3(-8f, 1.7f, 20.18f), Quaternion.Euler(0f, 180f, 0f));
             CreateMapLocker(prefabs, t, palette);
+        }
+
+        // The infirmary (plan workstream 5, wing puzzle 5): the west strip
+        // between the library and the classroom, on the library wing's fuse.
+        static void BuildInfirmary(Transform parent, ZoneSet zones, Prefabs prefabs, Palette palette, QuestionDatabase database)
+        {
+            var room = Group("Infirmary", parent);
+            Transform t = room.transform;
+
+            // A cot, a screen, a sink counter.
+            Box(t, "Cot", new Vector3(-19f, 0.45f, 1.5f), new Vector3(2f, 0.5f, 0.9f), palette.paper);
+            Box(t, "CotLeg_1", new Vector3(-19.8f, 0.2f, 1.5f), new Vector3(0.08f, 0.4f, 0.7f), palette.metal, false);
+            Box(t, "CotLeg_2", new Vector3(-18.2f, 0.2f, 1.5f), new Vector3(0.08f, 0.4f, 0.7f), palette.metal, false);
+            Box(t, "Screen", new Vector3(-16f, 1.1f, 3.2f), new Vector3(1.6f, 2.2f, 0.08f), palette.curtain);
+            Box(t, "SinkCounter", new Vector3(-6f, 0.5f, 3.3f), new Vector3(1.8f, 1f, 0.6f), palette.metal);
+            Box(t, "SinkBasin", new Vector3(-6f, 1.02f, 3.3f), new Vector3(0.7f, 0.08f, 0.45f), palette.water, false);
+
+            CreateFragment(prefabs, t, "Fragment_HealthChart", new Vector3(-6f, 1.1f, 3.3f), Quaternion.Euler(0f, -15f, 0f),
+                "the hand-drawn health chart", "Her handwriting under a drawing of a bandaged arm: \"First the hands, always the hands.\"",
+                QuestionCategory.Health);
+
+            CreateBoard(prefabs, t, database, "Board_Infirmary", new Vector3(-9f, 1.7f, 3.82f), Quaternion.Euler(0f, 180f, 0f));
+            CreateFirstAidBoard(prefabs, t, palette);
         }
 
         static void BuildMainHall(Transform parent, ZoneSet zones, Prefabs prefabs, Palette palette, QuestionDatabase database)

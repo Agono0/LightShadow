@@ -316,5 +316,48 @@ namespace LightShadow.Tools
 
             if (exit != null) exit.circuitPuzzle = puzzle;
         }
+
+        // Wing puzzle 5 (plan, workstream 5): the infirmary's first-aid
+        // cabinet. A metal cabinet on the west wall, five step cards on its
+        // board (the overlay owns the ordering), a drawer with the payout.
+        static void CreateFirstAidBoard(Prefabs prefabs, Transform parent, Palette palette)
+        {
+            var root = new GameObject("Puzzle_FirstAidOrder");
+            root.transform.SetParent(parent, false);
+
+            Box(root.transform, "Cabinet", new Vector3(-21.3f, 1.05f, -4f),
+                new Vector3(1.4f, 2.1f, 1.2f), palette.metal, true, LevelLayer);
+            Box(root.transform, "StepBoard", new Vector3(-20.57f, 1.5f, -4f),
+                new Vector3(0.05f, 0.9f, 0.9f), palette.paper, true, LevelLayer);
+
+            // The drawer low on the cabinet's east face (faces the room);
+            // slides east on solve.
+            GameObject drawer = Box(root.transform, "Drawer", new Vector3(-20.57f, 0.5f, -4f),
+                new Vector3(0.16f, 0.3f, 0.8f), palette.wood, true, LevelLayer);
+
+            GameObject battery = (GameObject)PrefabUtility.InstantiatePrefab(prefabs.battery);
+            battery.name = "FirstAidReward_Battery";
+            battery.transform.SetParent(root.transform, false);
+            battery.transform.position = new Vector3(-20.57f, 0.72f, -4f);
+            battery.SetActive(false);
+
+            FirstAidOrderPuzzle puzzle = root.AddComponent<FirstAidOrderPuzzle>();
+            puzzle.displayNameEn = "the first-aid board";
+            puzzle.displayNameAr = "لوحة الإسعافات";
+            puzzle.hintsEn = new[]
+            {
+                "Clean hands come before everything.",
+                "Stop the bleeding before you wash the wound.",
+                "Dress last, then raise the arm and check your work.",
+            };
+            puzzle.hintsAr = new[]
+            {
+                "اليدان النظيفتان قبل كل شيء.",
+                "أوقف النزيف قبل غسل الجرح.",
+                "التضميد أخيرًا، ثم ارفع الذراع وتفقّد عملك.",
+            };
+            puzzle.drawer = drawer.transform;
+            puzzle.rewardRoot = battery;
+        }
     }
 }
