@@ -228,9 +228,9 @@ with the Instinct agent's text-to-speech. They are NOT third-party stock audio
 and carry NO third-party license; no CC0 claim is made. Rights in the
 generated audio are governed by the generator's terms; no clearance beyond
 that is claimed or implied. Generator and voices as recorded: TTS by the
-Instinct main agent; casting stated in the generator's handoff message
-2026-11-27 5:40 PM EET: Memory=Schedar, Nour=Leda, Mother=Gacrux,
-Shadow=Enceladus. Spec/prompt source: Docs/ENDING_VO_SPEC.md, blob
+Instinct main agent; casting per the recorded generation
+script (2026-11-27 5:37 PM EET, meta.tsv reproduced in the ledger):
+Memory=Schedar, Nour=Leda, Mother=Gacrux, Shadow=Enceladus. Spec/prompt source: Docs/ENDING_VO_SPEC.md, blob
 7a3d13396e4bf4b4065a5e446d6d25dc1ed4d419. Per-line ledger with source WAV and
 committed ogg sha256: AI_DEV_LOG.d/2026-11-27-ending-vo-ledger.md. Voice
 continuity with prior generated batches is UNVERIFIED. Authority: user's

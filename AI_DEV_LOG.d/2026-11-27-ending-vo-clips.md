@@ -13,14 +13,14 @@
   and trimming untouched from generation. Importer .meta per clip (fresh GUIDs,
   from the existing VO_SN_Act1_01.ogg.meta template). No manifest rows (pending
   peer decision), VO_CLIP_MAP.md untouched, no wiring, no script/scene changes.
-- Voices (as recorded): the generator's handoff message (main -> this task,
-  2026-11-27 5:40:37 PM EET) states the casting used: Memory=Schedar,
-  Nour=Leda, Mother=Gacrux, Shadow=Enceladus. Per-line speakers follow spec
-  §3; the full per-line table with source WAV sha256 and committed ogg sha256
-  is AI_DEV_LOG.d/2026-11-27-ending-vo-ledger.md. The per-call voice
-  parameters live in the main agent's generation logs, not in this repo. No
-  audition was possible here: voice identity per file is NOT independently
-  verified.
+- Voices (as recorded): backed by the recorded generation script (main
+  agent, 2026-11-27 5:37 PM EET): meta.tsv assigns each of the 28 clips its
+  voice via Memory=Schedar, Nour=Leda, Mother=Gacrux, Shadow=Enceladus, and
+  every clip was generated with `tools speak --voice <assigned>`; the meta.tsv
+  content is reproduced in AI_DEV_LOG.d/2026-11-27-ending-vo-ledger.md with
+  the per-line table (source WAV sha256 + committed ogg sha256). Engine-side
+  rendering of the named voice cannot be auditioned here and stays
+  UNVERIFIED.
 - Continuity: voice continuity with prior generated batches is UNVERIFIED.
   The prior batch's own record
   (AI_DEV_LOG.d/2026-11-27-generated-vo-clips-77-story-lines-in-en-ar-plan-.md)

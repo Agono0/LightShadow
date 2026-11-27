@@ -5,15 +5,50 @@ human recordings). This task agent received the 28 source WAVs from the
 generator and performed format conversion only (mono 24 kHz Vorbis .ogg q4;
 loudness and trimming untouched from generation; no audio content changes).
 
-Voices as recorded: the generator's handoff message (main -> task agent,
-2026-11-27 5:40:37 PM EET) states the casting used for this batch:
-Memory=Schedar, Nour=Leda, Mother=Gacrux, Shadow=Enceladus. Speaker per line
-follows Docs/ENDING_VO_SPEC.md section 3 (spec blob
-7a3d13396e4bf4b4065a5e446d6d25dc1ed4d419 at base 3a3e81b). PROOF LEVEL: the
-voice column rests on that handoff statement only. The per-call voice
-parameters live in the generator's own logs (main agent), not in this repo;
-no audition was possible in the agent environment, so the voice identity of
-each file is NOT independently verified.
+Voices as recorded: the generation script (main agent, 2026-11-27 5:37:00 PM
+EET) assigned each clip its voice through voice={Memory:Schedar, Nour:Leda,
+Mother:Gacrux, Shadow:Enceladus}, wrote the 28 assignments to meta.tsv
+(reproduced verbatim below), and generated every clip with
+`tools speak --voice <assigned voice> --instructions-file <key>.ins
+--text-file <key>.txt`. Speaker per line follows Docs/ENDING_VO_SPEC.md
+section 3 (spec blob 7a3d13396e4bf4b4065a5e446d6d25dc1ed4d419 at base 3a3e81b)
+and matches the script's speaker list exactly. PROOF LEVEL: the voice column
+is backed by those recorded generation commands. What stays unprovable in the
+agent environment: that the TTS engine internally rendered the named voice
+(no audition possible), and continuity with prior batches (below).
+
+Recorded meta.tsv (key -> voice, from the generation script):
+
+```
+VO_SN_Ending_01_EN	Schedar
+VO_SN_Ending_01_AR	Schedar
+VO_SN_Ending_02_EN	Leda
+VO_SN_Ending_02_AR	Leda
+VO_SN_Ending_03_EN	Leda
+VO_SN_Ending_03_AR	Leda
+VO_SN_Ending_04_EN	Gacrux
+VO_SN_Ending_04_AR	Gacrux
+VO_SN_Ending_05_EN	Schedar
+VO_SN_Ending_05_AR	Schedar
+VO_SN_Ending_06_EN	Enceladus
+VO_SN_Ending_06_AR	Enceladus
+VO_SN_Ending_07_EN	Leda
+VO_SN_Ending_07_AR	Leda
+VO_SN_Ending_08_EN	Schedar
+VO_SN_Ending_08_AR	Schedar
+VO_SN_Ending_09_EN	Gacrux
+VO_SN_Ending_09_AR	Gacrux
+VO_SN_Ending_10_EN	Leda
+VO_SN_Ending_10_AR	Leda
+VO_SN_Ending_11_EN	Leda
+VO_SN_Ending_11_AR	Leda
+VO_SN_Ending_12_EN	Enceladus
+VO_SN_Ending_12_AR	Enceladus
+VO_SN_Ending_13_EN	Schedar
+VO_SN_Ending_13_AR	Schedar
+VO_SN_Ending_14_EN	Schedar
+VO_SN_Ending_14_AR	Schedar
+```
 
 Continuity with prior generated batches: UNVERIFIED. The prior batch record
 (AI_DEV_LOG.d/2026-11-27-generated-vo-clips-77-story-lines-in-en-ar-plan-.md)
@@ -28,7 +63,7 @@ license and no CC0 claim. Rights in the generated audio are governed by the
 generator's terms; no clearance beyond that is claimed. Validator PASS is a
 format check only, not a rights check.
 
-| # | Clip | Path | Speaker (spec section 3) | Voice (handoff record) | Source WAV | Source WAV sha256 | Committed OGG sha256 | Dur (s) |
+| # | Clip | Path | Speaker (spec section 3) | Voice (recorded generation command) | Source WAV | Source WAV sha256 | Committed OGG sha256 | Dur (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | VO_SN_Ending_01 AR | Assets/_Project/Resources/VO/AR/VO_SN_Ending_01.ogg | Memory | Schedar | speech-20261127-153724-dad14498.wav | cf502ad816ef9f3127e711b40a1b7ebfac3f78311ee4a6f8a0ad00cd1f6ae2d4 | 19b1b567e308f4d8584fa692f3ee6b4c2abd51488376b2e6bab901f419376713 | 8.000000 |
 | 1 | VO_SN_Ending_01 EN | Assets/_Project/Resources/VO/EN/VO_SN_Ending_01.ogg | Memory | Schedar | speech-20261127-153723-b2d9fab0.wav | eb55fee50c4606d5d311425b16350bbbbbd27433e8fda626fc87e10dd1a05249 | e82ea204ed4fc28ab21f32972a42e6e7255ddd541ec5632b5464fa1dfa5e28fa | 7.200000 |
