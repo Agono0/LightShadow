@@ -1,4 +1,4 @@
-# Arabic review of shipped strings (package 1, report only)
+# Arabic review of shipped strings: AI suggestions, NEEDS NATIVE CHECK (package 1, report only)
 
 Date: 2026-11-27. Author: AI assistant working for Abdelraouf Zidan (GitHub `Abdo1590`).
 

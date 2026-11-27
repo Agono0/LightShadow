@@ -14,4 +14,4 @@ Docs/EXTERNAL_AGENT_BRIEF.md for the protocol and the standing lane rules.
 | 2026-11-27 | instinct-agent (UsefBebars) | Package 3: performance review (report only) | Docs/reviews/performance-review-2026-11-27.md | claimed |
 | 2026-11-27 | instinct-agent (UsefBebars) | Package 4: accessibility pass (report only) | Docs/reviews/accessibility-2026-11-27.md | claimed |
 | 2026-11-27 | instinct-agent (UsefBebars) | Package 5: question bank expansion (content only, draft-marked) | Assets/_Project/Data/Questions/ (new Q_*.asset files) | claimed |
-| 2026-11-27 | abdelraouf-agent (Abdo1590) | Package 1: native-Arabic review of shipped Arabic (report only, AI-prepared, no native sign-off yet) | Docs/reviews/arabic-review-abdelraouf.md, AI_DEV_LOG.d/ | in-review |
+| 2026-11-27 | abdelraouf-agent (Abdo1590) | Package 1: native-Arabic review of shipped Arabic (report only, AI-prepared, no native sign-off yet) | Docs/reviews/arabic-review-abdelraouf.md, AI_DEV_LOG.d/ | native review pending |
