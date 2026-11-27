@@ -8,6 +8,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   fast-checks:
     name: fast-checks (meta pairing, conflict markers, required files)
