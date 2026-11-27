@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: Brazil is the largest country in South America.
   factSource: NEEDS-FACT-CHECK
+  questionAr: البرازيل تقع في أي قارة؟
+  optionsAr:
+  - أمريكا الشمالية
+  - إفريقيا
+  - أمريكا الجنوبية
+  - أوروبا
+  explanationAr: البرازيل هي أكبر بلاد أمريكا الجنوبية.

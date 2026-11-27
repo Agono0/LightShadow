@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: Water hydrates without added sugar, caffeine or extra calories.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي مشروب هو الخيار اليومي الأفضل لترطيب الجسم؟
+  optionsAr:
+  - المشروبات الغازية
+  - الماء
+  - مشروب الطاقة
+  - الشاي المحلى
+  explanationAr: الماء يرطب الجسم بلا سكر مضاف ولا كافيين ولا سعرات زائدة.
