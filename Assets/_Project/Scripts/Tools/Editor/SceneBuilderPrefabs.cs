@@ -335,6 +335,8 @@ namespace LightShadow.Tools
                 }
             }
 
+            AddGhostSkullVisual(root, visual.transform);
+
             var head = new GameObject("Head");
             head.transform.SetParent(root.transform, false);
             head.transform.localPosition = new Vector3(0f, 1.72f, 0f);
@@ -368,11 +370,76 @@ namespace LightShadow.Tools
             behaviour.breathingSource = breathing;
             behaviour.oneShotSource = oneShot;
 
+            WraithAnimator wraithAnimator = root.GetComponent<WraithAnimator>();
+            if (wraithAnimator != null) wraithAnimator.behaviour = behaviour;
+
             // The Shadow's voice: growl drone following the state machine.
             ShadowAudio shadowAudio = root.AddComponent<ShadowAudio>();
             shadowAudio.behaviour = behaviour;
 
             return SavePrefab(root, PrefabsFolder + "/Enemy", "TheShadow");
+        }
+
+        // GhostSkull (Quaternius CC0) wraith model with embedded clips. Only used
+        // when the editor can import the .glb (needs the glTFast package); if it
+        // does not load, the primitives above stay exactly as before. NOT SEEN IN
+        // THE EDITOR: scale and pivot are auto-fitted from renderer bounds and
+        // unverified.
+        const string GhostSkullPath = "Assets/_Project/Models/SM_Wraith_GhostSkull.glb";
+
+        static void AddGhostSkullVisual(GameObject root, Transform visual)
+        {
+            GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(GhostSkullPath);
+            if (model == null)
+            {
+                Debug.LogWarning("[LightShadow] GhostSkull model did not import; keeping the primitive wraith.");
+                return;
+            }
+
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(model, visual);
+            instance.name = "GhostSkull";
+            instance.transform.localPosition = Vector3.zero;
+            instance.transform.localRotation = Quaternion.identity;
+            instance.transform.localScale = Vector3.one;
+
+            Renderer[] renderers = instance.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0)
+            {
+                Object.DestroyImmediate(instance);
+                Debug.LogWarning("[LightShadow] GhostSkull has no renderers; keeping the primitive wraith.");
+                return;
+            }
+
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            float height = Mathf.Max(0.01f, bounds.size.y);
+            float scale = Mathf.Clamp(1.5f / height, 0.01f, 100f);
+            instance.transform.localScale = Vector3.one * scale;
+            // Hover: lowest point 0.35 m above the floor.
+            instance.transform.localPosition = new Vector3(0f, 0.35f - (bounds.min.y - instance.transform.position.y) * scale, 0f);
+
+            foreach (string shapeName in new[] { "Body", "Head", "ArmL", "ArmR", "EyeL", "EyeR", "Shadow_Art" })
+            {
+                Transform shape = visual.Find(shapeName);
+                if (shape == null) continue;
+                foreach (Renderer r in shape.GetComponentsInChildren<Renderer>()) r.enabled = false;
+            }
+
+            Animation player = instance.GetComponent<Animation>();
+            if (player == null) player = instance.AddComponent<Animation>();
+            player.playAutomatically = false;
+
+            var clipList = new System.Collections.Generic.List<AnimationClip>();
+            foreach (Object sub in AssetDatabase.LoadAllAssetsAtPath(GhostSkullPath))
+            {
+                AnimationClip clip = sub as AnimationClip;
+                if (clip != null && !clip.name.StartsWith("__preview__")) clipList.Add(clip);
+            }
+
+            WraithAnimator animator = root.AddComponent<WraithAnimator>();
+            animator.animationPlayer = player;
+            animator.clips = clipList.ToArray();
+            animator.behaviour = null; // wired below, after EnemyBehaviour exists
         }
 
         static void AddShadowShape(Transform parent, string name, PrimitiveType type, Vector3 localPosition,
