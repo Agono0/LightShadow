@@ -298,8 +298,6 @@ history and stay untouched (append-only).
   limited` — Unity 6000.4 deprecates that target, so the x86_64 matrix entry and batch method
   were removed and the pipeline corrected on this branch.
 
-
-
 ### 2026-11-19 — Docs/SOURCING_FONTS_MUSIC.md (premium-pass font + music sourcing) — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) with WebSearch/WebFetch license-and-URL verification.
 - What AI provided: verified sourcing doc — 5 font families (Noto Naskh Arabic, Cairo, Reem Kufi,
@@ -368,70 +366,6 @@ history and stay untouched (append-only).
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
 
-### 2026-11-27 — Puzzle framework (PuzzleBase, PuzzleManager, events, save blob) — Abdelrhman Mohamed
-- Tool used: Instinct (AI coding agent)
-- What AI provided: the framework design and code — `PuzzleBase` (states, hints EN/AR,
-  solve/wrong-attempt flow, restore hooks), `PuzzleManager` (registry + save bridge over
-  the SaveCaptured/SaveApplied events), additive `GameEvents` puzzle events, the
-  `GameConfig.puzzleWrongMeterPenalty` field, and `Docs/PUZZLES.md` with the seven-puzzle plan.
-- What I changed myself: pending review — lands through the PR workflow.
-- Teach-back check: pending — Docs/PUZZLES.md explains the restore-timing choice
-  (manager keeps the id set; puzzles pick it up when they register).
-- Test result: static only; CI build workflow is the compile gate. No scene changes.
-### 2026-11-27 — Wing puzzle 1: classroom chalkboard cipher + shared code-lock UI — Abdelrhman Mohamed
-- Tool used: Instinct (AI coding agent)
-- What AI provided: `CodeLockUIController` (digit-lock overlay: keyboard 0-9/Enter/Esc on
-  desktop, +/- wheels on mobile, holds the story input lock while open, EN+AR), the
-  `ChalkboardCipherPuzzle` (PuzzleBase subclass: chalk sums on the classroom board hide one
-  digit each, the 4-digit code 6371 opens the teacher's desk lock; wrong codes squeal and cost
-  Bright Idea through the framework's WrongAttempt), the `SceneBuilderUIPuzzles`/
-  `SceneBuilderPuzzles` partials (code-lock panel built in code; cipher prop placed in
-  BuildClassroom with chalk TextMesh, sliding drawer, and a battery payout that rides out with
-  the drawer), `PuzzleManager` added to the school Systems object, and hand-authored fresh-GUID
-  .meta files. SceneBuilderUI was made `partial` (one keyword) to host the new panel partial.
-- What I changed myself: pending review — changes land through the PR workflow (AGENTS.md rule 9).
-- Teach-back check: pending — PR body explains why the reward is parented to the puzzle root
-  (the drawer is a scaled cube and would squash a child) and why the panel self-registers a
-  static Instance instead of a GameManager field (zero wiring, same pattern as
-  InteractionRaycaster).
-- Test result: pending — CI compile + builds are the gate; no local Unity editor. Verified on
-  paper: reward collider clears the open drawer for the interaction ray; drawer hangs below the
-  open-frame teacher desk top (y 0.73-0.83 slab).
-### 2026-11-27 — Wing puzzle 2: library card catalogue sort + card-sort UI — Abdelrhman Mohamed
-- Tool used: Instinct (AI coding agent)
-- What AI provided: `CardSortUIController` (one clue card at a time, four drawer buttons,
-  keys 1-4 on desktop, input lock + cursor handling like the quiz/code-lock overlays, EN+AR,
-  self-registered static Instance), the `CatalogueSortPuzzle` (PuzzleBase subclass: four books
-  to file into Poetry/Stories/History/Science; a wrong drawer rattles and runs the framework
-  WrongAttempt; filing all four drops the return tray with a key card and a battery), the
-  `BuildCardSortPanel` editor builder in `SceneBuilderUIPuzzles`, the `CreateCatalogueSort`
-  placement in `SceneBuilderPuzzles` (cabinet against the library west wall, four drawer
-  fronts, sliding return tray, battery payout parented to the puzzle root so it slides out
-  with the tray without being squashed by the tray's scaled-cube transform), the placement
-  call in `BuildLibrary`, and fresh-GUID .meta files for both new scripts.
-- What I changed myself: pending review — changes land through the PR workflow (AGENTS.md rule 9).
-- Teach-back check: pending — PR body explains the card content choice (four canonical Arabic
-  works across the four school subjects, per the Language/History wing theme) and why drawer
-  button labels are set at runtime instead of LocalizedText (they are dynamic per puzzle).
-- Test result: pending — CI compile + builds are the gate; no local Unity editor. Verified on
-  paper: tray and battery share the puzzle root so one offset slides both; the battery collider
-  clears the open tray for the interaction ray; drawer fronts sit proud of the cabinet face.
-### 2026-11-27 — Wing puzzle 3: science-lab optics bench (plan workstream 5) — Abdelrhman Mohamed
-- Tool used: Instinct (AI coding agent)
-- What AI provided: `OpticsBenchPuzzle` (three bench elements rotate in 90-degree steps from an
-  overlay; matching the calibration lands the beam on the sensor and slides the lab cabinet's
-  drawer open with a battery; wrong tests run WrongAttempt), a shared `OpticsUIController`
-  overlay (rotor buttons, beam diagram, test button, hints; desktop keys 1-3 + Enter, mobile
-  taps; holds the story input lock and frees the cursor like the quiz UI), `BuildOpticsPanel`
-  with full Arabic strings, and the physics-lab placement (emitter, two mirrors, glass prism,
-  sensor on Bench_2; payout drawer on the lab cabinet's west face).
-- What I changed myself: pending review — changes land through the PR workflow (AGENTS.md rule 9).
-- Teach-back check: pending — PR body explains the 1-2-3 quarter-turn solution and why the
-  drawer and battery share one offset (both parent to the puzzle root, not the scaled drawer).
-- Test result: pending — CI compile + builds are the gate; no local Unity editor. Verified on
-  paper: solution {1,2,3} matches hint 3; the battery spawns inactive and both it and the
-  drawer slide by the same offset on solve, mirroring puzzles 1-2; save restore reopens the
-  drawer without replaying events or rewards.
 ### 2026-11-19 — P2 Blender hero-prop pipeline (Art/pipeline + Assets/_Project/Models/Hero) — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) driving Blender 5.3 headless (`blender -b -P`).
 - What AI provided: the full pipeline — `Art/pipeline/` (`ls_common.py` registry/helpers,
