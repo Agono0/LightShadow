@@ -101,7 +101,7 @@ jobs:
       # fixed key meant a saved cache was never refreshed.
       - if: needs.changes.outputs.code == 'true'
         name: Restore Library cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: Library
           key: Library-test-editmode-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
@@ -122,7 +122,7 @@ jobs:
 
       - if: success() && needs.changes.outputs.code == 'true' && github.ref == 'refs/heads/main'
         name: Save Library cache (main only)
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: Library
           key: Library-test-editmode-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
@@ -175,7 +175,7 @@ jobs:
       # two 3 GB entries). The arm64 job saves it on main; both ABIs restore.
       - if: needs.changes.outputs.player == 'true'
         name: Restore Library cache (Android, shared by both ABIs)
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: Library
           key: Library-Android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
@@ -189,7 +189,7 @@ jobs:
       # skipped silently by actions/cache.)
       - if: needs.changes.outputs.player == 'true'
         name: Restore Gradle cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ${{ runner.temp }}/_github_home/.gradle
           key: gradle-android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
@@ -220,14 +220,14 @@ jobs:
 
       - if: success() && needs.changes.outputs.player == 'true' && github.ref == 'refs/heads/main' && matrix.abi == 'arm64-v8a'
         name: Save Library cache (main, arm64 job only)
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: Library
           key: Library-Android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
 
       - if: success() && needs.changes.outputs.player == 'true' && github.ref == 'refs/heads/main' && matrix.abi == 'arm64-v8a'
         name: Save Gradle cache (main, arm64 job only)
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ${{ runner.temp }}/_github_home/.gradle
           key: gradle-android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
@@ -266,7 +266,7 @@ jobs:
 
       - if: needs.changes.outputs.player == 'true'
         name: Restore Library cache (StandaloneWindows64)
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: Library
           key: Library-StandaloneWindows64-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
@@ -298,7 +298,7 @@ jobs:
 
       - if: success() && needs.changes.outputs.player == 'true' && github.ref == 'refs/heads/main'
         name: Save Library cache (main only)
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: Library
           key: Library-StandaloneWindows64-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
