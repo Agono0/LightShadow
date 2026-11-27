@@ -93,7 +93,7 @@ namespace LightShadow.Player
             // during the hold (FlashlightCrank holds F for its gesture).
             if (!PlayerController.ExternalInputLocked)
             {
-                if (Input.GetKeyDown(KeyCode.F))
+                if (Input.GetKeyDown(KeyCode.F) && !LightShadow.Gameplay.ThrowableProp.OwnsFKey)
                 {
                     fTogglePending = true;
                     fPressCranked = false;

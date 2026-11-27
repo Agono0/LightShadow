@@ -42,7 +42,8 @@ namespace LightShadow.Player
         public bool IsHeld => touchHeld || KeyboardHeld || padHeld;
         public bool IsCranking => IsHeld && idleTime < GestureResetSeconds;
 
-        bool KeyboardHeld => !Application.isMobilePlatform && Input.GetKey(KeyCode.F);
+        bool KeyboardHeld => !Application.isMobilePlatform && Input.GetKey(KeyCode.F)
+            && !LightShadow.Gameplay.ThrowableProp.OwnsFKey;
 
         // Config shortcuts with safe fallbacks (same pattern as EnemyBehaviour).
         float ChargePerSecond => config != null ? config.crankChargePerSecond : 0.02f;

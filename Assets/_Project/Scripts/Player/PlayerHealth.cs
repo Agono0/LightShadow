@@ -73,11 +73,15 @@ namespace LightShadow.Player
             if (changed != null) changed(Normalized);
         }
 
+        // H belongs to hints (HintService and every puzzle UI), so the medkit
+        // moved to M (audit: H/F key conflicts).
+        public const KeyCode MedkitKey = KeyCode.M;
+
         void Update()
         {
             // Desktop hotkey; the mobile MEDKIT button calls TryUseMedkit
             // through TouchButton.Kind.Medkit.
-            if (Input.GetKeyDown(KeyCode.H))
+            if (Input.GetKeyDown(MedkitKey))
             {
                 if (TryUseMedkit())
                 {

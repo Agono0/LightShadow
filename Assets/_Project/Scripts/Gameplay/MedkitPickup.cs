@@ -5,7 +5,7 @@ namespace LightShadow.Gameplay
 {
     // Medkits are the only way to heal (user brief 2026-11-27) and stay rare:
     // mostly puzzle rewards, never lying around in bulk. One tap to collect;
-    // use with H (desktop) or the MEDKIT touch button.
+    // use with M (desktop) or the MEDKIT touch button.
     public class MedkitPickup : MonoBehaviour, IInteractable
     {
         [Header("Wiring")]
@@ -28,7 +28,7 @@ namespace LightShadow.Gameplay
             else LightShadow.Audio.Sfx.Play("SFX_Pickup", ProceduralSfx.Pickup);
 
             GameManager gm = GameManager.Instance;
-            if (gm != null) gm.ShowMessage("Medkit packed. Press H when she needs it.", 4f);
+            if (gm != null) gm.ShowMessage("Medkit packed. Press M when she needs it.", 4f);
 
             gameObject.SetActive(false);
         }

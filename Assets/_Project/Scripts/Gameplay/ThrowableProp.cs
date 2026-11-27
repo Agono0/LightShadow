@@ -20,6 +20,12 @@ namespace LightShadow.Gameplay
 
         public static ThrowableProp Carried { get; private set; }
 
+        // F is shared with the flashlight toggle and the crank. While a prop
+        // is carried, or on the frame it was thrown, F belongs to the prop.
+        static int lastThrowFrame = -10;
+        public static bool OwnsFKey => Carried != null || Time.frameCount - lastThrowFrame <= 1;
+        public static void MarkThrown() { lastThrowFrame = Time.frameCount; }
+
         Rigidbody body;
         Vector3 homePosition;
         Quaternion homeRotation;
@@ -63,6 +69,7 @@ namespace LightShadow.Gameplay
         public static void ThrowCarried()
         {
             if (Carried == null) return;
+            MarkThrown();
             Camera cam = Camera.main;
             Vector3 impulse = cam != null
                 ? (cam.transform.forward + Vector3.up * 0.15f).normalized * Carried.throwForce
