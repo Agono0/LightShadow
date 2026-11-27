@@ -34,3 +34,9 @@ MonoBehaviour:
   musicBedLongNoteOne: {fileID: 8300000, guid: 07f7169932f70cb46b30b1bd9f753b6d, type: 3}
   endingHopeGold: {fileID: 8300000, guid: 83b7e58a71a37784d9198e61b364fe8f, type: 3}
   endingDawnlessGrey: {fileID: 8300000, guid: 4736c5766d1d14f4e8fd4be492d71b3f, type: 3}
+  memoryTheme: {fileID: 8300000, guid: 812a9122b0528bc698e191e42daba143, type: 3}
+  chasePulse: {fileID: 8300000, guid: d3510527750dbe2dc27c4a2295091ebb, type: 3}
+  endingHopeAlt: {fileID: 8300000, guid: 310c49f27b44b125fb48fd7d7af50ffe, type: 3}
+  dawnBirds: {fileID: 8300000, guid: 05caaa6408dfd20be160ee481f3f1a52, type: 3}
+  schoolDreadA: {fileID: 8300000, guid: 18a51787231703b4622b3315aa2a5d5e, type: 3}
+  schoolDreadB: {fileID: 8300000, guid: 5e05079615f7634e4924244c6f8f0334, type: 3}

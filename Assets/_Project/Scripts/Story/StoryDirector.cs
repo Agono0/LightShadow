@@ -316,9 +316,14 @@ namespace LightShadow.Story
             if (node.enterTrust != 0f) state.trust = ClampStat(state.trust + node.enterTrust);
             if (node.enterCalm != 0f) ChangeCalm(state.calm + node.enterCalm);
 
-            // Narration uses the logical (unshaped) string; StoryTeller picks the
-            // right voice for Arabic by itself and respects the narrator toggle.
-            StoryTeller.Speak(StoryStrings.Get(node.text), true);
+            // Narration: a generated voice clip when one exists for this node
+            // (VoiceoverPlayer keys on the line sheet's VO_<nodeId> ids),
+            // otherwise StoryTeller's SAPI path, which picks the right voice
+            // for Arabic by itself and respects the narrator toggle.
+            if (!VoiceoverPlayer.Play("VO_" + node.nodeId))
+            {
+                StoryTeller.Speak(StoryStrings.Get(node.text), true);
+            }
 
             if (dialogueUI == null) dialogueUI = GetComponentInChildren<DialogueUIController>();
             if (dialogueUI == null)
@@ -374,6 +379,11 @@ namespace LightShadow.Story
                 }
                 else
                 {
+                    // Choices are NOT voiced: the recording spec voices node
+                    // lines only. The generated VO_<nodeId>_C<n> clips ship in
+                    // Resources but stay unwired (optional inner-voice layer,
+                    // re-enable here if that decision changes).
+
                     // Effects first (flag-gated routing can read the new flags),
                     // then the events, then routing.
                     if (choice.setFlags != null)
@@ -438,6 +448,7 @@ namespace LightShadow.Story
             current = null;
             lastConversationEndedAt = Time.unscaledTime;
             PlayerController.ExternalInputLocked = false;
+            VoiceoverPlayer.Stop();
             StoryEvents.RaiseConversationEnded();
 
             if (dialogueUI != null) dialogueUI.Hide();

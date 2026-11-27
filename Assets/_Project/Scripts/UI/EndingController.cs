@@ -185,9 +185,44 @@ namespace LightShadow.UI
         // Phase 1: one-shot cue per ending (builder wires the clips from the
         // AudioLibrary; silent fallback when the id has no clip yet or the
         // scene is played without the school library).
+        // Registry fallback when no serialized entry matches (D13 endings):
+        // HopeAlt is the alternate for PartialMemory/HollowEscape only; it never
+        // replaces HopeGold (FullRecovery) or DawnlessGrey (Dawnless).
+        static string RegistryCueFor(string id)
+        {
+            switch (id)
+            {
+                case "FullRecovery": return "MUS_Ending_HopeGold";
+                case "Dawnless": return "MUS_Ending_DawnlessGrey";
+                case "PartialMemory":
+                case "HollowEscape": return "MUS_Ending_HopeAlt";
+                default: return null;
+            }
+        }
+
         void PlayEndingMusic(string id)
         {
-            if (string.IsNullOrEmpty(id) || endingMusic == null) return;
+            if (string.IsNullOrEmpty(id)) return;
+
+            // Dawn ambience layer (AMB_DawnBirds): null-safe, loops under the
+            // ending music.
+            if (Core.AudioManager.Instance != null)
+                Core.AudioManager.Instance.PlayAmbience(Audio.SfxRegistry.Clip("AMB_DawnBirds"));
+
+            AudioClip registered = Audio.SfxRegistry.Clip(RegistryCueFor(id));
+            if (registered != null)
+            {
+                if (musicSource == null) musicSource = gameObject.AddComponent<AudioSource>();
+                musicSource.spatialBlend = 0f;
+                musicSource.loop = false;
+                musicSource.playOnAwake = false;
+                musicSource.volume = Mathf.Clamp01(endingMusicVolume);
+                musicSource.clip = registered;
+                musicSource.Play();
+                return;
+            }
+
+            if (endingMusic == null) return;
             for (int i = 0; i < endingMusic.Length; i++)
             {
                 if (endingMusic[i] == null || endingMusic[i].endingId != id || endingMusic[i].clip == null) continue;
