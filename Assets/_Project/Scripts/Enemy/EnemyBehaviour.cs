@@ -645,7 +645,14 @@ namespace LightShadow.Enemy
             SetBreathing(true);
             yield return new WaitForSeconds(0.38f);
 
-            if (GameManager.Instance != null) GameManager.Instance.CaughtPlayer();
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.EnemyHitPlayer();
+                // Two-hit health (user brief 2026-11-27): after the strike the
+                // wraith withdraws into the dark, so a surviving Nour gets room
+                // to run instead of an instant second hit.
+                EnterState(State.ForcedCooldown);
+            }
             else ResetToPatrol();
         }
 

@@ -19,6 +19,7 @@ namespace LightShadow.UI
         [Header("Wiring")]
         public Image meterFill;
         public Image batteryFill;
+        public Image healthFill;
         public Text promptText;
         public Text messageText;
         public GameObject objectivesPanel;
@@ -77,6 +78,16 @@ namespace LightShadow.UI
                     flashlight.OnBatteryEmpty.AddListener(OnBatteryEmpty);
                     OnBatteryChanged(flashlight.Battery01);
                 }
+
+                PlayerHealth health = gm.player != null ? gm.player.GetComponentInChildren<PlayerHealth>() : null;
+                if (health != null)
+                {
+                    health.Changed += OnHealthChanged;
+                    health.Hit += OnHealthHit;
+                    // Paint immediately: the bar must never sit stale (battery
+                    // bar lesson, PR #49).
+                    OnHealthChanged(health.Normalized);
+                }
             }
 
             RefreshObjectives();
@@ -101,6 +112,13 @@ namespace LightShadow.UI
                 {
                     flashlight.OnBatteryChanged.RemoveListener(OnBatteryChanged);
                     flashlight.OnBatteryEmpty.RemoveListener(OnBatteryEmpty);
+                }
+
+                PlayerHealth health = gm.player != null ? gm.player.GetComponentInChildren<PlayerHealth>() : null;
+                if (health != null)
+                {
+                    health.Changed -= OnHealthChanged;
+                    health.Hit -= OnHealthHit;
                 }
             }
         }
@@ -138,6 +156,36 @@ namespace LightShadow.UI
         void OnBatteryChanged(float value)
         {
             if (batteryFill != null) batteryFill.fillAmount = value;
+        }
+
+        void OnHealthChanged(float normalized)
+        {
+            if (healthFill != null) healthFill.fillAmount = normalized;
+        }
+
+        // Survived strike: a red pulse over the screen (the lethal strike goes
+        // through GameManager's slower black fade instead).
+        void OnHealthHit()
+        {
+            if (fadeRoutine != null) StopCoroutine(fadeRoutine);
+            fadeRoutine = StartCoroutine(HurtFlashRoutine());
+        }
+
+        IEnumerator HurtFlashRoutine()
+        {
+            if (fadeImage != null) fadeImage.color = new Color(0.55f, 0.05f, 0.03f, fadeImage.color.a);
+            SetFadeAlpha(0.38f);
+            float elapsed = 0f;
+            while (elapsed < 0.7f)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                SetFadeAlpha(Mathf.Lerp(0.38f, 0f, Mathf.Clamp01(elapsed / 0.7f)));
+                yield return null;
+            }
+            SetFadeAlpha(0f);
+            // Restore black so the next FadeToBlack does not fade in red.
+            if (fadeImage != null) fadeImage.color = new Color(0f, 0f, 0f, fadeImage.color.a);
+            fadeRoutine = null;
         }
 
         void OnBatteryEmpty()

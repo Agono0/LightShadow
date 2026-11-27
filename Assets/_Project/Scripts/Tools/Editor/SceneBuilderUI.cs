@@ -227,6 +227,15 @@ namespace LightShadow.Tools
             Image batteryFill = MakeBar(root, "BatteryBar", new Vector2(36f, -88f), new Vector2(250f, 12f),
                 new Color(0.55f, 0.82f, 0.90f), "BATTERY", out batteryLabel);
 
+            // Two-hit health (user brief 2026-11-27): a short red bar beside the
+            // battery gauge, full until the wraith lands its first strike. It
+            // sits right of the column so the inventory strip below never
+            // overlaps it.
+            Text healthLabel;
+            Image healthFill = MakeBar(root, "HealthBar", new Vector2(410f, -88f), new Vector2(180f, 14f),
+                new Color(0.72f, 0.20f, 0.16f), "HEALTH", out healthLabel);
+            Localize(healthLabel);
+
             // ---- inventory strip (carried items, hidden while empty) ---------
             RectTransform stripRoot = MakeRect(root, "InventoryStrip", new Vector2(0f, 1f),
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(36f, -120f),
@@ -318,6 +327,8 @@ namespace LightShadow.Tools
                 new Vector2(-314f, 56f), 84f, 13);
             AddMobileButton(mobileRoot.transform, "BreathButton", "BREATH", TouchButton.Kind.BreathHold,
                 new Vector2(-428f, 56f), 84f, 13);
+            AddMobileButton(mobileRoot.transform, "MedkitButton", "MEDKIT", TouchButton.Kind.Medkit,
+                new Vector2(-542f, 56f), 84f, 12);
 
             mobileRoot.AddComponent<TouchControlsScaler>();
 
@@ -345,6 +356,7 @@ namespace LightShadow.Tools
 
             hud.meterFill = meterFill;
             hud.batteryFill = batteryFill;
+            hud.healthFill = healthFill;
             hud.promptText = prompt;
             hud.messageText = message;
             hud.objectivesPanel = objectivesPanel.gameObject;
