@@ -192,6 +192,21 @@ Concrete texture metas. CC0: no attribution list entries needed.
 | SurfaceImperfections015 (2K JPG) | https://ambientcg.com/view?id=SurfaceImperfections015 | CC0 1.0 | ambientCG | 2026-11-27 | T_DustImperfection_* detail/decal overlay (no material) |
 | PaintedMetal006 (2K JPG) | https://ambientcg.com/view?id=PaintedMetal006 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustedPaintedMetal_* / Mat_Art_RustedPaintedMetal |
 | Metal064 (2K JPG) | https://ambientcg.com/view?id=Metal064 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustMetal_* / Mat_Art_RustMetal |
+## Wave-2 SFX: tired breath + TinyWorlds steps (added 2026-11-27, peer-approved picks)
+
+Licenses re-verified on the source pages 2026-11-27: both CC0 1.0, no attribution
+needed. Files were processed before import (mono downmix, silence trim -50 dB/20 ms,
+peak normalized to -3.0 dBFS, Vorbis q5 44.1 kHz); exact gain plus source and
+processed sha256 per file are recorded in Docs/ASSET_MANIFEST.md. No audition was
+possible in the agent environment: suitability of every clip is UNVERIFIED
+(per-row human_check). Fantozzi sand-to-grass mapping remains held pending a
+human audition; no grass rows added.
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SFX_Breath_Tired.ogg | https://opengameart.org/content/breathing-tired | https://opengameart.org/sites/default/files/breathing%20tired.wav | CC0 1.0 | mikeask | labored/tired breathing; distinct from SFX_Breath_Scared |
+| SFX_FootstepWood_5/6/7, SFX_FootstepLeaves_0/1, SFX_FootstepGravel_0, SFX_FootstepMud_0 (.ogg) | https://lpc.opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud | https://lpc.opengameart.org/sites/default/files/%5Bkdd%5DDifferentSteps_0.zip | CC0 1.0 | TinyWorlds | real recordings (ex-pdsounds.org); wood01-03, leaves01-02, gravel, mud02 from zip |
+
 ## Wave-2 model: Ghost Skull wraith (added 2026-11-27, peer-approved pick)
 
 License verified 2026-11-27 on the model page (Public Domain / CC0) and the pack
