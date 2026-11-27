@@ -39,6 +39,18 @@ namespace LightShadow.Core
             musicSource.Play();
         }
 
+        // One-shot music (the memory-flash piano): plays without looping and
+        // without the already-playing guard, so a flash always restarts the
+        // theme. AdaptiveMusic.UpdateBed re-asserts the looped bed afterwards.
+        public void PlayMusicOnce(AudioClip clip)
+        {
+            if (clip == null || musicSource == null) return;
+            musicSource.Stop();
+            musicSource.clip = clip;
+            musicSource.loop = false;
+            musicSource.Play();
+        }
+
         public void StopMusic()
         {
             if (musicSource != null) musicSource.Stop();

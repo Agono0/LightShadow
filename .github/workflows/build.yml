@@ -89,6 +89,17 @@ jobs:
             Library-Android-
 
       - if: needs.changes.outputs.code == 'true'
+        name: Cache Gradle dependencies (Maven Central flake shield)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-android-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            gradle-android-
+
+      - if: needs.changes.outputs.code == 'true'
         name: Build ${{ matrix.abi }} APK
         uses: game-ci/unity-builder@v4
         env:

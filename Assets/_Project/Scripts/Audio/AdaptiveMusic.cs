@@ -47,6 +47,7 @@ namespace LightShadow.Audio
         AudioSource tensionSource;
         AudioSource pulseSource;
         AudioClip bedClip;
+        AudioClip chaseClip;
         float bedVolume;
 
         float lastMeter = 1f;
@@ -82,6 +83,10 @@ namespace LightShadow.Audio
             // Library-first: the imported bed (Kevin MacLeod, CC-BY) layers under
             // the procedural pads when present; missing clip = unchanged game.
             bedClip = SfxRegistry.Clip("MUS_Bed_LongNoteOne");
+            // The real chase loop (MUS_ChasePulse, Docs/AUDIO_CUES.md): takes
+            // the music source while the pulse envelope dominates, hands it
+            // back to the bed when the chase feel passes. Null = bed only.
+            chaseClip = SfxRegistry.Clip("MUS_ChasePulse");
 
             // These three sources are NOT registered with VolumeCategories (it
             // would fight this Update over .volume). The Music/Master sliders are
@@ -158,15 +163,20 @@ namespace LightShadow.Audio
         // the library = the bed stays silent and the pads remain the whole mix.
         void UpdateBed()
         {
-            if (bedClip == null) return;
+            AudioClip wanted = chaseClip != null && pulseVolume > 0.5f ? chaseClip : bedClip;
+            if (wanted == null) return;
 
             AudioManager manager = AudioManager.Instance;
             AudioSource bed = manager != null ? manager.musicSource : null;
             if (bed == null) return;
 
-            if (bed.clip != bedClip)
+            // A one-shot (the memory-flash piano) owns the source while it
+            // plays; the bed/chase loop resumes when it ends.
+            if (!bed.loop && bed.isPlaying) return;
+
+            if (bed.clip != wanted || (!bed.isPlaying && bed.loop))
             {
-                bed.clip = bedClip;
+                bed.clip = wanted;
                 bed.loop = true;
                 bed.Play();
             }
