@@ -234,5 +234,54 @@ namespace LightShadow.Tools
             puzzle.door = door.transform;
             puzzle.rewardRoot = key;
         }
+
+        // Wing puzzle 6 (plan, workstream 5): the stage light rig in the main
+        // hall. Four colored lamps on the backdrop, a switch panel on the
+        // stage lip, and the electrician's hatch with a battery as the payout.
+        static void CreateStageRig(Prefabs prefabs, Transform parent, Palette palette)
+        {
+            var root = new GameObject("Puzzle_StageLights");
+            root.transform.SetParent(parent, false);
+
+            // Four lamps across the stage backdrop (spans x -10..10 at z 40.7).
+            Material[] lampMats = { palette.indicatorOff, palette.lamp, palette.indicatorOn, palette.water };
+            for (int i = 0; i < 4; i++)
+            {
+                Box(root.transform, "RigLamp_" + (i + 1), new Vector3(-3f + i * 2f, 3.6f, 40.5f),
+                    new Vector3(0.4f, 0.4f, 0.2f), lampMats[i], false);
+            }
+
+            // The switch panel on the stage's front lip (stage spans z 36-41).
+            Box(root.transform, "SwitchPanel", new Vector3(2f, 0.5f, 36.1f),
+                new Vector3(1.4f, 0.5f, 0.16f), palette.metal, true, LevelLayer);
+
+            // The electrician's hatch on the stage lip, sliding east on solve.
+            GameObject hatch = Box(root.transform, "Hatch", new Vector3(8.5f, 0.34f, 36.3f),
+                new Vector3(0.6f, 0.08f, 0.6f), palette.metal, true, LevelLayer);
+
+            GameObject battery = (GameObject)PrefabUtility.InstantiatePrefab(prefabs.battery);
+            battery.name = "StageReward_Battery";
+            battery.transform.SetParent(root.transform, false);
+            battery.transform.position = new Vector3(8.5f, 0.36f, 36.3f);
+            battery.SetActive(false);
+
+            StageLightsPuzzle puzzle = root.AddComponent<StageLightsPuzzle>();
+            puzzle.displayNameEn = "the stage light rig";
+            puzzle.displayNameAr = "أضواء المسرح";
+            puzzle.hintsEn = new[]
+            {
+                "Watch the lamps; they flash one color at a time.",
+                "Repeat the flashes in the same order on the switches.",
+                "Six flashes: red, green, amber, blue, green, red.",
+            };
+            puzzle.hintsAr = new[]
+            {
+                "راقب المصابيح؛ تومض لونًا واحدًا في كل مرة.",
+                "كرّر الومضات بالترتيب نفسه على المفاتيح.",
+                "ست ومضات: أحمر، أخضر، كهرمان، أزرق، أخضر، أحمر.",
+            };
+            puzzle.hatch = hatch.transform;
+            puzzle.rewardRoot = battery;
+        }
     }
 }

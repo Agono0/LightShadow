@@ -227,5 +227,85 @@ namespace LightShadow.Tools
             ctrl.hintButton = hintButton;
             ctrl.closeButton = close;
         }
+
+        // Color-sequence overlay (workstream 5), first used by the stage light
+        // rig: four colored swatches that flash the pattern, four switch
+        // buttons to repeat it, a replay button.
+        static void BuildSequencePanel(Transform root)
+        {
+            RectTransform dim = MakeFullScreen(root, "SequencePanel", new Color(0f, 0f, 0f, 0.82f), true);
+            SequenceUIController ctrl = dim.gameObject.AddComponent<SequenceUIController>();
+
+            RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(780f, 700f), PanelDark, false).rectTransform;
+
+            Text title = MakeText(card, "Title", "", 30, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 274f), new Vector2(660f, 48f), FontStyle.Bold, true);
+
+            Text progress = MakeText(card, "Progress", "", 19, Dim, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 232f), new Vector2(660f, 28f));
+
+            // The rig's lamps: flat swatches the controller flashes. Colors
+            // must be flat images, not themed panels, so the flash can paint.
+            Color[] lampColors =
+            {
+                new Color(0.55f, 0.12f, 0.10f), new Color(0.65f, 0.42f, 0.10f),
+                new Color(0.14f, 0.45f, 0.18f), new Color(0.12f, 0.25f, 0.60f),
+            };
+            Image[] swatches = new Image[4];
+            Button[] switches = new Button[4];
+            Text[] switchLabels = new Text[4];
+            for (int i = 0; i < 4; i++)
+            {
+                float x = -246f + i * 164f;
+                swatches[i] = MakeImage(card, "Lamp" + (i + 1), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, 0.5f), new Vector2(x, 150f), new Vector2(120f, 90f), BackgroundSprite,
+                    lampColors[i], false);
+                switches[i] = MakeButton(card, "Switch" + (i + 1), "", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, 0.5f), new Vector2(x, 40f), new Vector2(140f, 66f), ButtonDark, 21, out switchLabels[i]);
+            }
+
+            Text feedback = MakeText(card, "Feedback", "", 23, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -38f), new Vector2(660f, 36f));
+
+            Text hint = MakeText(card, "Hint", "", 20, Dim, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -92f), new Vector2(660f, 52f));
+
+            Text replayLabel;
+            Button replay = MakeButton(card, "Replay", "REPLAY", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(0f, -178f), new Vector2(220f, 54f), ButtonWarm, 22, out replayLabel);
+            Localize(replayLabel, "أعد العرض");
+
+            Text hintLabel;
+            Button hintButton = MakeButton(card, "Hint", "HINT", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(-196f, -262f), new Vector2(220f, 50f), ButtonDark, 20, out hintLabel);
+            Localize(hintLabel, "تلميح");
+
+            Text closeLabel;
+            Button close = MakeButton(card, "Close", "STEP AWAY", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(196f, -262f), new Vector2(220f, 50f), ButtonDark, 20, out closeLabel);
+            Localize(closeLabel, "ابتعد");
+
+            Text footer = MakeText(card, "Footer", "1-4 or tap a switch, R replays   ·   the world does not pause", 15, Dim,
+                TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(0f, 20f), new Vector2(660f, 24f));
+            Localize(footer, "1-4 أو المس مفتاحًا و R يعيد   ·   العالم لا يتوقف");
+
+            ctrl.panel = dim.gameObject;
+            ctrl.titleText = title;
+            ctrl.progressText = progress;
+            ctrl.swatches = swatches;
+            ctrl.switchButtons = switches;
+            ctrl.switchLabels = switchLabels;
+            ctrl.replayButton = replay;
+            ctrl.feedbackText = feedback;
+            ctrl.hintText = hint;
+            ctrl.hintButton = hintButton;
+            ctrl.closeButton = close;
+        }
     }
 }
