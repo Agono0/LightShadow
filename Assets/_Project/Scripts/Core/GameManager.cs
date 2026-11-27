@@ -371,11 +371,9 @@ namespace LightShadow.Core
         // restores, honestly:
         //   - counts (fuses/fragments/gate), meter, battery, flashlight state
         //   - player position + yaw
-        //   - the first N fuse boxes / N fragments found in the scene are set to
-        //     their restored/collected state - WHICH boxes and WHICH fragments
-        //     may differ from the original run, because scene object order is
-        //     not stored in the save. The counts and the quiz difficulty are
-        //     exact; the specific pickups are not.
+        //   - the exact fuse boxes and fragments (by name, SaveIdentity) for new
+        //     saves; saves made before that fall back to the first N found, where
+        //     WHICH pickups come back may differ from the original run.
         //   - gate powered: the gate and the dawn chase light up again
         //   - NOT restored: quiz answer history for the recap (per-run data),
         //     the Shadow's exact position/state (it restarts from patrol)
@@ -387,16 +385,26 @@ namespace LightShadow.Core
             FragmentsCollected = Mathf.Clamp(data.fragmentsCollected, 0, FragmentTarget);
             GatePowered = data.gatePowered;
 
+            // Restore by identity when the save carries it (new saves); older
+            // saves fall back to "the first N found".
+            SaveIdentity.Blob identity = SaveIdentity.Read(data);
+
             FuseBox[] boxes = FindObjectsByType<FuseBox>(FindObjectsSortMode.None);
             for (int i = 0; i < boxes.Length; i++)
             {
-                if (i < FusesRestored) boxes[i].RestoreFromSave();
+                bool restore = identity != null
+                    ? SaveIdentity.Contains(identity.fuses, boxes[i].name)
+                    : i < FusesRestored;
+                if (restore) boxes[i].RestoreFromSave();
             }
 
             KnowledgeFragment[] fragments = FindObjectsByType<KnowledgeFragment>(FindObjectsSortMode.None);
             for (int i = 0; i < fragments.Length; i++)
             {
-                if (i < FragmentsCollected) fragments[i].RestoreFromSave();
+                bool restore = identity != null
+                    ? SaveIdentity.Contains(identity.fragments, fragments[i].SaveId)
+                    : i < FragmentsCollected;
+                if (restore) fragments[i].RestoreFromSave();
             }
 
             if (GatePowered)

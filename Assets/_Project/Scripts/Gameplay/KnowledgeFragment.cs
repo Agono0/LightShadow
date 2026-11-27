@@ -21,6 +21,10 @@ namespace LightShadow.Gameplay
         public float memorySeconds = 4f;
 
         bool collected;
+
+        // Stable identity for saves (restore the SAME fragment, not the first N).
+        public bool Collected => collected;
+        public string SaveId => fragmentName;
         bool running;
 
         public string Prompt => Localization.Format("Collect {0}", fragmentName);
