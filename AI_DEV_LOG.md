@@ -298,8 +298,6 @@ history and stay untouched (append-only).
   limited` — Unity 6000.4 deprecates that target, so the x86_64 matrix entry and batch method
   were removed and the pipeline corrected on this branch.
 
-
-
 ### 2026-11-19 — Docs/SOURCING_FONTS_MUSIC.md (premium-pass font + music sourcing) — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) with WebSearch/WebFetch license-and-URL verification.
 - What AI provided: verified sourcing doc — 5 font families (Noto Naskh Arabic, Cairo, Reem Kufi,
@@ -691,17 +689,6 @@ history and stay untouched (append-only).
 - Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
   no local Unity editor available.
 
-### 2026-11-27 — Audio ID map: SfxRegistry.VariantCount, dynamic footsteps, library fields — Abdelrhman Mohamed
-- Tool used: Instinct (AI coding agent)
-- What AI provided: `SfxRegistry.VariantCount` (family sizes tracked at RegisterMany, cleared
-  with Clear), Footsteps switched from hardcoded variant constants to registry counts with a
-  concrete fallback when no wood variants exist, and the AudioLibrary/AudioLibraryBootstrap
-  entries for the agreed cue IDs (footstep carpet/grass, door open/close, paper/cloth/glass
-  arrays, and 14 world-interaction singles) so bro's audio packs drop in without script edits.
-- What I changed myself: pending review — lands through the PR workflow.
-- Teach-back check: pending — the PR body lists the exact ID contract both sides code against.
-- Test result: static only; CI build workflow is the compile gate. Missing clips keep the
-  synthesized fallback, so the game never goes silent.
 ### 2026-11-27 — SaveSystem deferred-restore fix (audit A3) — Abdelrhman Mohamed
 - Tool used: Instinct (AI coding agent)
 - What AI provided: `SaveSystem.ClearPendingRestore` and the new-game hook in
