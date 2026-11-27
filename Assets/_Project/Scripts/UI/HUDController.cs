@@ -31,6 +31,11 @@ namespace LightShadow.UI
         float messageTimer;
         bool objectivesShown;
 
+        // Raw English sources of the on-screen prompt and message, cached so a
+        // language switch can re-render them in place (HUD review, 5.4b family).
+        string lastPromptSource = "";
+        string lastMessageSource = "";
+
         // Story beats queue behind whatever is on screen, so a memory flash and
         // its follow-up line both play without overwriting each other.
         struct QueuedMessage
@@ -204,12 +209,20 @@ namespace LightShadow.UI
             {
                 promptText.font = font;
                 promptText.alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft;
+                // Re-render the cached source: a mid-game language switch must
+                // not leave the previous language on screen (HUD review).
+                promptText.text = string.IsNullOrEmpty(lastPromptSource)
+                    ? "" : Localization.TrPresent(lastPromptSource);
             }
 
             if (messageText != null)
             {
                 messageText.font = font;
                 messageText.alignment = arabic ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
+                if (!string.IsNullOrEmpty(lastMessageSource))
+                {
+                    messageText.text = Localization.TrPresent(lastMessageSource);
+                }
             }
 
             if (objectivesText != null)
@@ -217,6 +230,10 @@ namespace LightShadow.UI
                 objectivesText.font = font;
                 objectivesText.alignment = arabic ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
             }
+
+            // The objectives lines are built from templates too; rebuild them
+            // for the new language (null-safe without a GameManager).
+            RefreshObjectives();
         }
 
         public void SetPrompt(string text)
@@ -224,7 +241,8 @@ namespace LightShadow.UI
             if (promptText == null) return;
             // Prompts arrive as the English source sentence; TrPresent maps and
             // shapes them for the active language.
-            string shown = string.IsNullOrEmpty(text) ? "" : Localization.TrPresent(text);
+            lastPromptSource = text ?? "";
+            string shown = string.IsNullOrEmpty(lastPromptSource) ? "" : Localization.TrPresent(lastPromptSource);
             if (promptText.text == shown) return;
             promptText.text = shown;
         }
@@ -234,6 +252,7 @@ namespace LightShadow.UI
             if (messageText == null || string.IsNullOrEmpty(text)) return;
             // An urgent message takes over: clear any stale queued beats.
             messageQueue.Clear();
+            lastMessageSource = text;
             messageText.text = Localization.TrPresent(text);
             ApplyLanguageUI();
             messageText.gameObject.SetActive(true);
