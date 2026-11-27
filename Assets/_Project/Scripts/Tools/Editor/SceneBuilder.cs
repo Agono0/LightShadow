@@ -578,6 +578,7 @@ namespace LightShadow.Tools
         {
             BuildPostProfile(PostNightPath, false);
             BuildPostProfile(PostDawnPath, true);
+            BuildWingLitProfile();
         }
 
         static VolumeProfile BuildPostProfile(string path, bool dawn)

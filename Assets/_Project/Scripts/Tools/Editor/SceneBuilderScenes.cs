@@ -591,6 +591,17 @@ namespace LightShadow.Tools
             AddLamp(set.mainHallLights.transform, new Vector3(-16f, 2.8f, 23f), new Color(1f, 0.84f, 0.58f), 2.2f, 10f);
             set.staffLights = set.mainHallLights;
 
+            // Per-wing LIT grade (plan section 10): a local warm volume inside
+            // each fuse-controlled group, bounded to the wing's LitZone extents.
+            AddWingLitGrade(set.libraryLights, "LitGrade", new Vector3(-12.325f, 1.5f, -15f),
+                new Vector3(19.35f, 3.5f, 14f));
+            AddWingLitGrade(set.physicsLights, "LitGrade", new Vector3(12.325f, 1.5f, -15f),
+                new Vector3(19.35f, 3.5f, 14f));
+            AddWingLitGrade(set.mainHallLights, "LitGrade_Hall", new Vector3(0f, 1.5f, 34.5f),
+                new Vector3(27.35f, 3.5f, 13.4f));
+            AddWingLitGrade(set.mainHallLights, "LitGrade_Staff", new Vector3(-12.325f, 1.5f, 23.5f),
+                new Vector3(19.35f, 3.5f, 6.4f));
+
             // Dawn chase: corridor lights come on with the gate. They must not
             // flicker - DawnRiser owns their intensity while they fade up.
             set.dawnLights = Group("DawnChase", parent);
