@@ -97,7 +97,7 @@ namespace LightShadow.UI
         // (DontDestroyOnLoad in EnsureCreated), so a language switch while it
         // exists must re-translate and re-font the visible strings in place or
         // they stay in the previous language until the object is destroyed.
-        internal void RefreshLanguage()
+        public void RefreshLanguage()
         {
             Font font = Localization.CurrentFont;
             if (captionText != null)

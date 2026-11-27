@@ -170,7 +170,7 @@ namespace LightShadow.UI
         // audit v3 5.5: the fragment target lives in GameManager.FragmentTarget.
         // The translated template carries a baked "/6", so substitute the live
         // target - the UI can never desync if the target moves.
-        internal static string FormatFragments(int collected)
+        public static string FormatFragments(int collected)
         {
             string template = StoryStrings.Tr("Fragments: {0}/6");
             const string baked = "/6";

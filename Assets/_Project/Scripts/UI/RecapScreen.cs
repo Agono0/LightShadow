@@ -219,19 +219,19 @@ namespace LightShadow.UI
         // audit v3 5.6: the export used to succeed (or fail) silently. The
         // result is now shown in a feedback label under the panel and the
         // button re-arms when the capture finishes.
-        internal string lastExportMessage = "";
+        public string lastExportMessage = "";
 
-        internal static string FormatSavedMessage(string fileName)
+        public static string FormatSavedMessage(string fileName)
         {
             return Localization.Format("Recap saved: {0}", fileName);
         }
 
-        internal static string FormatFailedMessage()
+        public static string FormatFailedMessage()
         {
             return Localization.TrPresent("Recap export failed");
         }
 
-        internal void SetExportFeedback(string message)
+        public void SetExportFeedback(string message)
         {
             lastExportMessage = message;
             if (exportFeedbackText != null)
