@@ -261,7 +261,7 @@ namespace LightShadow.Enemy
                 case State.Repelled: UpdateRepelled(); break;
                 case State.Investigate: UpdateInvestigate(dt, playerPosition, distance, effectiveLight, sighted); break;
                 case State.ForcedCooldown: UpdateForcedCooldown(dt); break;
-                case State.Ambush: UpdateAmbush(dt, distance, light); break;
+                case State.Ambush: UpdateAmbush(dt, distance, effectiveLight); break;
                 case State.Search: UpdateSearch(dt, playerPosition, sighted); break;
             }
         }
