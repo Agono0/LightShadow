@@ -60,7 +60,7 @@ namespace LightShadow.Tools
                 "اقرأ الأرقام الأربعة الناقصة من فوق إلى تحت.",
             };
             puzzle.drawer = drawer.transform;
-            puzzle.rewardRoot = fuse;
+            puzzle.rewardRoot = battery;
         }
 
         // Wing puzzle 2 (Docs/PUZZLES.md): the library card catalogue. A cabinet
@@ -105,7 +105,7 @@ namespace LightShadow.Tools
                 "طه حسين كتب عن حياته، والطبري كتب عن حياة الجميع.",
             };
             puzzle.tray = tray.transform;
-            puzzle.rewardRoot = fuse;
+            puzzle.rewardRoot = battery;
         }
 
         // Wing puzzle 3 (plan, workstream 5): the science-lab optics bench. A
@@ -163,7 +163,7 @@ namespace LightShadow.Tools
                 "المرآة أ تدور ربع دورة، والمنشور ربعين، والمرآة ب ثلاثة أرباع.",
             };
             puzzle.drawer = drawer.transform;
-            puzzle.rewardRoot = fuse;
+            puzzle.rewardRoot = battery;
         }
 
         // Wing puzzle 4 (plan, workstream 5): the staff-room wall map and
@@ -287,7 +287,7 @@ namespace LightShadow.Tools
                 "ست ومضات: أحمر، أخضر، كهرمان، أزرق، أخضر، أحمر.",
             };
             puzzle.hatch = hatch.transform;
-            puzzle.rewardRoot = fuse;
+            puzzle.rewardRoot = battery;
         }
 
         // Finale puzzle (plan, workstream 5): the gate console's wiring board.
