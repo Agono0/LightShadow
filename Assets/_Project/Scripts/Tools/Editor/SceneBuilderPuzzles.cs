@@ -175,9 +175,9 @@ namespace LightShadow.Tools
             var root = new GameObject("Puzzle_MapLocker");
             root.transform.SetParent(parent, false);
 
-            // The map on the staff room's north wall (z 26.7), facing -Z into
+            // The map on the staff room's north wall (inner face z 25.85; was 26.7, behind the wall: audit F0), facing -Z into
             // the room, so its labels take yaw 180 like the board texts.
-            Box(root.transform, "MapBoard", new Vector3(-12f, 1.8f, 26.62f),
+            Box(root.transform, "MapBoard", new Vector3(-12f, 1.8f, 25.78f),
                 new Vector3(3.2f, 1.6f, 0.06f), palette.paper, true, LevelLayer);
 
             // Six pins: a small cube plus a country label carrying its digit.
@@ -192,10 +192,10 @@ namespace LightShadow.Tools
             };
             for (int i = 0; i < pinLabels.Length; i++)
             {
-                Box(root.transform, "Pin_" + (i + 1), new Vector3(pinSpots[i].x, pinSpots[i].y + 0.12f, 26.56f),
+                Box(root.transform, "Pin_" + (i + 1), new Vector3(pinSpots[i].x, pinSpots[i].y + 0.12f, 25.72f),
                     new Vector3(0.05f, 0.05f, 0.04f), palette.indicatorOff, false);
                 CreateWorldText(root.transform, "PinLabel_" + (i + 1), pinLabels[i],
-                    new Vector3(pinSpots[i].x, pinSpots[i].y, 26.55f), Quaternion.Euler(0f, 180f, 0f),
+                    new Vector3(pinSpots[i].x, pinSpots[i].y, 25.71f), Quaternion.Euler(0f, 180f, 0f),
                     0.006f, 48, new Color(0.2f, 0.16f, 0.12f));
             }
 
