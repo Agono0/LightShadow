@@ -219,6 +219,10 @@ namespace LightShadow.Tools
             ending.dawnLight = dawnLight;
             ending.endingCamera = camera;
 
+            // The unified ending cinematic rig (Docs/ENDING_VO_SPEC.md): shots,
+            // placeholder subject, wraith silhouette and subtitle wiring.
+            BuildEndingCinematic(t, palette, camera, ending);
+
             // Ending music cues (Phase 1): one-shot per ending id, wired from
             // the audio library (Kevin MacLeod CC-BY). PartialMemory /
             // HollowEscape have no cue yet and stay silent until the Pixabay
