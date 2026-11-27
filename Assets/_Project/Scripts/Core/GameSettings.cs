@@ -65,6 +65,18 @@ namespace LightShadow.Core
         public static int MsaaIndex { get; private set; } = -1;        // index into MsaaSamples · -1 tier
         public static int RenderScaleIndex { get; private set; } = -1; // index into RenderScales · -1 tier
 
+        // Touch control size (mobile): 0 small · 1 normal · 2 large · 3 huge.
+        public static int ControlSizeIndex { get; private set; } = 1;
+        static readonly float[] ControlScales = { 0.85f, 1f, 1.2f, 1.4f };
+        public static float ControlScale
+        {
+            get
+            {
+                EnsureLoaded();
+                return ControlScales[Mathf.Clamp(ControlSizeIndex, 0, ControlScales.Length - 1)];
+            }
+        }
+
         static readonly float[] RenderScales = { 0.5f, 0.65f, 0.75f, 0.9f, 1f, 1.25f };
         static readonly int[] MsaaSamples = { 0, 2, 4 };
         static readonly float[] ShadowDistances = { 0f, 20f, 40f, 60f };
@@ -118,6 +130,7 @@ namespace LightShadow.Core
             // Missing fine-control prefs (fresh install) follow the tier; the
             // legacy literal defaults (2/2/2) are not assumed any more.
             ShadowsIndex = PlayerPrefs.GetInt("LS_Shadows", -1);
+            ControlSizeIndex = PlayerPrefs.GetInt("LS_ControlSize", 1);
             MsaaIndex = PlayerPrefs.GetInt("LS_MSAA", -1);
             RenderScaleIndex = PlayerPrefs.GetInt("LS_RenderScale", -1);
         }
@@ -170,6 +183,7 @@ namespace LightShadow.Core
             PlayerPrefs.SetInt(DebugModeKey, DebugMode ? 1 : 0);
             PlayerPrefs.SetInt("ls_qualityTier", TierIndex);
             PlayerPrefs.SetInt("LS_Shadows", ShadowsIndex);
+            PlayerPrefs.SetInt("LS_ControlSize", ControlSizeIndex);
             PlayerPrefs.SetInt("LS_MSAA", MsaaIndex);
             PlayerPrefs.SetInt("LS_RenderScale", RenderScaleIndex);
             PlayerPrefs.Save();
@@ -414,6 +428,19 @@ namespace LightShadow.Core
             ApplyGraphics();
             Save();
             Changed?.Invoke();
+        }
+
+        public static void SetControlSize(int index)
+        {
+            EnsureLoaded();
+            ControlSizeIndex = (index % ControlScales.Length + ControlScales.Length) % ControlScales.Length;
+            Save();
+            Changed?.Invoke();
+        }
+
+        public static string ControlSizeLabel()
+        {
+            return Mathf.RoundToInt(ControlScale * 100f) + "%";
         }
 
         public static void ResetGraphics()
