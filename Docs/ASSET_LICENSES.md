@@ -144,6 +144,22 @@ Download volume: Kenney packs 21.5 MB zips + Poly Haven 67 MB (24 × 2K JPG) ≈
   `Assets/_Project/Fonts/Licenses/`; the OFL FAQ is https://openfontlicense.org (verified 2026-11-19).
 
 ## ambientCG CC0 texture sets - decals (workstream C, downloaded + verified 2026-11-27)
+
+## Grab3D + OpenGameArt model fills (added 2026-11-27, workstream D candidates)
+
+Grab3D models are site-wide CC0 1.0 (license page https://grab3d.com/license/ verified
+2026-11-27: "every model on Grab3D is dedicated to the public domain under CC0 1.0...
+Pass it on: share the original or your changed version, on your own site too").
+Each Grab3D model page shows "License CC0 1.0 - public domain" and ships its own
+LICENSE.txt + manifest.json under /dl/<slug>/. OpenGameArt pages re-verified CC0 on
+2026-11-27. Per-file hashes, triangle counts and exact output paths are recorded in
+Docs/ASSET_MANIFEST.md (rows land with this PR, register v2).
+
+| Model | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SM_Prop_SchoolDesk.fbx | https://grab3d.com/models/furniture/school-desk/ | https://grab3d.com/dl/school-desk/school-desk.fbx | CC0 1.0 | Grab3D | 6,536 tris, 2K textures, FBX 7400, 0.74 x 0.51 x 0.76 m |
+| SM_Prop_SchoolLocker.fbx | https://grab3d.com/models/furniture/school-locker/ | https://grab3d.com/dl/school-locker/school-locker.fbx | CC0 1.0 | Grab3D | 13,044 tris, 2K textures, FBX 7400 |
+| SM_Prop_Lighter.obj + T_Prop_Lighter.jpg | https://opengameart.org/content/lighter | https://opengameart.org/sites/default/files/Lighter.zip | CC0 1.0 | plaggy | 1,024 faces / 709 verts, obj + texture |
 ## ambientCG CC0 texture sets - props (workstream C, downloaded + verified 2026-11-27)
 
 License verified at https://ambientcg.com/license (CC0 1.0; no attribution required).
