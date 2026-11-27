@@ -1,7 +1,7 @@
 # LIGHT SHADOW - Asset Manifest (single machine-readable register)
 
 register_version: 2
-generated_from_head: 2dd337650c70e6b0627b18a4e3fe3b4b8266b837
+generated_from_head: 8f0d6dc18eeccb128399c55aa7114d8f9f9e7d2f
 updated: 2026-11-27
 
 Rules: one row per asset file; family = base asset/cue id (id minus any trailing _N), equal to id for singles - library and cue references use the family/base id, numbered suffixes are runtime only; no empty cells (use -); status enum candidate|downloaded|imported|wired|replaced;
@@ -144,3 +144,4 @@ ASSET_LICENSES.md keeps the prose registry and pack-level notes; per-file truth 
 | T_RustMetal_Roughness | T_RustMetal_Roughness | Assets/_Project/Textures/Art/RustMetal/T_RustMetal_Roughness.jpg | texture | third-party | https://ambientcg.com/view?id=Metal064 | CC0-1.0 | ambientCG | - | 2026-11-27 | imported | - | - | Android maxSize 1024 | 2K JPG linear roughness | yes - tiling and look in editor | from Metal064_2K-JPG_Roughness.jpg in https://ambientcg.com/get?file=Metal064_2K-JPG.zip |
 | T_RustMetal_Smoothness | T_RustMetal_Smoothness | Assets/_Project/Textures/Art/Generated/T_RustMetal_Smoothness.png | texture | procedural | https://ambientcg.com/view?id=Metal064 | CC0-1.0 | ambientCG | - | 2026-11-27 | imported | - | - | Android maxSize 1024 | generated PNG, roughness inverted to alpha | yes - smoothness response in editor | our derivative of Metal064_2K-JPG_Roughness.jpg from https://ambientcg.com/get?file=Metal064_2K-JPG.zip |
 | Mat_Art_RustMetal | Mat_Art_RustMetal | Assets/_Project/Materials/Art/Mat_Art_RustMetal.mat | material | in-house | - | CC0-1.0 | - | - | 2026-11-27 | imported | - | - | - | URP Lit with T_RustMetal maps | yes - material look and tiling in editor | our material cloned from Concrete-set conventions, binds Metal064 maps |
+| SM_Wraith_GhostSkull | SM_Wraith_GhostSkull | Assets/_Project/Models/SM_Wraith_GhostSkull.glb | model | third-party | https://poly.pizza/m/TX8r9WBXpe | CC0-1.0 | Quaternius | - | 2026-11-27 | imported | - | - | - | GLB 232 KB published UNCHANGED; in-editor scale/pivot check; flat-color materials Ghost_Main/Ghost_Secondary, no embedded textures (pack FBX/Blend ship Atlas_Monsters.png) | outstanding - scale/pivot/material + motion check in editor | mesh Ghost_Skull, 3,144 tris, 51 nodes, 8 clips (Death/Fast_Flying/Flying_Idle/Headbutt/HitReact/No/Punch/Yes); sha256 d1e2268fe9621583ff879d6e6e3ace80b0a6a2373ec0139a8139c88fe6e4d942; pack https://quaternius.com/packs/ultimatemonsters.html; checked 2026-11-27 |
