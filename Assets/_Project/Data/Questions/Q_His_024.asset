@@ -21,7 +21,7 @@ MonoBehaviour:
   correctIndex: 0
   category: 2
   difficulty: 2
-  explanation: 'The stone carries the same text in three scripts, which let scholars decode Egyptian hieroglyphs.'
+  explanation: 'The stone carries one text in three scripts: hieroglyphic, Demotic and Greek. Scholars already read Greek, so it became the key to decoding the hieroglyphs.'
   factSource: NEEDS-FACT-CHECK
   questionAr: ساعد حجر رشيد العلماء على قراءة أي نظام كتابة قديم؟
   optionsAr:
@@ -29,4 +29,4 @@ MonoBehaviour:
   - الأرقام الرومانية
   - الحروف الصينية
   - الأبجدية الفينيقية
-  explanationAr: يحمل الحجر النص نفسه بثلاثة خطوط، وهذا مكّن العلماء من فك رموز الهيروغليفية المصرية.
+  explanationAr: يحمل الحجر النص نفسه بثلاثة خطوط: الهيروغليفية والديموطيقية واليونانية. وكان العلماء يقرأون اليونانية بالفعل، فكانت مفتاح فك رموز الهيروغليفية.
