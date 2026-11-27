@@ -25,6 +25,12 @@ namespace LightShadow.Audio
         public AudioClip[] footstepWood;
         public AudioClip[] footstepCarpet;
         public AudioClip[] footstepGrass;
+        public AudioClip[] footstepGravel;
+        public AudioClip[] footstepLeaves;
+        public AudioClip[] footstepMud;
+
+        [Header("Player voice")]
+        public AudioClip breathTired;
 
         [Header("World interactions (finish-the-game audio map)")]
         public AudioClip[] doorOpen;

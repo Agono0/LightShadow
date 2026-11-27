@@ -32,6 +32,10 @@ namespace LightShadow.Audio
             SfxRegistry.RegisterMany("SFX_FootstepWood", library.footstepWood);
             SfxRegistry.RegisterMany("SFX_FootstepCarpet", library.footstepCarpet);
             SfxRegistry.RegisterMany("SFX_FootstepGrass", library.footstepGrass);
+            SfxRegistry.RegisterMany("SFX_FootstepGravel", library.footstepGravel);
+            SfxRegistry.RegisterMany("SFX_FootstepLeaves", library.footstepLeaves);
+            SfxRegistry.RegisterMany("SFX_FootstepMud", library.footstepMud);
+            SfxRegistry.Register("SFX_Breath_Tired", library.breathTired);
             SfxRegistry.RegisterMany("SFX_DoorOpen", library.doorOpen);
             SfxRegistry.RegisterMany("SFX_DoorClose", library.doorClose);
             SfxRegistry.RegisterMany("SFX_PaperRustle", library.paperRustle);

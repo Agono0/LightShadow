@@ -129,6 +129,8 @@ namespace LightShadow.Tools
         {
             try
             {
+                // Same regeneration as the Android entry points.
+                BuildAll();
                 string result = BuildWindowsPlayer();
                 Debug.Log("[LightShadow] " + result);
                 EditorApplication.Exit(0);
@@ -177,6 +179,10 @@ namespace LightShadow.Tools
         {
             try
             {
+                // Regenerate the scenes from the builder code before packaging:
+                // the committed .unity files only reflect the last local scene
+                // build, and CI never ran one (found 2026-11-27).
+                BuildAll();
                 string result = BuildAndroidPlayer(architecture, "Builds/Android/" + AbiDirectoryName(architecture));
                 Debug.Log("[LightShadow] " + result);
                 EditorApplication.Exit(0);
@@ -221,6 +227,10 @@ namespace LightShadow.Tools
         static string BuildAll()
         {
             ConfigureProjectSettings();
+            // Generated assets are rebuilt from code, never hand-synced: the
+            // AudioLibrary references follow the SFX folder's naming
+            // convention before any scene or player build runs.
+            AudioLibrarySync.Sync();
             EnsureFolder(DataFolder);
             EnsureFolder(QuestionsFolder);
             EnsureFolder(MaterialsFolder);
