@@ -192,3 +192,15 @@ Concrete texture metas. CC0: no attribution list entries needed.
 | SurfaceImperfections015 (2K JPG) | https://ambientcg.com/view?id=SurfaceImperfections015 | CC0 1.0 | ambientCG | 2026-11-27 | T_DustImperfection_* detail/decal overlay (no material) |
 | PaintedMetal006 (2K JPG) | https://ambientcg.com/view?id=PaintedMetal006 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustedPaintedMetal_* / Mat_Art_RustedPaintedMetal |
 | Metal064 (2K JPG) | https://ambientcg.com/view?id=Metal064 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustMetal_* / Mat_Art_RustMetal |
+## Wave-2 model: Ghost Skull wraith (added 2026-11-27, peer-approved pick)
+
+License verified 2026-11-27 on the model page (Public Domain / CC0) and the pack
+page: Quaternius Ultimate Monsters, CC0 1.0, no attribution needed. The GLB is
+published UNCHANGED (sha256 in Docs/ASSET_MANIFEST.md); flat-color materials, no
+embedded textures - tint or pack atlas assignment is an in-editor step. No Unity
+import test was possible here: scale/pivot, materials and motion are UNVERIFIED
+(human_check outstanding).
+
+| Model | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SM_Wraith_GhostSkull.glb | https://poly.pizza/m/TX8r9WBXpe | https://static.poly.pizza/0716bf8e-1894-4a90-8d10-34868975a239.glb.br | CC0 1.0 | Quaternius | mesh Ghost_Skull, 3,144 tris, 8 clips; pack https://quaternius.com/packs/ultimatemonsters.html |
