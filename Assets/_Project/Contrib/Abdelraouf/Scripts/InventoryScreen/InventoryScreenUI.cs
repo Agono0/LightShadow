@@ -38,7 +38,6 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
 
         [Header("Behaviour")]
         public int gridColumns = 4;
-        public float removedPollSeconds = 0.25f;
 
         readonly InventoryScreenModel model = new InventoryScreenModel();
 
@@ -57,9 +56,6 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
 
         InputLockToken inputLock;
         bool cursorWasLocked;
-        float pollClock;
-        int lastKnownCount = -1;
-        int lastKnownHash;
 
         // Creates the screen if missing and returns it (same self-build idea
         // as InspectViewController.Show).
@@ -89,6 +85,7 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
             BuildUi();
             root.SetActive(false);
             Inventory.ItemAdded += OnItemAdded;
+            Inventory.ItemRemoved += OnItemRemoved;
             InventoryItemCatalog.ItemUsed += OnItemUsed;
             SaveSystem.SaveApplied += OnSaveApplied;
             Localization.LanguageChanged += OnLanguageChanged;
@@ -97,6 +94,7 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
         void OnDestroy()
         {
             Inventory.ItemAdded -= OnItemAdded;
+            Inventory.ItemRemoved -= OnItemRemoved;
             InventoryItemCatalog.ItemUsed -= OnItemUsed;
             SaveSystem.SaveApplied -= OnSaveApplied;
             Localization.LanguageChanged -= OnLanguageChanged;
@@ -146,29 +144,8 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
             }
         }
 
-        void Update()
-        {
-            if (!IsOpen) return;
-
-            // PROVISIONAL removal watch (until the owner's ItemRemoved event
-            // exists): re-read the carried set a few times per second and
-            // refresh when it changed. Cheap: HashSet enumeration allocates
-            // nothing; the sort only runs on an actual change.
-            pollClock -= Time.unscaledDeltaTime;
-            if (pollClock > 0f) return;
-            pollClock = removedPollSeconds;
-
-            int count = 0;
-            int hash = 0;
-            foreach (string id in Inventory.Carried)
-            {
-                count++;
-                hash = hash * 31 + (id != null ? id.GetHashCode() : 0);
-            }
-            if (count != lastKnownCount || hash != lastKnownHash) RefreshFromInventory();
-        }
-
         void OnItemAdded(string id) { if (IsOpen) RefreshFromInventory(); }
+        void OnItemRemoved(string id) { if (IsOpen) RefreshFromInventory(); }
         void OnItemUsed(string id) { if (IsOpen) RefreshFromInventory(); }
         void OnSaveApplied(SaveSystem.SaveData data) { if (IsOpen) RefreshFromInventory(); }
         void OnLanguageChanged() { if (IsOpen) { ApplyLanguage(); RefreshFromInventory(); } }
@@ -176,10 +153,6 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
         void RefreshFromInventory()
         {
             model.Refresh(Inventory.Carried);
-            lastKnownCount = model.Count;
-            int hash = 0;
-            for (int i = 0; i < model.Count; i++) hash = hash * 31 + model.Items[i].GetHashCode();
-            lastKnownHash = hash;
             RebuildGrid();
             RefreshDetail();
         }
