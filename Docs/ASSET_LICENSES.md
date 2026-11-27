@@ -220,6 +220,29 @@ import test was possible here: scale/pivot, materials and motion are UNVERIFIED
 | --- | --- | --- | --- | --- | --- |
 | SM_Wraith_GhostSkull.glb | https://poly.pizza/m/TX8r9WBXpe | https://static.poly.pizza/0716bf8e-1894-4a90-8d10-34868975a239.glb.br | CC0 1.0 | Quaternius | mesh Ghost_Skull, 3,144 tris, 8 clips; pack https://quaternius.com/packs/ultimatemonsters.html |
 
+## P1 models + dust mote texture (added 2026-11-27, peer-approved picks with explicit exceptions)
+
+Licenses verified 2026-11-27: all Quaternius model pages show Public Domain (CC0);
+the Kenney particle pack page shows CC0 (uploader: Kenney). All GLBs are published
+UNCHANGED (sha256 per row in Docs/ASSET_MANIFEST.md, computed on the served bytes);
+scale/pivot normalization is an in-editor step for the local side. Peer exceptions
+granted 2026-11-27: SM_DoorProp at 2216 tris (over the <2000 limit); SM_Brick
+embedded Atlas.png at 32x32 (below the 512 minimum, unchanged, no upscaling, no
+quality claim); flat-color (texture-less) materials on Key/Medkit/Crate/Book/
+DoorProp/TorchBody; off-spec sizes and non-base pivots as recorded per row.
+T_DustMote was downscaled 512 -> 128 px RGBA (LANCZOS), alpha preserved.
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SM_Key.glb | https://poly.pizza/m/y3bSVdIjTh | https://static.poly.pizza/d5f9c9e8-7c4f-4008-8260-1666db20aac6.glb.br | CC0 1.0 | Quaternius | 284 tris; 0.87 m long; flat-color |
+| SM_Medkit.glb | https://poly.pizza/m/Hp80p6148W | https://static.poly.pizza/41249676-0965-40df-8dd7-eee79dd9e6cf.glb.br | CC0 1.0 | Quaternius | First Aid Kit; 268 tris; 1.88 m wide; flat-color |
+| SM_Crate.glb | https://poly.pizza/m/3VGWnZPXmG | https://static.poly.pizza/720097e2-63ed-4e5f-9b66-eb416942eea0.glb.br | CC0 1.0 | Quaternius | 784 tris; 0.82 m cube; base pivot; flat-color |
+| SM_Book.glb | https://poly.pizza/m/Qkvcgg5tpj | https://static.poly.pizza/3b802cb1-60a9-4407-a9d1-fa0da66186f7.glb.br | CC0 1.0 | Quaternius | 668 tris; flat-color |
+| SM_Bottle.glb | https://poly.pizza/m/SU28ptta34 | https://static.poly.pizza/c4e94869-1211-44d4-b5a5-8b7e9b2d1455.glb.br | CC0 1.0 | Quaternius | 216 tris; embedded Sushi_Atlas.png 512x512 |
+| SM_Brick.glb | https://poly.pizza/m/tnNKjvigJA | https://static.poly.pizza/878792d6-8698-4444-882d-415238b60997.glb.br | CC0 1.0 | Quaternius | Brick Block; 540 tris; embedded Atlas.png 32x32 (exception) |
+| SM_DoorProp.glb | https://poly.pizza/m/JuTzNjtD54 | https://static.poly.pizza/7c257cc3-8ade-4813-86c2-82615b4c8eda.glb.br | CC0 1.0 | Quaternius | 2216 tris (exception); 3.08 m tall; flat-color |
+| SM_TorchBody.glb | https://poly.pizza/m/WGsvr4KOZd | https://static.poly.pizza/035c4897-22f3-4e9c-b29f-ebafe2b566da.glb.br | CC0 1.0 | Quaternius | 610 tris; 2.51 m tall; mid-height pivot; flat-color |
+| T_DustMote.png | https://opengameart.org/content/particle-pack-80-sprites | https://opengameart.org/sites/default/files/kenney_particlePack.zip | CC0 1.0 | Kenney | circle_05.png from zip, downscaled to 128x128 RGBA; original https://kenney.nl/assets/particle-pack |
 ## Ending VO: 28 synthetic generated clips (added 2026-11-27, PR #95)
 
 These 28 clips (VO_SN_Ending_01..14.ogg, EN + AR, under
