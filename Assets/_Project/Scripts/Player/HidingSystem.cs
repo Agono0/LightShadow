@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using LightShadow.Core;
 using LightShadow.Gameplay;
 using LightShadow.Story;
@@ -37,6 +38,7 @@ namespace LightShadow.Player
         public NoiseEmitter noise;
 
         static HidingSystem instance;
+        static InputLockToken hideLock;
 
         CharacterController controller;
         Vector3 entryPosition;
@@ -124,7 +126,7 @@ namespace LightShadow.Player
                 instance.touchBreathHeld = false;
                 instance.breathNoiseClock = 0f;
             }
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref hideLock);
         }
 
         void EnterInternal(HideSpot spot)
@@ -155,7 +157,7 @@ namespace LightShadow.Player
 
             CurrentSpot = spot;
             IsHidden = true;
-            PlayerController.ExternalInputLocked = true;
+            if (hideLock == null || !hideLock.IsActive) hideLock = OverlayStack.Acquire("Hiding");
 
             breath = 1f;
             holdingBreath = false;
@@ -180,7 +182,7 @@ namespace LightShadow.Player
             CurrentSpot = null;
             EnteredUnderWatch = false;
             holdingBreath = false;
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref hideLock);
         }
 
         // ------------------------------------------------------- update ----

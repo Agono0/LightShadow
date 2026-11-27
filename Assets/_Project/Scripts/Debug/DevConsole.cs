@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System.Collections.Generic;
 using LightShadow.Core;
 using LightShadow.Enemy;
@@ -50,7 +51,7 @@ namespace LightShadow.DebugTools
         public Button debugButton;
 
         readonly List<string> lines = new List<string>();
-        bool playerWasLocked;
+        InputLockToken consoleLock;
 
         public static void EnsureCreated()
         {
@@ -89,8 +90,7 @@ namespace LightShadow.DebugTools
 
             if (opening)
             {
-                playerWasLocked = PlayerController.ExternalInputLocked;
-                PlayerController.ExternalInputLocked = true;
+                if (consoleLock == null || !consoleLock.IsActive) consoleLock = OverlayStack.Acquire("DevConsole", true, false);
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
                 if (inputField != null)
@@ -102,7 +102,7 @@ namespace LightShadow.DebugTools
             }
             else
             {
-                if (!playerWasLocked) PlayerController.ExternalInputLocked = false;
+                OverlayStack.Release(ref consoleLock);
                 if (!Application.isMobilePlatform && !PauseMenu.IsOpen)
                 {
                     Cursor.lockState = CursorLockMode.Locked;

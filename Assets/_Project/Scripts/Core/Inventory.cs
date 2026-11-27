@@ -23,6 +23,10 @@ namespace LightShadow.Core
         // Fired after an item lands in the inventory; future HUD badges listen.
         public static event Action<string> ItemAdded;
 
+        // Fired after an item leaves the inventory (consumed medkit, used
+        // key) so HUD chips can drop it. Not fired when the id was not held.
+        public static event Action<string> ItemRemoved;
+
         // Display names for the HUD strip, keyed by item id. Scene props
         // (ItemPickup) can be inactive until revealed, so the names live here
         // instead of on the prop.
@@ -76,7 +80,9 @@ namespace LightShadow.Core
 
         public static void Remove(string id)
         {
-            if (!string.IsNullOrEmpty(id)) items.Remove(id);
+            if (string.IsNullOrEmpty(id) || !items.Remove(id)) return;
+            Action<string> removed = ItemRemoved;
+            if (removed != null) removed(id);
         }
 
         static void OnSaveCaptured(SaveSystem.SaveData data)

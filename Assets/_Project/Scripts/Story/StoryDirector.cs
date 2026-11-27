@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,6 +23,9 @@ namespace LightShadow.Story
     public class StoryDirector : MonoBehaviour
     {
         public static StoryDirector Instance { get; private set; }
+
+        // The story's own input lock. Static so the static reset can free it.
+        static InputLockToken storyLock;
 
         [Header("Wiring (set by SceneBuilderStory)")]
         public StoryConfig config;
@@ -88,7 +92,8 @@ namespace LightShadow.Story
             Instance.endingDecided = false;
             Instance.decidedEndingId = "";
             Instance.current = null;
-            PlayerController.ExternalInputLocked = false;
+            // Frees only the story's own lock; a Journal or puzzle token stays.
+            OverlayStack.Release(ref storyLock);
             if (Instance.dialogueUI != null) Instance.dialogueUI.Hide();
         }
 
@@ -167,7 +172,7 @@ namespace LightShadow.Story
             if (scene.name != SceneNames.School)
             {
                 // Leaving the school (ending/menu) always releases the player.
-                PlayerController.ExternalInputLocked = false;
+                OverlayStack.Release(ref storyLock);
             }
         }
 
@@ -300,7 +305,7 @@ namespace LightShadow.Story
                 SaveSystem.Autosave();
             }
 
-            PlayerController.ExternalInputLocked = true;
+            if (storyLock == null || !storyLock.IsActive) storyLock = OverlayStack.Acquire("Story", true, false);
             StoryEvents.RaiseNodeEntered(node);
 
             // Node-enter effects (timeout/route nodes carry their own small
@@ -458,7 +463,7 @@ namespace LightShadow.Story
         {
             current = null;
             lastConversationEndedAt = Time.unscaledTime;
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref storyLock);
             VoiceoverPlayer.Stop();
             StoryEvents.RaiseConversationEnded();
 

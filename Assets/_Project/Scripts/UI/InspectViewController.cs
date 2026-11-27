@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using LightShadow.Core;
 using LightShadow.Gameplay;
 using LightShadow.Player;
@@ -58,6 +59,8 @@ namespace LightShadow.UI
             Instance.ShowInternal(title, text, mesh, material);
         }
 
+        InputLockToken lockToken;
+
         void Awake()
         {
             if (Instance != null && Instance != this)
@@ -71,7 +74,7 @@ namespace LightShadow.UI
         void OnDestroy()
         {
             // Never leave the player locked behind a destroyed overlay.
-            if (IsOpen) PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (Instance == this) Instance = null;
         }
 
@@ -136,7 +139,7 @@ namespace LightShadow.UI
 
             // Movement freezes while the item fills the screen (the Shadow does
             // not - the quiz convention holds: the world does not pause).
-            PlayerController.ExternalInputLocked = true;
+            if (lockToken == null || !lockToken.IsActive) lockToken = OverlayStack.Acquire("InspectView", true, true, Hide);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
@@ -149,7 +152,7 @@ namespace LightShadow.UI
             itemInstance = null;
             itemAnchor = null;
 
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (!Application.isMobilePlatform && !PauseMenu.IsOpen)
             {
                 Cursor.lockState = CursorLockMode.Locked;

@@ -204,14 +204,25 @@ namespace LightShadow.Contrib.Abdelraouf.Hints
         }
 #endif
 
+        // The counter ("1/3") goes outside the shaped Arabic: the Arabic path
+        // reverses whole lines, which turns digit runs backwards. The label is
+        // drawn left to right, so the number sits on the left of the shaped
+        // name and still reads 1/3. Pure so EditMode can test it. The visual
+        // result in the game is not checked.
+        public static string BuildTitle(int level, int maxLevel, bool arabic, string nameEn, string nameAr,
+            System.Func<string, string> present)
+        {
+            if (!arabic) return "Hint " + level + "/" + maxLevel + " - " + nameEn;
+            string shaped = present != null ? present(nameAr) : nameAr;
+            return level + "/" + maxLevel + " " + shaped;
+        }
+
         void ShowLevel(HintEntry entry, int level)
         {
             bool arabic = Localization.Current == GameLanguage.Arabic;
             string[] namesEn = { "Nudge", "Clue", "Answer" };
             string[] namesAr = { "تلميح خفيف", "دليل", "الحل" };
-            string title = arabic
-                ? Localization.Present(namesAr[level - 1] + " " + level + "/" + MaxLevel)
-                : "Hint " + level + "/" + MaxLevel + " - " + namesEn[level - 1];
+            string title = BuildTitle(level, MaxLevel, arabic, namesEn[level - 1], namesAr[level - 1], Localization.Present);
             string body = entry.Get(level, arabic);
             if (arabic && !string.IsNullOrEmpty(entry.Get(level, true)))
             {
