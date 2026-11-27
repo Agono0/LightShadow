@@ -21,7 +21,24 @@ editor or on a device; CI is the first compile.
   on the infirmary and library shelves; Contrib/Usef SchoolLevelModel updated to current builders (1.2) with a soft-lock test.
 - F24: StoryDirector maps offered slot to the real choice index.
 - Haptics opt-out preference (HapticsService.Enabled); settings toggle not yet wired.
-- Not done here: auto-rotation and activeInputHandler left as is (landscape-only
+- Saves: atomic write with .bak fallback (AtomicFile); player health persisted via contrib key "player_health"
+  (old saves restore full health); New Game resets story + hint log.
+- Localization: removed double shaping of pickup/reward/solve messages, door lock template, unlock template,
+  quiz answer line shaped once, typewriter shaped per word, degree sign LTR, puzzle key hints kept in Arabic, 2 mistranslations
+  fixed, 8 new Arabic entries (AI-drafted by a peer, NOT native-reviewed).
+- Systems/audio: cinematic type lookup cached, pool double-release guard, dawn state cleared per run, ending music on
+  the Music group, voiceover on the Voice category and loaded per clip, scene scan no longer re-registers sources,
+  StoryTeller speech process cancelled on Stop/interrupt, crank decorative accumulator removed.
+- Inventory: medkit use handler registered, BAG touch button, fuse description made honest (no progression use).
+- Story: linked-node loop guard is per conversation (2.2).
+- Torch: beam originates at the torch lens in the hand (SceneBuilderPrefabs). Takes effect when the builder
+  regenerates the Player prefab; not seen in the editor.
+- Folded peer inputs (each mirrored to mirror/* at the exact head): Ahmed ui-fixes-input, hud-fixes-input,
+  ui-tests-input, settings-tests-input, audio-assets-input (AMB_NightWindDrips, UNWIRED, not auditioned);
+  Abdelraouf overlay-locks, overlay-esc-fix, quiz-factcheck-input (report only; no factSource promoted).
+- Packages: unused packages dropped from manifest.json; packages-lock.json not edited.
+- Not done here (open): settings sliders for Voice/Shadow, kit skin wiring, save restore by identity, enemy state in saves,
+  "Not done here:" auto-rotation and activeInputHandler left as is (landscape-only
   autorotation, both input systems in use); 132/133 quiz questions still need a
   teacher fact-check, so no release-readiness claim; Arabic strings are not
   native-verified.
