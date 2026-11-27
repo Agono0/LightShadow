@@ -29,10 +29,12 @@ namespace LightShadow.Core
         static readonly Dictionary<string, string> nameEn = new Dictionary<string, string>
         {
             { "master_key", "Master key" },
+            { "fuse", "Fuse" },
         };
         static readonly Dictionary<string, string> nameAr = new Dictionary<string, string>
         {
             { "master_key", "المفتاح الرئيسي" },
+            { "fuse", "مصهر" },
         };
 
         public static string DisplayName(string id)

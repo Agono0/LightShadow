@@ -47,6 +47,50 @@ jobs:
             echo "code=false" >> "$GITHUB_OUTPUT"
           fi
 
+  test-editmode:
+    name: test-editmode
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: changes
+    steps:
+      - if: needs.changes.outputs.code == 'true'
+        name: Free runner disk space (GameCI editor image + project do not fit otherwise)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          docker-images: true
+          large-packages: true
+          swap-storage: true
+
+      - if: needs.changes.outputs.code == 'true'
+        uses: actions/checkout@v4
+
+      # Library cache mirrors the build jobs so repeat runs stay fast.
+      - if: needs.changes.outputs.code == 'true'
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-test-editmode-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-test-editmode-
+
+      - if: needs.changes.outputs.code == 'true'
+        name: Run EditMode tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: auto
+          testMode: EditMode
+
+      # Docs-only PRs still need the required check name to report success.
+      - if: needs.changes.outputs.code != 'true'
+        run: echo "docs-only change; EditMode tests skipped"
+
   build-android:
     name: build-android (${{ matrix.abi }})
     runs-on: ubuntu-latest
