@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System;
 using System.Collections;
 using LightShadow.Core;
@@ -47,6 +48,7 @@ namespace LightShadow.UI
         Action onWrongAttempt;
         bool busy;
         bool cursorWasLocked;
+        InputLockToken lockToken;
 
         void Awake()
         {
@@ -117,7 +119,7 @@ namespace LightShadow.UI
 
             if (panel != null) panel.SetActive(true);
 
-            PlayerController.ExternalInputLocked = true;
+            lockToken = OverlayStack.Acquire("OpticsUI", true, true, () => Close(false));
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
             {
@@ -210,7 +212,7 @@ namespace LightShadow.UI
 
         void ReleaseLock()
         {
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (cursorWasLocked && !Application.isMobilePlatform)
             {
                 Cursor.lockState = CursorLockMode.Locked;
