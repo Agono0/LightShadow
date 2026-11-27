@@ -46,7 +46,7 @@ namespace LightShadow.Gameplay
             get
             {
                 if (IsLocked) return string.Format(Localization.Tr("Locked - {0} needed"), Inventory.DisplayName(keyId)); // logical text: the HUD shapes it once
-                return IsOpen ? "Close the door" : "Open the door";
+                return IsOpen ? "Close the door" : "Open the door"; // source sentences: the HUD translates and shapes them once
             }
         }
 
@@ -64,7 +64,7 @@ namespace LightShadow.Gameplay
                     LightShadow.Audio.Sfx.Play("SFX_DoorUnlock", ProceduralSfx.Power); // the lock clicks open
                     if (GameManager.Instance != null)
                     {
-                        GameManager.Instance.ShowMessage("Unlocked with the " + Inventory.DisplayName(keyId) + ".", 3f);
+                        GameManager.Instance.ShowMessage(string.Format(Localization.Tr("Unlocked with the {0}."), Inventory.DisplayName(keyId)), 3f);
                     }
                 }
                 else
