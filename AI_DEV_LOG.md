@@ -298,8 +298,6 @@ history and stay untouched (append-only).
   limited` — Unity 6000.4 deprecates that target, so the x86_64 matrix entry and batch method
   were removed and the pipeline corrected on this branch.
 
-
-
 ### 2026-11-19 — Docs/SOURCING_FONTS_MUSIC.md (premium-pass font + music sourcing) — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) with WebSearch/WebFetch license-and-URL verification.
 - What AI provided: verified sourcing doc — 5 font families (Noto Naskh Arabic, Cairo, Reem Kufi,
@@ -690,20 +688,6 @@ history and stay untouched (append-only).
   phones, and why the safe-area child only insets on notched devices).
 - Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
   no local Unity editor available.
-### 2026-11-27 — Menu pass: music hook + animated buttons (plan workstream 6) — Abdelrhman Mohamed
-- Tool used: Instinct (AI coding agent)
-- What AI provided: a graceful menu-music hook in `MainMenuController.Start`
-  (plays `SfxRegistry.Clip("MUS_Menu")` when the audio library registers the cue, stays
-  silent otherwise, preserving the current deliberate quiet until bro ships the loop) and
-  `MenuButtonFX`, a hand-rolled unscaled-time hover-lift/press-dip animation added to the
-  four top-level menu buttons in `BuildMainMenuUI`.
-- What I changed myself: pending review — changes land through the PR workflow (AGENTS.md rule 9).
-- Teach-back check: pending — PR body explains why MUS_Menu is a new cue id proposed to bro
-  (the cue sheet lists no menu music) and why the hook no-ops without the clip.
-- Test result: pending — CI compile + builds are the gate; no local Unity editor. Verified on
-  paper: SfxRegistry.Clip returns null for unknown ids; PlayMusic only runs on a real clip;
-  MenuButtonFX restores scale on enable/disable and eases on unscaledDeltaTime.
-
 ### 2026-11-27 — SaveSystem deferred-restore fix (audit A3) — Abdelrhman Mohamed
 - Tool used: Instinct (AI coding agent)
 - What AI provided: `SaveSystem.ClearPendingRestore` and the new-game hook in
