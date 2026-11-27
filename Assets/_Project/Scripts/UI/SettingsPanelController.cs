@@ -84,6 +84,44 @@ namespace LightShadow.UI
             "Master volume", "Music volume", "Ambience volume", "SFX volume", "UI volume",
         };
 
+        // Rows that only make sense where a picked resolution exists (audit
+        // A5). Page A reflows around them on mobile; page B is untouched.
+        static bool HiddenOnMobile(int row)
+        {
+            return Application.isMobilePlatform && (row == ResolutionRow || row == FullscreenRow);
+        }
+
+        // The builder lays page A rows out at y = -120 - i * 64 (prev/next sit
+        // 3 lower). Re-run the same formula over the rows that stay visible.
+        void ReflowPageAForMobile()
+        {
+            int visible = 0;
+            for (int i = 0; i < PageARows; i++)
+            {
+                if (HiddenOnMobile(i)) continue;
+                float y = -120f - visible * 64f;
+                if (rowLabels != null && i < rowLabels.Length && rowLabels[i] != null)
+                {
+                    rowLabels[i].rectTransform.anchoredPosition = new Vector2(rowLabels[i].rectTransform.anchoredPosition.x, y);
+                }
+                if (rowValues != null && i < rowValues.Length && rowValues[i] != null)
+                {
+                    rowValues[i].rectTransform.anchoredPosition = new Vector2(rowValues[i].rectTransform.anchoredPosition.x, y);
+                }
+                if (prevButtons != null && i < prevButtons.Length && prevButtons[i] != null)
+                {
+                    prevButtons[i].GetComponent<RectTransform>().anchoredPosition =
+                        new Vector2(prevButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + 3f);
+                }
+                if (nextButtons != null && i < nextButtons.Length && nextButtons[i] != null)
+                {
+                    nextButtons[i].GetComponent<RectTransform>().anchoredPosition =
+                        new Vector2(nextButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + 3f);
+                }
+                visible++;
+            }
+        }
+
         void Awake()
         {
             if (panel != null) panel.SetActive(false);
@@ -98,6 +136,12 @@ namespace LightShadow.UI
             if (resetButton != null) resetButton.onClick.AddListener(GameSettings.ResetGraphics);
             if (closeButton != null) closeButton.onClick.AddListener(Hide);
             if (moreButton != null) moreButton.onClick.AddListener(TogglePage);
+
+            // A5: the Resolution and Fullscreen rows are no-ops on mobile (the
+            // game renders native-only there since the A1 stretch fix). Hide
+            // them and close the gap so page A has no dead rows on phones.
+            if (Application.isMobilePlatform) ReflowPageAForMobile();
+            ApplyPageVisibility();
 
             Localization.LanguageChanged += Refresh;
             GameSettings.Changed += Refresh;
@@ -146,7 +190,7 @@ namespace LightShadow.UI
                 rowValues != null ? rowValues.Length : 0);
             for (int i = 0; i < bound; i++)
             {
-                bool onThisPage = (i < PageARows) == (currentPage == 0);
+                bool onThisPage = (i < PageARows) == (currentPage == 0) && !HiddenOnMobile(i);
                 if (rowLabels[i] != null) rowLabels[i].gameObject.SetActive(onThisPage);
                 if (rowValues[i] != null) rowValues[i].gameObject.SetActive(onThisPage);
                 if (prevButtons != null && i < prevButtons.Length && prevButtons[i] != null)
