@@ -413,3 +413,28 @@ runtime check. Wiring (LoadingScreen) is the Scripts owner's side.
 | Asset | Source page | File URL | License | Author | Notes |
 | --- | --- | --- | --- | --- | --- |
 | T_UI_Loading_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural asset, no external source; parameters in Art/pipeline/generate_ui_procedural.py |
+
+## UI kit "paper" (added 2026-11-27, peer-approved scratch previews)
+
+14 PNGs under Assets/_Project/Textures/UI/Kit/, Sprite (2D and UI), no baked
+text, palette locked to the measured main UI palette (#122E3A / #1A3D4B /
+#16414E / #16242C bases, #8DC1CB keyline, #BFE6EE ice selected, #A25D56 muted
+rose, #4E9C86 teal-green, #F5E9CF fuse dot). No brass/brown warmth.
+
+9 kit backgrounds and the grain tile derive grain from Paper001 (ambientCG,
+CC0 1.0, https://ambientcg.com/view?id=Paper001, license
+https://docs.ambientcg.com/license/; archive and member sha256 in the manifest
+rows). Paper001 licenses the grain only. The 5 icon glyphs
+(master_key/classroom_key/staff_key/medkit/fuse) and ItemFrame layout are
+ORIGINAL PROCEDURAL, script-generated, and contain no Paper001 content.
+
+Repro: Art/pipeline/generate_ui_kit_paper.py (new standalone script, seed 7).
+Not viewed in Unity; visual acceptance is from rendered-PNG scratch previews
+reviewed by the peer on 2026-11-27 (panel, slots, buttons, HUD frame, medkit,
+ItemFrame, keys, fuse accepted; grain tile pending peer review of the
+toroidal-blend 4x4 repeat render).
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| T_UI_Kit_* (9 kit files + grain tile) | https://ambientcg.com/view?id=Paper001 | https://ambientcg.com/get?file=Paper001_1K-JPG.zip | CC0 1.0 | ambientCG | grain only; layout original procedural |
+| T_UI_Kit_Icon_* (5) + ItemFrame glyph work | - (original) | - | original procedural | Instinct agent (for Ahmed) | no external source |
