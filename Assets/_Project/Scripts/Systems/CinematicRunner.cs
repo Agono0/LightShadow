@@ -36,7 +36,21 @@ namespace LightShadow.Systems
             public const string ComposerType = "Unity.Cinemachine.CinemachinePositionComposer";
             public const string BrainType = "Unity.Cinemachine.CinemachineBrain";
 
+            // Every shot used to scan every type of every assembly (audit 6.1).
+            // Results, including misses, are cached for the session.
+            static readonly System.Collections.Generic.Dictionary<string, Type> typeCache =
+                new System.Collections.Generic.Dictionary<string, Type>();
+
             public static Type Find(string fullName)
+            {
+                Type cached;
+                if (typeCache.TryGetValue(fullName, out cached)) return cached;
+                Type found = Scan(fullName);
+                typeCache[fullName] = found;
+                return found;
+            }
+
+            static Type Scan(string fullName)
             {
                 System.Reflection.Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
                 for (int i = 0; i < assemblies.Length; i++)
