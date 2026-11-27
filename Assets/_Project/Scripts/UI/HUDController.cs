@@ -313,6 +313,10 @@ namespace LightShadow.UI
         public void FadeToBlack(float seconds, Action onBlack)
         {
             if (fadeRoutine != null) StopCoroutine(fadeRoutine);
+            // Reset the base colour: an interrupted hurt flash leaves the image
+            // red, and only that coroutine's normal end restores black - so a
+            // black fade starting mid-flash would fade to red (HUD review).
+            if (fadeImage != null) fadeImage.color = new Color(0f, 0f, 0f, fadeImage.color.a);
             fadeRoutine = StartCoroutine(FadeRoutine(1f, seconds, onBlack));
         }
 
