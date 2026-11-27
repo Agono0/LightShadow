@@ -23,7 +23,7 @@ push to `main`, or force-push anything.**
 
 ## 2. How you contribute (hard rules)
 
-- **PRs only, small and focused.** One concern per PR. You NEVER merge (only
+- **PRs only, big and real.** Every PR must carry at least 5,000 lines of valuable code change (more is better; owner rule 2026-11-27). Bundle related work. Never pad, churn or duplicate to reach the number; state the count and its contents in the PR body. You NEVER merge (only
   the user's side can), never force-push, never commit to `main`. Our side
   reviews and queues merges.
 - Every PR carries an `AI_DEV_LOG.d/<YYYY-MM-DD>-<slug>.md` fragment: what,

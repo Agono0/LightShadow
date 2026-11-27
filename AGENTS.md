@@ -32,6 +32,14 @@ Fast orientation for humans and AI agents. Verify cheaply; never re-derive from 
 
 `main` is the protected source of truth. The only way in is a pull request.
 
+**PR size rule (owner instruction, 2026-11-27 23:00): every PR must carry at least 5,000 lines of
+valuable code change, and more is better.** Bundle related features, fixes, tests and tooling
+into one PR to reach it. Never pad: no generated filler, no reformatting churn, no duplicated
+code, no dead code and no stretching a change to hit the number. If a real piece of work is
+smaller, bundle it with the next piece of real work on the same branch instead of opening a
+small PR. Count lines of source, tests, builders and hand-written docs; do not count
+binary assets, generated files or lockfiles. State the line count and what it contains in the PR body.
+
 1. Branch off latest `origin/main`: `git fetch origin && git switch -c <type>/<topic> origin/main`
    — prefixes `feat/` `fix/` `docs/` `perf/` `chore/`.
 2. Commit granularly with conventional messages (`fix(loading): …`); `.meta` files always
