@@ -53,7 +53,10 @@ namespace LightShadow.UI
         public const int HintsRow = 24;        // progressive hints on/off
 
         public const int PageARows = 12;
-        public const int TotalRows = 25;
+        public const int VolumeVoiceRow = 25;  // appended: existing row indices never move
+        public const int VolumeShadowRow = 26;
+
+        public const int TotalRows = 27;
 
         [Header("Wiring")]
         public GameObject panel;
@@ -87,6 +90,7 @@ namespace LightShadow.UI
             "Master volume", "Music volume", "Ambience volume", "SFX volume", "UI volume",
             "Touch control size",
             "Sound captions", "Hints",
+            "Voice volume", "Shadow volume",
         };
 
         // Rows that only make sense where a picked resolution exists (audit
@@ -267,6 +271,8 @@ namespace LightShadow.UI
                 case VolumeAmbienceRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ambience, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ambience)) - 1); break;
                 case VolumeSfxRow: VolumeCategories.SetLevel(VolumeCategories.Category.Sfx, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Sfx)) - 1); break;
                 case VolumeUiRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ui, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ui)) - 1); break;
+                case VolumeVoiceRow: VolumeCategories.SetLevel(VolumeCategories.Category.Voice, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Voice)) - 1); break;
+                case VolumeShadowRow: VolumeCategories.SetLevel(VolumeCategories.Category.Shadow, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Shadow)) - 1); break;
                 case ControlSizeRow: GameSettings.SetControlSize(GameSettings.ControlSizeIndex - 1); break;
                 case CaptionsRow: ToggleCaptions(); break;
                 case HintsRow: ToggleHints(); break;
@@ -301,6 +307,8 @@ namespace LightShadow.UI
                 case VolumeAmbienceRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ambience, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ambience)) + 1); break;
                 case VolumeSfxRow: VolumeCategories.SetLevel(VolumeCategories.Category.Sfx, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Sfx)) + 1); break;
                 case VolumeUiRow: VolumeCategories.SetLevel(VolumeCategories.Category.Ui, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Ui)) + 1); break;
+                case VolumeVoiceRow: VolumeCategories.SetLevel(VolumeCategories.Category.Voice, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Voice)) + 1); break;
+                case VolumeShadowRow: VolumeCategories.SetLevel(VolumeCategories.Category.Shadow, Mathf.RoundToInt(VolumeCategories.GetLevel(VolumeCategories.Category.Shadow)) + 1); break;
                 case ControlSizeRow: GameSettings.SetControlSize(GameSettings.ControlSizeIndex + 1); break;
                 case CaptionsRow: ToggleCaptions(); break;
                 case HintsRow: ToggleHints(); break;
@@ -427,6 +435,8 @@ namespace LightShadow.UI
                 case VolumeAmbienceRow: return VolumeSliderLabel(VolumeCategories.Category.Ambience);
                 case VolumeSfxRow: return VolumeSliderLabel(VolumeCategories.Category.Sfx);
                 case VolumeUiRow: return VolumeSliderLabel(VolumeCategories.Category.Ui);
+                case VolumeVoiceRow: return VolumeSliderLabel(VolumeCategories.Category.Voice);
+                case VolumeShadowRow: return VolumeSliderLabel(VolumeCategories.Category.Shadow);
                 case ControlSizeRow: return GameSettings.ControlSizeLabel();
                 case CaptionsRow:
                     return Contrib.Abdelraouf.Captions.CaptionService.Enabled ? Localization.TrPresent("On") : Localization.TrPresent("Off");

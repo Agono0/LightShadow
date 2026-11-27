@@ -860,6 +860,7 @@ namespace LightShadow.Tools
                 "Master volume", "Music volume", "Ambience volume", "SFX volume", "UI volume",
                 "Touch control size",
                 "Sound captions", "Hints",
+                "Voice volume", "Shadow volume",
             };
 
             for (int i = 0; i < pageBKeys.Length; i++)
@@ -870,7 +871,7 @@ namespace LightShadow.Tools
                 // Sound captions (i == 11) sits at the end of the right column,
                 // Hints (i == 12) at the end of the left column (row 6).
                 bool leftColumn = i < 6 || i == 12;
-                int columnRow = i < 6 ? i : (i == 12 ? 6 : i - 6);
+                int columnRow = i < 6 ? i : (i == 12 ? 6 : (i >= 13 ? i - 7 : i - 6));
                 float x = leftColumn ? 48f : 580f;
                 float valueX = leftColumn ? 285f : 817f;
                 float prevX = leftColumn ? 412f : 944f;

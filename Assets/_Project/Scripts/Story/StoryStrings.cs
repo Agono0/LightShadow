@@ -108,6 +108,8 @@ namespace LightShadow.Story
             { "Ambience volume", "الصوت المحيط" },
             { "SFX volume", "المؤثرات" },
             { "UI volume", "أصوات الواجهة" },
+            { "Voice volume", "صوت الراوي" },   // AI-drafted, not native-reviewed
+            { "Shadow volume", "صوت الظل" },     // AI-drafted, not native-reviewed
 
             // ---- ending + recap ----------------------------------------------
             { "ENDING", "النهاية" },
