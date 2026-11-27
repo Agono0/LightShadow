@@ -224,6 +224,7 @@ namespace LightShadow.Core
             { "ENTER THE SCHOOL", "ادخل المدرسة" },
             { "HOW TO PLAY", "كيف تلعب" },
             { "SETTINGS", "الإعدادات" },
+            { "CREDITS", "الشكر والتقدير" },
             { "QUIT", "خروج" },
             { "BACK", "رجوع" },
             { "CLOSE", "إغلاق" },
