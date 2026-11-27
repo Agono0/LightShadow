@@ -375,6 +375,7 @@ namespace LightShadow.Tools
             GameManager manager = systems.AddComponent<GameManager>();
             CheckpointManager checkpoints = systems.AddComponent<CheckpointManager>();
             AudioManager audio = systems.AddComponent<AudioManager>();
+            systems.AddComponent<PuzzleManager>();
 
             AudioSource music = CreateAudioSource(systems.transform, "MusicSource");
             AudioSource ambience = CreateAudioSource(systems.transform, "AmbienceSource");
@@ -779,6 +780,7 @@ namespace LightShadow.Tools
 
             CreateBattery(prefabs, t, "Battery_Classroom", new Vector3(-20.2f, 0.05f, 5.2f));
             CreateBoard(prefabs, t, database, "Board_Classroom", new Vector3(-12f, 1.7f, 4.18f), Quaternion.Euler(0f, 180f, 0f));
+            CreateChalkboardCipher(prefabs, t, palette);
         }
 
         static void BuildGarden(Transform parent, Prefabs prefabs, Palette palette, QuestionDatabase database)
