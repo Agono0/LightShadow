@@ -439,3 +439,18 @@ toroidal-blend 4x4 repeat render).
 | --- | --- | --- | --- | --- | --- |
 | T_UI_Kit_* (9 files incl. grain tile; ItemFrame dual origin) | https://ambientcg.com/view?id=Paper001 | https://ambientcg.com/get?file=Paper001_1K-JPG.zip | CC0 1.0 | ambientCG | grain only; layout original procedural |
 | T_UI_Kit_Icon_* (5) + ItemFrame glyph work | - (original) | - | original procedural | Instinct agent (for Ahmed) | no external source |
+
+## Ambience "Loopable Dungeon Ambience" (added 2026-11-28, feat/audio-assets-input)
+
+AMB_NightWindDrips.ogg is the unmodified source file dungeon_ambient_1.ogg
+(Ogg Vorbis, 48 kHz stereo, 94.3 s, intended loop), sha256
+df491823e4877371c34dbda4e9321cd83a4a14fa7573cee0ebca1ae423b70e6e6e -
+re-downloaded and byte-compared on 2026-11-28. CC0 verified on the source
+page (CC0 badge and text) on 2026-11-28. Candidate quiet night bed; added
+as a NEW asset only - not wired, existing bed untouched. Measured loudness
+and loop-boundary numbers in Docs/SFX_LOUDNESS_REPORT.md; loop seamlessness,
+school fit and non-musical character are UNVERIFIED listening judgments.
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| AMB_NightWindDrips.ogg | https://opengameart.org/content/loopable-dungeon-ambience | https://opengameart.org/sites/default/files/dungeon_ambient_1.ogg | CC0 1.0 | JaggedStone | unmodified source bytes; no attribution required (CC0) |
