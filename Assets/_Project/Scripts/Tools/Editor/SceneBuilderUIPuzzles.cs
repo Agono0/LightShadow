@@ -307,5 +307,72 @@ namespace LightShadow.Tools
             ctrl.hintButton = hintButton;
             ctrl.closeButton = close;
         }
+
+        // Wiring-board overlay (workstream 5), used by the finale gate
+        // console: three feeds on the left, three terminals on the right.
+        static void BuildCircuitPanel(Transform root)
+        {
+            RectTransform dim = MakeFullScreen(root, "CircuitPanel", new Color(0f, 0f, 0f, 0.82f), true);
+            CircuitUIController ctrl = dim.gameObject.AddComponent<CircuitUIController>();
+
+            RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(780f, 680f), PanelDark, false).rectTransform;
+
+            Text title = MakeText(card, "Title", "", 30, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 268f), new Vector2(660f, 48f), FontStyle.Bold, true);
+
+            Text progress = MakeText(card, "Progress", "", 19, Dim, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 224f), new Vector2(660f, 28f));
+
+            Button[] feeds = new Button[3];
+            Text[] feedLabels = new Text[3];
+            Button[] terminals = new Button[3];
+            Text[] terminalLabels = new Text[3];
+            for (int i = 0; i < 3; i++)
+            {
+                float y = 148f - i * 88f;
+                feeds[i] = MakeButton(card, "Feed" + (i + 1), "", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, 0.5f), new Vector2(-182f, y), new Vector2(300f, 68f), ButtonDark, 21, out feedLabels[i]);
+                terminals[i] = MakeButton(card, "Terminal" + (i + 1), "", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, 0.5f), new Vector2(182f, y), new Vector2(300f, 68f), ButtonDark, 21, out terminalLabels[i]);
+            }
+
+            Text feedback = MakeText(card, "Feedback", "", 23, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -132f), new Vector2(660f, 36f));
+
+            Text hint = MakeText(card, "Hint", "", 20, Dim, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -184f), new Vector2(660f, 52f));
+
+            Text hintLabel;
+            Button hintButton = MakeButton(card, "Hint", "HINT", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(-196f, -270f), new Vector2(220f, 50f), ButtonDark, 20, out hintLabel);
+            Localize(hintLabel, "تلميح");
+
+            Text closeLabel;
+            Button close = MakeButton(card, "Close", "STEP AWAY", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(196f, -270f), new Vector2(220f, 50f), ButtonDark, 20, out closeLabel);
+            Localize(closeLabel, "ابتعد");
+
+            Text footer = MakeText(card, "Footer", "1-3 feed, Q/W/E terminal   ·   the world does not pause", 15, Dim,
+                TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(0f, 20f), new Vector2(660f, 24f));
+            Localize(footer, "1-3 تغذية و Q/W/E طرف   ·   العالم لا يتوقف");
+
+            ctrl.panel = dim.gameObject;
+            ctrl.titleText = title;
+            ctrl.progressText = progress;
+            ctrl.feedButtons = feeds;
+            ctrl.feedLabels = feedLabels;
+            ctrl.terminalButtons = terminals;
+            ctrl.terminalLabels = terminalLabels;
+            ctrl.feedbackText = feedback;
+            ctrl.hintText = hint;
+            ctrl.hintButton = hintButton;
+            ctrl.closeButton = close;
+        }
     }
 }

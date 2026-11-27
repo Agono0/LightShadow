@@ -283,5 +283,38 @@ namespace LightShadow.Tools
             puzzle.hatch = hatch.transform;
             puzzle.rewardRoot = battery;
         }
+
+        // Finale puzzle (plan, workstream 5): the gate console's wiring board.
+        // A small console box beside the gate's existing glow; the component
+        // sits on the same root so a ray hit on the console opens the board.
+        static void CreateGateCircuit(Transform gateTransform, ExitGate exit, Palette palette)
+        {
+            var root = new GameObject("Puzzle_GateCircuit");
+            root.transform.SetParent(gateTransform, false);
+
+            Box(root.transform, "Console", new Vector3(2.75f, 1.1f, 0.53f),
+                new Vector3(0.7f, 1.1f, 0.3f), palette.metal, true, LevelLayer);
+            Box(root.transform, "PanelFace", new Vector3(2.75f, 1.35f, 0.70f),
+                new Vector3(0.5f, 0.5f, 0.04f), palette.chalkboard, true, LevelLayer);
+
+            GateCircuitPuzzle puzzle = root.AddComponent<GateCircuitPuzzle>();
+            puzzle.displayNameEn = "the gate console";
+            puzzle.displayNameAr = "لوحة البوابة";
+            puzzle.hintsEn = new[]
+            {
+                "Every feed wants the terminal that matches its strength.",
+                "The gate motor is the hungriest - give it the main hall feed.",
+                "The dawn lights sip; the library feed is enough. What is left turns the crank.",
+            };
+            puzzle.hintsAr = new[]
+            {
+                "كل تغذية تريد الطرف الذي يناسب قوتها.",
+                "محرك البوابة الأكثر جوعًا - أعطه تغذية القاعة.",
+                "أضواء الفجر تكتفي بالقليل؛ تغذية المكتبة تكفي. وما تبقى يدير الذراع.",
+            };
+            puzzle.gate = exit;
+
+            if (exit != null) exit.circuitPuzzle = puzzle;
+        }
     }
 }
