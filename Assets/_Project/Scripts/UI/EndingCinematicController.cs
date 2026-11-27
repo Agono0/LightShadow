@@ -31,6 +31,10 @@ namespace LightShadow.UI
             public float seconds = 7f;
             [Tooltip("Story node ids spoken/shown during this shot, in order.")]
             public string[] lineIds = new string[0];
+            [Tooltip("Optional: subject pose at shot start (the on-screen character).")]
+            public Transform subjectFrom;
+            [Tooltip("Optional: subject pose at shot end; lerped with the camera.")]
+            public Transform subjectTo;
         }
 
         public sealed class EndingLine
@@ -92,6 +96,11 @@ namespace LightShadow.UI
 
         [Header("Shots (spec section 4; waypoints placed by the scene builder)")]
         public Shot[] shots = new Shot[0];
+
+        [Header("Subject")]
+        [Tooltip("The on-screen character (placeholder until the girl model ships). "
+            + "Lerped between a shot's subjectFrom/subjectTo waypoints when assigned.")]
+        public Transform subject;
 
         [Header("Timing")]
         public float minSecondsPerLine = 2.5f;
@@ -207,6 +216,11 @@ namespace LightShadow.UI
                 float eased = Mathf.SmoothStep(0f, 1f, t);
                 cam.transform.position = Vector3.Lerp(shot.from.position, shot.to.position, eased);
                 cam.transform.rotation = Quaternion.Slerp(shot.from.rotation, shot.to.rotation, eased);
+                if (subject != null && shot.subjectFrom != null && shot.subjectTo != null)
+                {
+                    subject.position = Vector3.Lerp(shot.subjectFrom.position, shot.subjectTo.position, eased);
+                    subject.rotation = Quaternion.Slerp(shot.subjectFrom.rotation, shot.subjectTo.rotation, eased);
+                }
                 yield return null;
             }
         }

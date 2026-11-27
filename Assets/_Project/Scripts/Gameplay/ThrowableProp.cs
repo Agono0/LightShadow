@@ -81,6 +81,7 @@ namespace LightShadow.Gameplay
                 body.angularVelocity = Random.insideUnitSphere * 3f;
             }
             landedSinceRelease = false;
+            if (impulse != Vector3.zero) LightShadow.Audio.Sfx.PlayAt("SFX_ThrowWhoosh", transform.position);
         }
 
         void Update()
@@ -108,13 +109,13 @@ namespace LightShadow.Gameplay
 
             if (shatters)
             {
-                Play(ProceduralSfx.Power); // placeholder smash until bro's glass clip
+                LightShadow.Audio.Sfx.PlayAt("SFX_GlassCrack", transform.position, ProceduralSfx.Power);
                 SpawnShards();
                 gameObject.SetActive(false);
             }
             else
             {
-                Play(ProceduralSfx.Click); // placeholder clatter
+                LightShadow.Audio.Sfx.PlayAt(collision.relativeVelocity.magnitude > 4f ? "SFX_ThrowImpactHard" : "SFX_ThrowImpactSoft", transform.position, ProceduralSfx.Click);
             }
         }
 

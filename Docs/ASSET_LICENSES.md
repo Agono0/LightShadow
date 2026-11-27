@@ -220,6 +220,20 @@ import test was possible here: scale/pivot, materials and motion are UNVERIFIED
 | --- | --- | --- | --- | --- | --- |
 | SM_Wraith_GhostSkull.glb | https://poly.pizza/m/TX8r9WBXpe | https://static.poly.pizza/0716bf8e-1894-4a90-8d10-34868975a239.glb.br | CC0 1.0 | Quaternius | mesh Ghost_Skull, 3,144 tris, 8 clips; pack https://quaternius.com/packs/ultimatemonsters.html |
 
+## P0 SFX: female hurt hit / heavy (added 2026-11-27, peer-approved pick)
+
+License re-verified on the source page 2026-11-27: CC0 1.0, author states on the
+page "use however you like, no credit required". Both clips are segments of one
+source file (exact offsets recorded per row in Docs/ASSET_MANIFEST.md), processed
+before import (segment extract, silence trim -50 dB/20 ms, peak normalized to
+-3.0 dBFS, Vorbis q4 44.1 kHz mono). No audition was possible in the agent
+environment: segments were chosen by silence/duration structure only and their
+sound-fit is provisional and UNVERIFIED (per-row human_check).
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SFX_HurtHit_0.ogg | https://opengameart.org/content/female-hurt-grunts-groans | https://opengameart.org/sites/default/files/female_hurt_grunts_groans_1.ogg | CC0 1.0 | Nocturnal_Vanguard (AuraVoice) | segment 3.73-4.09s; short grunt; female voice |
+| SFX_HurtHeavy_0.ogg | https://opengameart.org/content/female-hurt-grunts-groans | https://opengameart.org/sites/default/files/female_hurt_grunts_groans_1.ogg | CC0 1.0 | Nocturnal_Vanguard (AuraVoice) | segment 4.93-6.08s; longer groan; same source file |
 ## P1 models + dust mote texture (added 2026-11-27, peer-approved picks with explicit exceptions)
 
 Licenses verified 2026-11-27: all Quaternius model pages show Public Domain (CC0);
@@ -328,3 +342,19 @@ existing placeholders (UI_Panel/UI_Button/UI_Glow/UI_Backdrop) are untouched.
 | --- | --- | --- | --- | --- | --- |
 | T_UI_Panel_Night.png, T_UI_Button_Night.png | https://opengameart.org/content/fantasy-ui-borders | https://opengameart.org/sites/default/files/kenney_fantasy-ui-borders.zip | CC0 1.0 | Kenney | recolored derivatives of Double panel-000: vector re-raster + two-tone tint (panel), 9-slice composition (button) |
 | T_UI_Glow_Night.png, T_UI_Backdrop_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural assets, no external source; parameters in Art/pipeline/generate_ui_procedural.py |
+
+## Loading screen art (added 2026-11-27, peer reservation grant)
+
+T_UI_Loading_Night.png is an ORIGINAL in-house script-generated asset - no
+external source, no stock, no third-party license. Same moonlit vertical
+gradient as the night backdrop (blue-teal, thin low-saturation amber-rose band
+at the very bottom) plus a pale moon disc with a soft cool glow; no motif, no
+baked text. Exact parameters in Art/pipeline/generate_ui_procedural.py
+(append-only loading section; the four earlier night-UI outputs are
+byte-unchanged, verified by sha256 before/after). Visual review of the
+rendered PNG was performed on the actual pixels 2026-11-27; no in-editor or
+runtime check. Wiring (LoadingScreen) is the Scripts owner's side.
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| T_UI_Loading_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural asset, no external source; parameters in Art/pipeline/generate_ui_procedural.py |
