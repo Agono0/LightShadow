@@ -24,6 +24,9 @@ namespace LightShadow.UI
         public Button settingsButton;
         public Button closeHowToButton;
         public Button quitButton;
+        public Button creditsButton;
+        public Button closeCreditsButton;
+        public GameObject creditsPanel;
         public GameObject howToPanel;
         public SettingsPanelController settings;
 
@@ -38,6 +41,9 @@ namespace LightShadow.UI
             if (settingsButton != null) settingsButton.onClick.AddListener(OpenSettings);
             if (closeHowToButton != null) closeHowToButton.onClick.AddListener(ToggleHowTo);
             if (quitButton != null) quitButton.onClick.AddListener(QuitGame);
+            if (creditsButton != null) creditsButton.onClick.AddListener(ToggleCredits);
+            if (closeCreditsButton != null) closeCreditsButton.onClick.AddListener(ToggleCredits);
+            if (creditsPanel != null) creditsPanel.SetActive(false);
             if (savesButton != null) savesButton.onClick.AddListener(OpenSaves);
             if (howToPanel != null) howToPanel.SetActive(false);
         }
@@ -62,6 +68,7 @@ namespace LightShadow.UI
                 if (settings != null && settings.IsOpen) return;
                 if (saveSlots != null && saveSlots.IsOpen) return;
                 if (howToPanel != null && howToPanel.activeSelf) howToPanel.SetActive(false);
+                else if (creditsPanel != null && creditsPanel.activeSelf) creditsPanel.SetActive(false);
                 else Play();
                 return;
             }
@@ -72,6 +79,7 @@ namespace LightShadow.UI
                 if (settings != null && settings.IsOpen) settings.Hide();
                 else if (saveSlots != null && saveSlots.IsOpen) saveSlots.Hide();
                 else if (howToPanel != null && howToPanel.activeSelf) howToPanel.SetActive(false);
+                else if (creditsPanel != null && creditsPanel.activeSelf) creditsPanel.SetActive(false);
             }
         }
 
@@ -114,6 +122,13 @@ namespace LightShadow.UI
         {
             if (howToPanel == null) return;
             howToPanel.SetActive(!howToPanel.activeSelf);
+        }
+
+        public void ToggleCredits()
+        {
+            if (creditsPanel == null) return;
+            if (howToPanel != null) howToPanel.SetActive(false);
+            creditsPanel.SetActive(!creditsPanel.activeSelf);
         }
 
         public void QuitGame()
