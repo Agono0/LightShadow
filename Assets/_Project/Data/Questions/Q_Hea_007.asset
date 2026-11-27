@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Health guidelines recommend about 60 minutes of moderate-to-vigorous
     activity daily for teenagers.
   factSource: NEEDS-FACT-CHECK
+  questionAr: كم من النشاط البدني المعتدل ينبغي للمراهق أن يستهدفه كل يوم؟
+  optionsAr:
+  - 10 دقائق
+  - 30 دقيقة
+  - 60 دقيقة
+  - 3 ساعات
+  explanationAr: التوصيات الصحية تنصح المراهق بنحو 60 دقيقة يوميًا من النشاط المعتدل إلى الشديد.

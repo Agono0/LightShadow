@@ -46,6 +46,25 @@ namespace LightShadow.Tools
         const string ModelLightpost = "lightpost-single";
         const string ModelFence = "iron-fence";
 
+        // P2 hero props: Blender FBX exports under _Project/Models/Hero
+        // (Art/pipeline). Real-world metres, Unity axes, bottom-centre origins.
+        // Placed uniformly (never stretched) and rebound onto the canonical
+        // art materials by name via ArtImporter.HeroRemapMaterial.
+        const string HeroModelFolder = "Assets/_Project/Models/Hero";
+        const string HeroModelMemoryBox = "SM_Story_MemoryBox";
+        const string HeroModelCard = "SM_Story_Card";
+        const string HeroModelBookmark = "SM_Story_Bookmark";
+        const string HeroModelExamPaper = "SM_Story_ExamPaper";
+        const string HeroModelPrism = "SM_Story_Prism";
+        const string HeroModelPhotograph = "SM_Story_Photograph";
+        const string HeroModelProgramme = "SM_Story_Programme";
+        const string HeroModelMug = "SM_Story_Mug";
+        const string HeroModelFlashlight = "SM_Player_Flashlight";
+        const string HeroModelDoorGrille = "SM_Arch_DoorGrille";
+        const string HeroModelChalkboard = "SM_Arch_Chalkboard";
+        const string HeroModelGateCrank = "SM_Arch_GateCrank";
+        const string HeroModelIronGate = "SM_Arch_IronGate";
+
         // Target real-world sizes (metres) for the swapped models. They come
         // from the greybox dimensions the SceneBuilder builds, not from taste.
         const float DeskTargetHeight = 0.78f;
@@ -63,6 +82,25 @@ namespace LightShadow.Tools
         const float FenceSegmentWidth = 2.4f;
         const float BoxTargetHeight = 0.32f;
         const float RugTargetHeight = 0.04f;
+
+        // Hero swap targets. Door/chalkboard match the greybox hosts they
+        // replace (both FBX models are authored at exactly these heights, so
+        // the normalisation lands on scale 1); the QuizBoard prefab board is
+        // 1.2 m tall like the portable chalkboard FBX.
+        const float DoorTargetHeight = 2.05f;
+        const float ChalkboardHostTargetHeight = 1.9f;
+        const float QuizBoardChalkboardTargetHeight = 1.2f;
+        const int IronGateSegmentsPerSide = 2;
+        const float StoryItemAnchorY = 0.4f; // fragment "Paper" placeholder centre
+
+        // Player-hand anchor for SM_Player_Flashlight. The FBX origin is the
+        // torch tail (bottom centre), so the anchor compensates for the half
+        // length the old centre-origin cylinder primitive implied, and the
+        // pitch turns the model's +Y axis into the hand's forward axis with
+        // the same 6-degree roll as the primitive. Public because
+        // ArtImporter's prefab restyle installs the identical child.
+        public static readonly Vector3 FlashlightHandAnchor = new Vector3(0.028f, 0.035f, -0.176f);
+        public static readonly Quaternion FlashlightHandRotation = Quaternion.Euler(90f, 0f, 6f);
 
         // Texture world-size (metres per full UV tile) per surface material.
         const float PlasterTileMeters = 3f;
@@ -230,10 +268,12 @@ namespace LightShadow.Tools
 
             // Prefab instances own their own look: interactables keep their
             // hand-tuned palette, and Player/TheShadow are restyled at the
-            // prefab level by ArtImporter. Only the ExitGate gets a pass here.
+            // prefab level by ArtImporter. The ExitGate gains its crank and
+            // KnowledgeFragment instances gain their story-item meshes here.
             if (PrefabUtility.IsPartOfPrefabInstance(go))
             {
                 if (go.GetComponent<ExitGate>() != null) StyleExitGate(go);
+                else if (go.GetComponent<KnowledgeFragment>() != null) StyleFragment(go);
                 return; // never descend into prefab instances
             }
 
@@ -318,7 +358,12 @@ namespace LightShadow.Tools
             }
             if (name == "MemoryBox")
             {
-                SwapBoxWithModel(go, ModelCardboardBox, BoxTargetHeight);
+                SwapMemoryBox(go);
+                return;
+            }
+            if (name.StartsWith("Door_"))
+            {
+                SwapDoorWithHeroModel(transform);
                 return;
             }
             if (name.StartsWith("Planter_"))
@@ -379,12 +424,26 @@ namespace LightShadow.Tools
                     SwapMaterialTiled(transform.gameObject, "Mat_Art_Fabric", FabricTileMeters);
                     return true;
                 case "Chalkboard":
-                    SwapMaterialPlain(transform.gameObject, "Mat_Art_Chalkboard");
+                    SwapChalkboardHost(transform);
                     return true;
                 case "ChalkFrameTop":
                 case "ChalkFrameBottom":
-                    SwapMaterialTiled(transform.gameObject, "Mat_Art_DoorWood", DoorWoodTileMeters);
+                {
+                    // The hero chalkboard FBX carries its own frame, so the
+                    // greybox frame strips go dark only when the model landed.
+                    Transform board = transform.parent != null
+                        ? transform.parent.Find("Chalkboard")
+                        : null;
+                    if (board != null && HasArtModel(board))
+                    {
+                        HideRenderer(transform.gameObject);
+                    }
+                    else
+                    {
+                        SwapMaterialTiled(transform.gameObject, "Mat_Art_DoorWood", DoorWoodTileMeters);
+                    }
                     return true;
+                }
                 case "PillarL":
                 case "PillarR":
                     SwapMaterialTiled(transform.gameObject, "Mat_Art_Stone", StoneTileMeters);
@@ -407,6 +466,123 @@ namespace LightShadow.Tools
                 SwapMaterialTiled(renderer.gameObject, "Mat_Art_GateMetal", MetalTileMeters);
             }
             Count("exit gate");
+            SwapGateCrank(gate);
+        }
+
+        // -------------------------------------------------------- hero swaps
+        // Each one is optional: when the FBX has not shipped the greybox
+        // primitive (or its Kenney stand-in) stays, so the pass degrades,
+        // never breaks.
+
+        // The crank the story keeps mentioning, mounted on the console's
+        // player-facing face. Native size (the FBX is authored at crank
+        // scale); yaw 90 turns the axle towards the player, and the anchor
+        // puts the wheel hub on the console collider's centre height (2.75,
+        // 1.2) - the interact point - with the wall plate flush against the
+        // console front. Fallback: nothing (the console stays bare).
+        static void SwapGateCrank(GameObject gate)
+        {
+            if (gate.transform.Find("ArtModel_" + HeroModelGateCrank) != null) return;
+            if (AddHeroModelChild(gate, HeroModelGateCrank, 0f,
+                    Quaternion.Euler(0f, 90f, 0f), new Vector3(2.75f, 1.02f, 0.405f)) == null) return;
+            Count("hero gate crank");
+        }
+
+        // The mother's memory box: the hero keepsake box replaces the Kenney
+        // cardboard stand-in at its authored real-world size, with the story
+        // card resting on the lid (the P3 inspect view reuses both hosts).
+        // Fallback: the cardboard box swap (existing behaviour).
+        static void SwapMemoryBox(GameObject box)
+        {
+            if (HasArtModel(box.transform)) return;
+            float bottom = -box.transform.lossyScale.y * 0.5f;
+            if (AddHeroModelChild(box, HeroModelMemoryBox, 0f,
+                    Quaternion.Euler(0f, 12f, 0f), new Vector3(0f, bottom, 0f)) == null)
+            {
+                SwapBoxWithModel(box, ModelCardboardBox, BoxTargetHeight);
+                return;
+            }
+            HideRenderer(box);
+            Count("hero memory box");
+
+            GameObject boxAsset = LoadModelAsset(HeroModelMemoryBox);
+            float boxHeight = boxAsset != null ? ArtImporter.ComputePrefabBounds(boxAsset).size.y : 0.1f;
+            if (AddHeroModelChild(box, HeroModelCard, 0f,
+                    Quaternion.Euler(0f, 15f, 0f),
+                    new Vector3(0.02f, bottom + boxHeight + 0.006f, 0.02f),
+                    "ArtModel_" + HeroModelCard) != null)
+            {
+                Count("hero story card");
+            }
+        }
+
+        // Locked wing doors: the hero grille door fills its doorway box
+        // (decorative, no collider - the walk gap and NavMesh stay as built).
+        // Fallback: door-wood material on the box (existing pattern).
+        static void SwapDoorWithHeroModel(Transform door)
+        {
+            if (HasArtModel(door)) return;
+            // Yaw 90 puts the model's width along the wall run; the origin is
+            // the door's bottom edge, hence the half-height drop.
+            if (AddHeroModelChild(door.gameObject, HeroModelDoorGrille, DoorTargetHeight,
+                    Quaternion.Euler(0f, 90f, 0f),
+                    new Vector3(0f, -door.transform.lossyScale.y * 0.5f, 0f)) == null)
+            {
+                SwapMaterialTiled(door.gameObject, "Mat_Art_DoorWood", DoorWoodTileMeters);
+                return;
+            }
+            HideRenderer(door.gameObject);
+            Count("hero door grille");
+        }
+
+        // Classroom chalkboard: the hero board (frame, tray, chalk sticks and
+        // eraser included) replaces the greybox slab. Fallback: the plain
+        // chalk material (existing behaviour).
+        static void SwapChalkboardHost(Transform host)
+        {
+            if (HasArtModel(host)) return;
+            // Yaw 180: the FBX chalk face points +Z and this wall faces -Z
+            // into the room; the origin is the board's bottom edge.
+            if (AddHeroModelChild(host.gameObject, HeroModelChalkboard, ChalkboardHostTargetHeight,
+                    Quaternion.Euler(0f, 180f, 0f),
+                    new Vector3(0f, -host.transform.lossyScale.y * 0.5f, 0f)) == null)
+            {
+                SwapMaterialPlain(host.gameObject, "Mat_Art_Chalkboard");
+                return;
+            }
+            HideRenderer(host.gameObject);
+            Count("hero chalkboard");
+        }
+
+        // Story-item hosts: each fragment instance gains its real hero mesh
+        // centred on the paper placeholder's spot; the P3 inspect view will
+        // reuse the same hosts. Fallback: the paper primitive stays.
+        static readonly Dictionary<string, string> FragmentHeroModels = new Dictionary<string, string>
+        {
+            { "Fragment_Bookmark", HeroModelBookmark },
+            { "Fragment_ExamPaper", HeroModelExamPaper },
+            { "Fragment_Optics", HeroModelPrism },
+            { "Fragment_Jasmine", HeroModelPhotograph },
+            { "Fragment_Mug", HeroModelMug },
+            { "Fragment_Programme", HeroModelProgramme },
+        };
+
+        static void StyleFragment(GameObject fragment)
+        {
+            if (!FragmentHeroModels.TryGetValue(fragment.name, out string modelName)) return;
+            Transform visual = fragment.transform.Find("Visual");
+            if (visual == null || visual.Find("ArtModel_" + modelName) != null) return;
+
+            GameObject modelAsset = LoadModelAsset(modelName);
+            if (modelAsset == null) return; // placeholder stays; LoadModelAsset already warned
+
+            Vector3 rawSize = ArtImporter.ComputePrefabBounds(modelAsset).size;
+            if (AddHeroModelChild(visual.gameObject, modelName, 0f, Quaternion.identity,
+                    new Vector3(0f, StoryItemAnchorY - rawSize.y * 0.5f, 0f)) == null) return;
+
+            Transform paper = visual.Find("Paper");
+            if (paper != null) HideRenderer(paper.gameObject);
+            Count("hero story item");
         }
 
         // ------------------------------------------------------- swap helpers
@@ -583,7 +759,10 @@ namespace LightShadow.Tools
                 if (cached != null) return cached;
             }
 
-            string[] guids = AssetDatabase.FindAssets(modelName, new[] { ThirdPartyFolder });
+            // Hero FBX models (_Project/Models/Hero, Art/pipeline exports)
+            // resolve alongside the Kenney packs; the exact-filename check
+            // keeps the two namespaces apart.
+            string[] guids = AssetDatabase.FindAssets(modelName, new[] { HeroModelFolder, ThirdPartyFolder });
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -599,6 +778,94 @@ namespace LightShadow.Tools
             Debug.LogWarning("[LightShadow] Art pass: model not found: " + modelName);
             ModelAssetCache[modelName] = null;
             return null;
+        }
+
+        // -------------------------------------------------------- hero plumbing
+        // Every hero swap is optional: when the FBX has not shipped the
+        // greybox primitive (or its Kenney stand-in) stays, so the pass
+        // degrades gracefully, never breaks.
+
+        // Instantiates a hero FBX under host, uniformly scaled in WORLD space
+        // so its height matches targetHeight (0 = native authored size), with
+        // the given yaw and a metre-space local position. The model rides on
+        // an unscaled carrier because the greybox hosts are scaled cubes: a
+        // direct child would inherit their per-axis scale, and a yaw would
+        // then swap the compensation axes. Hosts must therefore be
+        // axis-aligned with identity rotation (all swap callers are). Returns
+        // the FBX instance, or null when the model is missing.
+        static GameObject AddHeroModelChild(GameObject host, string modelName, float targetHeight,
+            Quaternion localRotation, Vector3 localPositionMeters, string carrierName = null)
+        {
+            GameObject modelAsset = LoadModelAsset(modelName);
+            if (modelAsset == null)
+            {
+                ArtSkippedNoModel++;
+                return null;
+            }
+
+            var carrier = new GameObject(carrierName ?? ("ArtModel_" + modelName));
+            carrier.transform.SetParent(host.transform, false);
+            Vector3 lossy = host.transform.lossyScale;
+            Vector3 inverse = new Vector3(
+                Mathf.Abs(lossy.x) > 0.0001f ? 1f / lossy.x : 1f,
+                Mathf.Abs(lossy.y) > 0.0001f ? 1f / lossy.y : 1f,
+                Mathf.Abs(lossy.z) > 0.0001f ? 1f / lossy.z : 1f);
+            carrier.transform.localScale = inverse;
+            carrier.transform.localPosition = Vector3.Scale(localPositionMeters, inverse);
+            carrier.layer = host.layer;
+
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset, carrier.transform);
+            instance.name = modelName;
+            instance.transform.localPosition = Vector3.zero;
+            instance.transform.localRotation = localRotation;
+
+            // Imported models carry no colliders, but destroy defensively so
+            // the art pass can never alter physics or the NavMesh.
+            foreach (Collider collider in instance.GetComponentsInChildren<Collider>(true))
+            {
+                UnityEngine.Object.DestroyImmediate(collider, true);
+            }
+
+            // Keep every node on the host's layer so camera culling and the
+            // static-flag pass see one consistent set.
+            foreach (Transform node in instance.GetComponentsInChildren<Transform>(true))
+            {
+                node.gameObject.layer = host.layer;
+            }
+
+            RebindHeroMaterials(instance);
+
+            Vector3 rawSize = ArtImporter.ComputePrefabBounds(modelAsset).size;
+            float uniform = targetHeight > 0f ? targetHeight / Mathf.Max(0.05f, rawSize.y) : 1f;
+            instance.transform.localScale = new Vector3(uniform, uniform, uniform);
+            return instance;
+        }
+
+        // FBX material rebind: the importer writes one external .mat per FBX
+        // material next to the model; those generated twins must not ship.
+        // Every renderer under the instance moves onto the canonical art
+        // material with the same name (ArtImporter.HeroRemapMaterial); names
+        // that are not registered keep their twin, which the importer already
+        // converted to URP/Lit. Public because ArtImporter's prefab restyle
+        // installs hero meshes outside the scene swap table.
+        public static void RebindHeroMaterials(GameObject instance)
+        {
+            foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] materials = renderer.sharedMaterials;
+                bool changed = false;
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    Material canonical = ArtImporter.HeroRemapMaterial(
+                        materials[i] != null ? materials[i].name : null);
+                    if (canonical == null) continue;
+                    materials[i] = canonical;
+                    changed = true;
+                }
+                if (!changed) continue;
+                renderer.sharedMaterials = materials;
+                EditorUtility.SetDirty(renderer);
+            }
         }
 
         // -------------------------------------------------- material plumbing
@@ -758,6 +1025,27 @@ namespace LightShadow.Tools
                 }
             }
             Count("forecourt fence");
+
+            // Hero iron gate sections extend the Kenney fence line into the
+            // gate gap, inward from each fence end, leaving the road open
+            // (decor only, no colliders, same FenceTargetHeight normalization
+            // as the Kenney fence so the rails line up).
+            GameObject gateAsset = LoadModelAsset(HeroModelIronGate);
+            if (gateAsset == null) return;
+            Vector3 gateSize = ArtImporter.ComputePrefabBounds(gateAsset).size;
+            float gateWidth = gateSize.x * (FenceTargetHeight / Mathf.Max(0.05f, gateSize.y));
+            for (int side = 0; side < 2; side++)
+            {
+                float direction = side == 0 ? -1f : 1f;
+                for (int i = 0; i < IronGateSegmentsPerSide; i++)
+                {
+                    float x = direction * (ForecourtFenceGapHalfWidth - gateWidth * (i + 0.5f));
+                    if (AddHeroModelChild(line, HeroModelIronGate, FenceTargetHeight,
+                            Quaternion.identity, new Vector3(x, 0f, ForecourtFenceZ),
+                            "ArtModel_" + HeroModelIronGate + "_" + side + "_" + i) == null) return;
+                }
+            }
+            Count("forecourt iron gate");
         }
 
         // ------------------------------------------------------------ misc

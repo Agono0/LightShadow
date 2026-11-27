@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 2
   explanation: Soap lifts the oils and dirt that trap germs so they rinse away.
   factSource: NEEDS-FACT-CHECK
+  questionAr: لماذا غسل اليدين بالصابون أفضل من غسلهما بالماء وحده؟
+  optionsAr:
+  - لأن الصابون يجعل اليدين زُلقًا
+  - لأن الصابون يزيل الدهون والأوساخ التي يتركها الماء وحده
+  - لأن الصابون يضيف بكتيريا نافعة إلى الجلد
+  - لأن الصابون يجفف جلد الجراثيم
+  explanationAr: الصابون يرفع الدهون والأوساخ التي تحتمي بها الجراثيم، فتُغسل مع الماء.
