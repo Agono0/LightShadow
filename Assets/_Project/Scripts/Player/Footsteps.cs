@@ -31,8 +31,6 @@ namespace LightShadow.Player
 
         AudioSource source;
         float stepClock;
-        const int ConcreteVariants = 4;
-        const int WoodVariants = 2;
 
         void Awake()
         {
@@ -44,7 +42,9 @@ namespace LightShadow.Player
 
         void Update()
         {
-            if (player == null || SfxRegistry.HasAny("SFX_FootstepConcrete", ConcreteVariants) == false)
+            int concreteCount = SfxRegistry.VariantCount("SFX_FootstepConcrete");
+            int woodCount = SfxRegistry.VariantCount("SFX_FootstepWood");
+            if (player == null || concreteCount == 0)
             {
                 return;
             }
@@ -79,9 +79,9 @@ namespace LightShadow.Player
         {
             // Corridors and classrooms mix concrete and wood; the concrete set
             // is the base with an occasional wood plank step.
-            AudioClip clip = Random.value < 0.75f
-                ? SfxRegistry.ClipVariant("SFX_FootstepConcrete", ConcreteVariants)
-                : SfxRegistry.ClipVariant("SFX_FootstepWood", WoodVariants);
+            AudioClip clip = Random.value < 0.75f || woodCount == 0
+                ? SfxRegistry.ClipVariant("SFX_FootstepConcrete", concreteCount)
+                : SfxRegistry.ClipVariant("SFX_FootstepWood", woodCount);
             if (clip == null) return;
 
             source.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
