@@ -469,7 +469,7 @@ namespace LightShadow.Story
 
             if (dialogueUI != null) dialogueUI.Hide();
 
-            // Fuse/fragment beats close with an autosave so a conversation never
+            // Fuse beats close with an autosave (fragment beats do not; audit 2.4) so a conversation never
             // half-survives a quit (D12).
             if (node != null && node.trigger == StoryTrigger.FuseRestored)
             {

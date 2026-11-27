@@ -207,7 +207,13 @@ namespace LightShadow.Story
             {
                 char c = text[i];
                 builder.Append(c);
-                bodyText.text = Localization.Present(builder.ToString());
+                // Arabic is shaped per finished word, not per character (audit
+                // 2.5): reshaping a growing string is O(n^2) and the letters
+                // visibly change form as the word grows.
+                if (Localization.Current != GameLanguage.Arabic || char.IsWhiteSpace(c) || i == text.Length - 1)
+                {
+                    bodyText.text = Localization.Present(builder.ToString());
+                }
                 i++;
 
                 // Punctuation-aware pauses so delivery breathes (matches the

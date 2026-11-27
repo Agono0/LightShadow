@@ -166,6 +166,7 @@ namespace LightShadow.Core
             if (c >= 'a' && c <= 'z') return true;
             switch (c)
             {
+                case '\u00B0': // degree sign belongs to the number before it (audit 3.3)
                 case '+':
                 case '-':
                 case '/':
