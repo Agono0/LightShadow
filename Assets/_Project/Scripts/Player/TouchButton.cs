@@ -112,7 +112,10 @@ namespace LightShadow.Player
                     if (InteractionRaycaster.Instance != null) InteractionRaycaster.Instance.PressInteract();
                     break;
                 case Kind.Pause:
-                    if (PauseMenu.Instance != null) PauseMenu.Instance.Toggle();
+                    // Shared dispatch with gamepad Start: a dismissable
+                    // overlay (inventory, hint log, puzzle) eats the tap and
+                    // closes first; pause toggles only when nothing was open.
+                    PauseMenu.RequestToggle();
                     break;
                 case Kind.Objectives:
                     if (HUDController.Instance != null) HUDController.Instance.ToggleObjectives();

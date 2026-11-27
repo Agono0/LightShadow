@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using LightShadow.Contrib.Abdelraouf.Overlay;
 using NUnit.Framework;
 
@@ -114,6 +115,35 @@ namespace LightShadow.Contrib.Abdelraouf.Tests.Editor
             var set = new OverlayLockSet();
             set.Acquire("Story", true, false, () => Assert.Fail("not dismissable"));
             Assert.IsFalse(set.TryCloseTop());
+        }
+
+        [Test]
+        public void TryCloseTopSkipsDismissableTokensWithNullCallback()
+        {
+            var set = new OverlayLockSet();
+            int closedOlder = 0;
+            set.Acquire("Older", true, true, () => closedOlder++);
+            InputLockToken top = set.Acquire("Newer", true, true, null);
+            Assert.IsTrue(set.TryCloseTop(), "falls through to the older closable overlay");
+            Assert.AreEqual(1, closedOlder);
+            Assert.IsTrue(top.IsActive, "the null-callback token stays held");
+            Assert.IsTrue(set.Holds("Newer"));
+        }
+
+        [Test]
+        public void TryCloseTopDispatchesNewestToOldestThenRunsOut()
+        {
+            var set = new OverlayLockSet();
+            var order = new List<string>();
+            InputLockToken a = null, b = null;
+            a = set.Acquire("A", true, true, () => { order.Add("A"); set.Release(a, 1); });
+            b = set.Acquire("B", true, true, () => { order.Add("B"); set.Release(b, 1); });
+            set.Acquire("Story", true, false, () => Assert.Fail("not dismissable"));
+            Assert.IsTrue(set.TryCloseTop());
+            Assert.IsTrue(set.TryCloseTop());
+            Assert.AreEqual(new[] { "B", "A" }, order.ToArray());
+            Assert.AreEqual(1, set.Count, "only the non-dismissable story token remains");
+            Assert.IsFalse(set.TryCloseTop(), "nothing dismissable left to close");
         }
 
         [Test]

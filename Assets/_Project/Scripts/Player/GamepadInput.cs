@@ -61,9 +61,12 @@ namespace LightShadow.Player
             if (pad == null) return;
 
             // ---- Pause: always available, even during dialogue (matches Esc).
-            if (pad.startButton.wasPressedThisFrame && PauseMenu.Instance != null)
+            // Shared dispatch with the touch pause button: Start first closes
+            // the top dismissable overlay and toggles pause only when there
+            // was nothing to close.
+            if (pad.startButton.wasPressedThisFrame)
             {
-                PauseMenu.Instance.Toggle();
+                PauseMenu.RequestToggle();
             }
 
             // ---- Locked (dialogue): everything below is frozen.
