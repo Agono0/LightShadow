@@ -327,6 +327,9 @@ namespace LightShadow.Core
 
             // ---- recap ----------------------------------------------------
             { "Study Recap", "خلاصة المراجعة" },
+            // Added with the recap export feedback; machine-written, NOT native-verified.
+            { "Recap saved: {0}", "تم حفظ الخلاصة: {0}" },
+            { "Recap export failed", "تعذّر حفظ الخلاصة" },
             { "No questions were answered tonight.", "لم تُجب عن أي سؤال هذه الليلة." },
             { "Nothing was asked tonight.", "لم يُطرح شيء هذه الليلة." },
             { "Answered: {0}    Correct: {1} ({2}%)", "أجبت: {0}    صحيح: {1} ({2}%)" },
