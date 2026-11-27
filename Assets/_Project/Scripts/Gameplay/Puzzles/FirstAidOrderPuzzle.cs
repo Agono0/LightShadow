@@ -11,9 +11,10 @@ namespace LightShadow.Gameplay
     // and runs the framework's WrongAttempt() (meter penalty + PuzzleFailed
     // noise hook).
     //
-    // Payout note: the plan's draft pays a fuse, but there is no item system
-    // yet (fuse boxes restore on touch), so the drawer pays a charged battery
-    // like the other wing puzzles until carrying items exists.
+    // Payout: the plan's "opens the drawer with a fuse", paid as a real fuse
+    // ITEM now that the item system exists (the builder wires a fuse prop with
+    // an ItemPickup as rewardRoot; fuse boxes themselves still restore on
+    // touch - the gate circuit consumes carried items).
     //
     // The cabinet, drawer and reward sit under one root that carries this
     // component, so the InteractionRaycaster resolves a hit on any part to
@@ -85,8 +86,8 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("انزلق درج الخزانة مفتوحًا. بداخله بطارية مشحونة.")
-                        : "The cabinet drawer slides open. Inside, a charged battery.",
+                        ? Localization.Present("انزلق درج الخزانة مفتوحًا. بداخله مصهر.")
+                        : "The cabinet drawer slides open. Inside, a fuse.",
                     4f);
             }
         }

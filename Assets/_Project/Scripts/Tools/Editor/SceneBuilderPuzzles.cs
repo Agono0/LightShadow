@@ -60,7 +60,7 @@ namespace LightShadow.Tools
                 "اقرأ الأرقام الأربعة الناقصة من فوق إلى تحت.",
             };
             puzzle.drawer = drawer.transform;
-            puzzle.rewardRoot = battery;
+            puzzle.rewardRoot = fuse;
         }
 
         // Wing puzzle 2 (Docs/PUZZLES.md): the library card catalogue. A cabinet
@@ -105,7 +105,7 @@ namespace LightShadow.Tools
                 "طه حسين كتب عن حياته، والطبري كتب عن حياة الجميع.",
             };
             puzzle.tray = tray.transform;
-            puzzle.rewardRoot = battery;
+            puzzle.rewardRoot = fuse;
         }
 
         // Wing puzzle 3 (plan, workstream 5): the science-lab optics bench. A
@@ -163,7 +163,7 @@ namespace LightShadow.Tools
                 "المرآة أ تدور ربع دورة، والمنشور ربعين، والمرآة ب ثلاثة أرباع.",
             };
             puzzle.drawer = drawer.transform;
-            puzzle.rewardRoot = battery;
+            puzzle.rewardRoot = fuse;
         }
 
         // Wing puzzle 4 (plan, workstream 5): the staff-room wall map and
@@ -287,7 +287,7 @@ namespace LightShadow.Tools
                 "ست ومضات: أحمر، أخضر، كهرمان، أزرق، أخضر، أحمر.",
             };
             puzzle.hatch = hatch.transform;
-            puzzle.rewardRoot = battery;
+            puzzle.rewardRoot = fuse;
         }
 
         // Finale puzzle (plan, workstream 5): the gate console's wiring board.
@@ -341,11 +341,24 @@ namespace LightShadow.Tools
             GameObject drawer = Box(root.transform, "Drawer", new Vector3(-20.57f, 0.5f, -4f),
                 new Vector3(0.16f, 0.3f, 0.8f), palette.wood, true, LevelLayer);
 
-            GameObject battery = (GameObject)PrefabUtility.InstantiatePrefab(prefabs.battery);
-            battery.name = "FirstAidReward_Battery";
-            battery.transform.SetParent(root.transform, false);
-            battery.transform.position = new Vector3(-20.57f, 0.72f, -4f);
-            battery.SetActive(false);
+            // The drawer's payout is a real fuse ITEM (plan puzzle 5: "opens
+            // the drawer with a fuse"; the item system from the items stream
+            // replaces the battery placeholder). A small ceramic-and-metal
+            // prop on the master-key pattern: collider below the pickup root,
+            // inactive until solved, hidden again when already carried.
+            var fuse = new GameObject("FirstAidReward_Fuse");
+            fuse.transform.SetParent(root.transform, false);
+            Box(fuse.transform, "FuseBody", new Vector3(-20.57f, 0.72f, -4f),
+                new Vector3(0.06f, 0.14f, 0.06f), palette.paper, false);
+            Box(fuse.transform, "FuseCapTop", new Vector3(-20.57f, 0.8f, -4f),
+                new Vector3(0.05f, 0.03f, 0.05f), palette.metal, false);
+            Box(fuse.transform, "FuseCapBottom", new Vector3(-20.57f, 0.64f, -4f),
+                new Vector3(0.05f, 0.03f, 0.05f), palette.metal, true, LevelLayer);
+            ItemPickup fusePickup = fuse.AddComponent<ItemPickup>();
+            fusePickup.itemId = "fuse";
+            fusePickup.displayNameEn = "a fuse";
+            fusePickup.displayNameAr = "مصهر";
+            fuse.SetActive(false);
 
             FirstAidOrderPuzzle puzzle = root.AddComponent<FirstAidOrderPuzzle>();
             puzzle.displayNameEn = "the first-aid board";
@@ -363,7 +376,7 @@ namespace LightShadow.Tools
                 "التضميد أخيرًا، ثم ارفع الذراع وتفقّد عملك.",
             };
             puzzle.drawer = drawer.transform;
-            puzzle.rewardRoot = battery;
+            puzzle.rewardRoot = fuse;
         }
     }
 }
