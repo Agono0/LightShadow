@@ -219,3 +219,18 @@ import test was possible here: scale/pivot, materials and motion are UNVERIFIED
 | Model | Source page | File URL | License | Author | Notes |
 | --- | --- | --- | --- | --- | --- |
 | SM_Wraith_GhostSkull.glb | https://poly.pizza/m/TX8r9WBXpe | https://static.poly.pizza/0716bf8e-1894-4a90-8d10-34868975a239.glb.br | CC0 1.0 | Quaternius | mesh Ghost_Skull, 3,144 tris, 8 clips; pack https://quaternius.com/packs/ultimatemonsters.html |
+
+## P0 SFX: wraith roam / ambush stinger / breath near (added 2026-11-27, peer-approved picks, provisional)
+
+Licenses re-verified on the source pages 2026-11-27: all CC0 1.0, no attribution
+needed. Roam is a 0.00-7.00 s segment of a continuous whisper bed with 150 ms
+fade-in + 400 ms fade-out at the edges (no silence gaps exist in the source;
+boundaries arbitrary). BreathNear is published as a one-shot (peer ruling), loop
+seam unverified. No audition was possible in the agent environment: suitability
+of every clip is UNVERIFIED (per-row human_check).
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SFX_WraithRoam_0.ogg | https://opengameart.org/content/whispers-in-the-fog | https://opengameart.org/sites/default/files/whispers_in_the_fog.ogg | CC0 1.0 | Ruhinre | segment 0.00-7.00s + short fades; whisper bed |
+| SFX_WraithAmbushStinger_0.ogg | https://opengameart.org/content/string-and-piano-horror-stings | https://opengameart.org/sites/default/files/abyss.ogg | CC0 1.0 | congusbongus | full file; string/piano horror sting 7.5s |
+| SFX_WraithBreathNear_0.ogg | https://opengameart.org/content/ghost-breath | https://opengameart.org/sites/default/files/ghostbreath.flac | CC0 1.0 | qubodup | one-shot only; loop seam unverified |
