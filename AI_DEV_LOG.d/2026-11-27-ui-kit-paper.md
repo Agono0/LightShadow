@@ -1,4 +1,4 @@
-# 2026-11-27 - UI kit "paper" (peer-approved scratch previews -> input-only delivery)
+# 2026-11-27 - UI kit "paper" (scratch previews -> input-only delivery)
 
 - Scope: 14 PNGs under Assets/_Project/Textures/UI/Kit/ + fresh metas. No PR,
   no merge, no wiring, no existing meta/import edits. Branch feat/ui-kit-paper.
@@ -8,8 +8,9 @@
   REJECTED for banding; slots and buttons spriteBorder 24, Panel 48, HUD and
   ItemFrame 32, tile and icons 0; maxTextureSize 1024 explicit everywhere;
   tile wrap Repeat; no Unity-viewed claim.
-- Origins: 9 kit backgrounds + grain tile = Paper001-derivative (grain only,
-  CC0 1.0 ambientCG); 5 icon glyphs + ItemFrame/bevel/color work = original
+- Origins: 9 files (kit backgrounds incl. grain tile) = Paper001-derivative
+  (grain only, CC0 1.0 ambientCG); ItemFrame has dual origin (Paper001 grain,
+  original layout); 5 icon glyphs + ItemFrame/bevel/color work = original
   procedural. Paper001 credited only where actually used.
 - Icon bands per peer: master pale cyan, classroom silver-blue, staff muted
   teal-green; medkit muted rose cross; fuse horizontal glass tube with
