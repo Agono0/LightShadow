@@ -293,6 +293,13 @@ namespace LightShadow.Tools
             AddMobileButton(mobileRoot.transform, "PauseButton", "II", TouchButton.Kind.Pause,
                 new Vector2(-350f, 105f), new Vector2(140f, 56f));
 
+            // P3 horror buttons: hold to crank (twirl a second finger in
+            // circles off the UI) and hold-breath while hidden.
+            AddMobileButton(mobileRoot.transform, "CrankButton", "CRANK", TouchButton.Kind.CrankHold,
+                new Vector2(-190f, 38f), new Vector2(150f, 56f));
+            AddMobileButton(mobileRoot.transform, "BreathButton", "BREATH", TouchButton.Kind.BreathHold,
+                new Vector2(-350f, 38f), new Vector2(140f, 56f));
+
             mobileRoot.SetActive(false);
 
             // ---- quiz overlay -----------------------------------------------
@@ -754,12 +761,20 @@ namespace LightShadow.Tools
                 new Vector2(0f, 130f), new Vector2(1300f, 30f), FontStyle.Italic);
             Localize(footer);
 
+            // P3: export the study recap as a shareable PNG.
+            Text saveLabel;
+            Button savePng = MakeButton(recapPanel, "SavePngButton", "SAVE PNG",
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(-700f, 48f), new Vector2(380f, 62f), ButtonDark, 19, out saveLabel);
+            Localize(saveLabel);
+
             recap.panel = recapPanel.gameObject;
             recap.titleText = title;
             recap.statsText = stats;
             recap.recapText = bodyText;
             recap.menuButton = menu;
             recap.quitButton = quit;
+            recap.savePngButton = savePng;
             recapPanel.gameObject.SetActive(false);
 
             ending.dawnTitle = dawnTitle;

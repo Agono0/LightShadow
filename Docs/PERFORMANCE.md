@@ -111,3 +111,48 @@ in batchmode on this machine (near-idle process for 15+ minutes) and was termina
 ships regardless: light-probe grids per wing, 3 baked-ready reflection probes, static
 batching/GI-contribution flags, scene fog. The bake remains a documented follow-up runnable
 from the editor UI (LightShadow ▸ Art ▸ 3) where progress is visible and cancellable.
+
+## CI build ledger (premium integration, 2026-11-19)
+
+Measured from the GitHub Actions `build` workflow API (workflow run 44608154090 and
+comparison runs). CI **artifacts are zips** of the per-ABI APKs / Windows player folder —
+every run uses the same pipeline, so run-to-run deltas are apples-to-apples; an artifact
+zip may sit ~1 % above the bare APK size it wraps.
+
+### Artifact sizes (bytes, as uploaded)
+
+| Run (UTC) | Branch / content | LightShadow-android-arm64-v8a | LightShadow-android-armeabi-v7a | LightShadow-windows |
+| --- | --- | --- | --- | --- |
+| 44592065316 · 18:50 | `main` after P0 (pre-premium content) | 65,613,495 (65.6 MB) | 63,726,235 (63.7 MB) | 129,698,324 (129.7 MB) |
+| 44608154090 · 20:23 | PR #4 `feat/audio-mixer-snapshots` = P1 fonts + mixer + music | **88,040,419 (88.0 MB)** | **86,145,163 (86.1 MB)** | **152,043,678 (152.0 MB)** |
+
+- **Delta P1 alone (same pipeline, fonts + AudioMixer + music tracks):** +22.4 MB on the
+  Android arm64 artifact (65.6 → 88.0 MB) and +22.3 MB on Windows (129.7 → 152.0 MB).
+- **vs the recorded baseline:** the 73.7 MB Android APK baseline above was a *local* build
+  (30 Oct, universal APK). The latest CI arm64 artifact reads +14.3 MB against it, but that
+  comparison mixes a local APK with a CI zip artifact — treat it as approximate; the
+  same-pipeline 65.6 → 88.0 comparison above is the honest one.
+- **The integration APK delta is still pending:** the 14 Blender hero models (P2, part of
+  the ~36 MB of LFS content added by fonts + music + models) are *not* in run 44608154090;
+  the true size impact of the integration PR lands when its own `build` run completes.
+  This section will be amended with that number.
+
+### CI build times (last green runs, per-job wall-clock from the API)
+
+| Run | Branch | Windows | arm64-v8a | armeabi-v7a |
+| --- | --- | --- | --- | --- |
+| 44592065316 (18:50) | `main` (P0) | 7m12s | 9m45s | 8m44s |
+| 44608154090 (20:23) | PR #4 (P1) | 8m57s | 15m08s | 16m08s |
+| 44611064124 (20:40) | `main` (P1 merged) | 8m11s | 18m28s | 15m08s |
+
+Job times vary with runner load (the parallel arm64/armv7 jobs contend for caches); the
+PRs #3/#4 merge-day figures (arm64 ≈ 9m36s, armv7 ≈ 9m29s, Windows 7m48s–8m57s) sit inside
+the observed envelope. Windows is consistently the cheapest job (~7–9 m); the per-ABI
+Android jobs range 9–18 m depending on cache state and runner contention.
+
+### Still pending on this ledger
+
+- On-device FPS / draw calls / frame time (methodology §Methodology above) — needs a
+  playtest device + Profiler capture; remains human-assisted.
+- The integration PR's own artifact sizes (amend the table above when its run completes).
+- GI lightmap bake (editor run with a graphics device; headless stalls — D11 note above).

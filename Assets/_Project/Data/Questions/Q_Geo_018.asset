@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_Geo_018
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: What is the deepest known place in the oceans?
+  options:
+  - The Mariana Trench
+  - The Red Sea
+  - The Bermuda Triangle
+  - The Great Barrier Reef
+  correctIndex: 0
+  category: 3
+  difficulty: 3
+  explanation: The Mariana Trench dips almost 11 kilometres below the sea surface.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: ما أعمق بقعة معروفة في المحيطات؟
+  optionsAr:
+  - خندق ماريانا
+  - البحر الأحمر
+  - مثلث برمودا
+  - الحاجز المرجاني العظيم
+  explanationAr: ينخفض خندق ماريانا نحو 11 كيلومترًا تحت سطح البحر.

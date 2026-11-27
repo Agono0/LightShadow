@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 2
   explanation: Everest sits in the Himalayas on the border between Nepal and China.
   factSource: NEEDS-FACT-CHECK
+  questionAr: يقع جبل إيفرست في أي سلسلة جبلية؟
+  optionsAr:
+  - جبال الأنديز
+  - جبال الألب
+  - جبال الهيمالايا
+  - جبال روكي
+  explanationAr: يقوم إيفرست في جبال الهيمالايا على الحدود بين نيبال والصين.

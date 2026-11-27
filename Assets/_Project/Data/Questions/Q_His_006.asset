@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: The Magna Carta was sealed at Runnymede in 1215 and later became a
     symbol of limits on royal power.
   factSource: NEEDS-FACT-CHECK
+  questionAr: في أي عام ختم الملك جون ملك إنجلترا وثيقة الماجنا كارتا؟
+  optionsAr:
+  - 1066
+  - 1215
+  - 1492
+  - 1648
+  explanationAr: خُتمت الماجنا كارتا في رانيميد عام 1215، ثم أصبحت لاحقًا رمزًا لوضع حدود على سلطة الملوك.
