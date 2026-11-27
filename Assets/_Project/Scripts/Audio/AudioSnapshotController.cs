@@ -95,8 +95,19 @@ namespace LightShadow.Audio
             if (instance == this) instance = null;
         }
 
+        // This object persists across scenes, so run 1's dawn flag would arm the
+        // Dawn snapshot from the first second of run 2 (audit 4.1). Every school
+        // load starts a run: clear it there.
+        void OnSchoolSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            if (scene.name != SceneNames.School) return;
+            dawnActive = false;
+            overlayExpiresAt = -1f;
+        }
+
         void OnEnable()
         {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSchoolSceneLoaded;
             GameEvents.EnemyStateChanged += OnEnemyStateChanged;
             GameEvents.FragmentCollected += OnMemoryFlash;
             GameEvents.FuseRestored += OnMemoryFlash;
@@ -106,6 +117,7 @@ namespace LightShadow.Audio
 
         void OnDisable()
         {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSchoolSceneLoaded;
             GameEvents.EnemyStateChanged -= OnEnemyStateChanged;
             GameEvents.FragmentCollected -= OnMemoryFlash;
             GameEvents.FuseRestored -= OnMemoryFlash;
