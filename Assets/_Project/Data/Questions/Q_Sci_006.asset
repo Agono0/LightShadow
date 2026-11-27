@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Mercury is the innermost planet of the Solar System, orbiting the
     Sun in about 88 Earth days.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي كوكب هو الأقرب إلى الشمس؟
+  optionsAr:
+  - الزهرة
+  - الأرض
+  - عطارد
+  - المريخ
+  explanationAr: عطارد أقرب كواكب المجموعة الشمسية إلى الشمس، ويدور حولها في نحو 88 يومًا أرضيًا.

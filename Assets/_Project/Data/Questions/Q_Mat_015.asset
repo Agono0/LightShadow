@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_Mat_015
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: The sum of two consecutive whole numbers is 35. What is the larger number?
+  options:
+  - 16
+  - 17
+  - 18
+  - 19
+  correctIndex: 2
+  category: 1
+  difficulty: 3
+  explanation: Half of 35 is 17.5, so the pair is 17 and 18; the larger is 18.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: مجموع عددين صحيحين متتاليين يساوي 35؛ ما العدد الأكبر؟
+  optionsAr:
+  - 16
+  - 17
+  - 18
+  - 19
+  explanationAr: نصف 35 هو 17.5، فيكون العددان 17 و18، والأكبر منهما 18.

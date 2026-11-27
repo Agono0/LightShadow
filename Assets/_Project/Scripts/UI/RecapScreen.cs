@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using LightShadow.Core;
 using LightShadow.Story;
@@ -16,6 +18,11 @@ namespace LightShadow.UI
     // Premium pass (additive): the recap gains the ending name (D13, set by
     // EndingController via SetEnding) and a REPLAY button back to the main
     // menu through the LoadingScreen. The original recap behaviour is intact.
+    //
+    // P3: SAVE PNG exports the recap as an image under
+    // Application.persistentDataPath/lightshadow/recap_<timestamp>.png
+    // (ScreenCapture pattern - works on Windows and Android alike) so the
+    // study sheet can be shared or printed.
     public class RecapScreen : MonoBehaviour
     {
         [Header("Wiring")]
@@ -30,6 +37,9 @@ namespace LightShadow.UI
         public Text endingText;
         public Button replayButton;
 
+        [Header("P3 export")]
+        public Button savePngButton;
+
         string endingId = "";
 
         void Awake()
@@ -38,6 +48,7 @@ namespace LightShadow.UI
             if (quitButton != null) quitButton.onClick.AddListener(QuitGame);
             if (menuButton != null) menuButton.onClick.AddListener(ReturnToMenu);
             if (replayButton != null) replayButton.onClick.AddListener(ReplayTheNight);
+            if (savePngButton != null) savePngButton.onClick.AddListener(SavePng);
         }
 
         // EndingController calls this before Show(). Empty string hides the row.
@@ -192,6 +203,37 @@ namespace LightShadow.UI
         {
             Time.timeScale = 1f;
             LoadingScreen.Transition(SceneNames.MainMenu);
+        }
+
+        // ---------------------------------------------------- P3 PNG export --
+
+        // One recap image per press; the timestamp keeps every export.
+        public void SavePng()
+        {
+            StartCoroutine(CaptureRoutine());
+        }
+
+        IEnumerator CaptureRoutine()
+        {
+            // ScreenCapture only works at the end of a rendered frame.
+            yield return new WaitForEndOfFrame();
+
+            Texture2D texture = ScreenCapture.CaptureScreenshotAsTexture();
+            if (texture == null) yield break;
+
+            try
+            {
+                string directory = Path.Combine(Application.persistentDataPath, "lightshadow");
+                if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+                string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string path = Path.Combine(directory, "recap_" + timestamp + ".png");
+                File.WriteAllBytes(path, texture.EncodeToPNG());
+            }
+            finally
+            {
+                Destroy(texture);
+            }
         }
     }
 }

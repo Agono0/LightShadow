@@ -256,6 +256,9 @@ namespace LightShadow.UI
 
             if (intent == Intent.NewGame)
             {
+                // A deferred restore from an earlier Load attempt must not
+                // survive into the fresh run (audit A3).
+                SaveSystem.ClearPendingRestore();
                 StoryDirector.ResetForNewRun();
                 RunResults.Reset();
             }

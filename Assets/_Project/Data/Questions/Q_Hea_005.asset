@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Sunlight on the skin helps the body produce vitamin D, which is needed
     for strong bones.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي فيتامين يستطيع الجسم أن يصنعه عندما يتعرض الجلد لأشعة الشمس؟
+  optionsAr:
+  - فيتامين أ
+  - فيتامين ج
+  - فيتامين د
+  - فيتامين ب12
+  explanationAr: أشعة الشمس على الجلد تعين الجسم على صنع فيتامين د الذي تحتاجه العظام لتقوى.
