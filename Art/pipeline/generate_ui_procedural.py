@@ -230,3 +230,49 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ---------------------------------------------------------------------------
+# Loading screen art (2026-11-27, APPEND-ONLY extension; the four emitters
+# above are untouched and their outputs stay byte-identical). ORIGINAL
+# in-house generated: no external source, no stock. Same moonlit gradient as
+# the night backdrop plus a pale moon disc and its soft glow; no text.
+# ---------------------------------------------------------------------------
+LOADING_SIZE = (1024, 512)
+MOON_CENTER = (0.75, 0.29)   # relative (x, y)
+MOON_RADIUS = 46             # px at 1024x512
+MOON_GLOW_RADIUS = 190       # px, fades to 0
+MOON_COLOR = (0xDC, 0xE8, 0xEA)      # pale moon
+MOON_GLOW_COLOR = (0xBF, 0xD9, 0xE0) # cool glow, peak alpha 0.30
+
+
+def make_loading(size=LOADING_SIZE):
+    base = make_backdrop(size).convert("RGBA")
+    W, H = size
+    cx, cy = MOON_CENTER[0] * W, MOON_CENTER[1] * H
+    yy, xx = np.mgrid[0:H, 0:W]
+    dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
+    glow_a = np.clip(1.0 - dist / MOON_GLOW_RADIUS, 0.0, 1.0) ** 2.2 * 0.30
+    glow = np.zeros((H, W, 4), dtype=np.uint8)
+    glow[..., 0], glow[..., 1], glow[..., 2] = MOON_GLOW_COLOR
+    glow[..., 3] = (glow_a * 255).astype(np.uint8)
+    base.alpha_composite(Image.fromarray(glow, "RGBA"))
+    from PIL import ImageDraw
+    disc = Image.new("RGBA", (W * 2, H * 2), (0, 0, 0, 0))
+    d = ImageDraw.Draw(disc)
+    d.ellipse([cx * 2 - MOON_RADIUS * 2, cy * 2 - MOON_RADIUS * 2,
+               cx * 2 + MOON_RADIUS * 2, cy * 2 + MOON_RADIUS * 2],
+              fill=MOON_COLOR + (255,))
+    base.alpha_composite(disc.resize(size, Image.LANCZOS))
+    return base.convert("RGB")
+
+
+def emit_loading(out_dir):
+    os.makedirs(out_dir, exist_ok=True)
+    p = os.path.join(out_dir, "T_UI_Loading_Night.png")
+    make_loading().save(p)
+    print("wrote", p, sha256(p), "(script-generated, no external source)")
+
+
+if __name__ == "__main__":
+    emit_loading(sys.argv[2])
