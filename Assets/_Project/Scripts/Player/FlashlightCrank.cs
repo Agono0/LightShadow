@@ -11,15 +11,18 @@ namespace LightShadow.Player
     // dynamo. Every ratchet tick adds charge (capped at crankMaxCharge), plays
     // the ratchet and emits crankNoiseRange: cranking is loud, never calming.
     //
-    // Input sources, all feeding the same angular accumulator:
+    // Charge accrues per second while the gesture is ACTIVE (any motion above
+    // the dead zone within the reset window); the angle itself is not measured
+    // (audit 9: the old accumulator was decorative and was removed).
+    // Input sources, all feeding the same gesture-activity clock:
     //   - touch: hold the CRANK button (TouchButton.Kind.CrankHold) and swipe
     //     circles with a second finger anywhere off the UI;
     //   - desktop: hold F and move the mouse in circles (cursor must be locked,
     //     i.e. actively looking around - same condition PlayerController uses);
     //   - gamepad: hold RT and rotate the left stick.
     //
-    // The gesture accumulator resets after crankGestureResetSeconds without
-    // motion, so pausing does not bank partial revolutions.
+    // The gesture activity clock resets after crankGestureResetSeconds without
+    // motion, so pausing stops the charge.
     public class FlashlightCrank : MonoBehaviour
     {
         [Header("Wiring")]
@@ -33,10 +36,8 @@ namespace LightShadow.Player
 
         // Gesture state: one accumulator for mouse deltas, touch deltas and the
         // left stick alike (all are "angle between successive vectors").
-        Vector2 lastMotion;
         bool hasMotion;
         float idleTime;
-        float angleAccumulator;
         float ratchetClock;
 
         public bool IsHeld => touchHeld || KeyboardHeld || padHeld;
@@ -140,13 +141,6 @@ namespace LightShadow.Player
             {
                 ResetGesture();
             }
-
-            // A completed revolution consumes 360 degrees; the remainder keeps
-            // turning smoothly into the next revolution.
-            if (Mathf.Abs(angleAccumulator) >= 360f)
-            {
-                angleAccumulator -= 360f * Mathf.Sign(angleAccumulator);
-            }
         }
 
         // angle between the previous motion vector and this one, accumulated
@@ -156,23 +150,13 @@ namespace LightShadow.Player
         {
             if (motion.sqrMagnitude < GestureDeadZone * GestureDeadZone) return;
 
-            if (!hasMotion)
-            {
-                lastMotion = motion.normalized;
-                hasMotion = true;
-                idleTime = 0f;
-                return;
-            }
-
-            angleAccumulator += SignedAngle(lastMotion, motion.normalized);
-            lastMotion = motion.normalized;
+            hasMotion = true;
             idleTime = 0f;
         }
 
         void ResetGesture()
         {
             hasMotion = false;
-            angleAccumulator = 0f;
             idleTime = GestureResetSeconds;
         }
 
@@ -185,13 +169,6 @@ namespace LightShadow.Player
                 LightShadow.Audio.Sfx.Play("SFX_Crank", ProceduralSfx.Crank);
             }
             if (noise != null) noise.Emit(config != null ? config.crankNoiseRange : 12f);
-        }
-
-        static float SignedAngle(Vector2 from, Vector2 to)
-        {
-            float cross = from.x * to.y - from.y * to.x;
-            float dot = Vector2.Dot(from, to);
-            return Mathf.Atan2(cross, dot) * Mathf.Rad2Deg;
         }
     }
 }
