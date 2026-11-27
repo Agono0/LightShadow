@@ -74,6 +74,15 @@ namespace LightShadow.Audio
         public AudioClip[] wraithRoam;
         public AudioClip[] wraithAmbushStinger;
         public AudioClip[] wraithBreathNear;
+        public AudioClip[] chalkWrite;
+        public AudioClip[] crank;
+        public AudioClip[] flashlightBuzz;
+        public AudioClip[] gateCrank;
+        public AudioClip[] glassShard;
+        public AudioClip[] mirrorTurn;
+        public AudioClip[] powerSurge;
+        public AudioClip[] shadowHiss;
+        public AudioClip[] uiPaperTap;
         public AudioClip ambienceYard;
 
         [Header("Memory theme (Yoiyami CC0, shared clip)")]

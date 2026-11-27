@@ -110,6 +110,7 @@ namespace LightShadow.Gameplay
             if (shatters)
             {
                 LightShadow.Audio.Sfx.PlayAt("SFX_GlassCrack", transform.position, ProceduralSfx.Power);
+                LightShadow.Audio.Sfx.PlayAt("SFX_GlassShard", transform.position);
                 SpawnShards();
                 gameObject.SetActive(false);
             }
