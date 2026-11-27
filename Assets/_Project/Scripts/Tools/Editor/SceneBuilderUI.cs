@@ -345,6 +345,8 @@ namespace LightShadow.Tools
                 new Vector2(-542f, 56f), 84f, 12);
             AddMobileButton(mobileRoot.transform, "ThrowButton", "THROW", TouchButton.Kind.Throw,
                 new Vector2(-656f, 56f), 84f, 12);
+            AddMobileButton(mobileRoot.transform, "BagButton", "BAG", TouchButton.Kind.Inventory,
+                new Vector2(-770f, 56f), 84f, 13);
 
             mobileRoot.AddComponent<TouchControlsScaler>();
 
