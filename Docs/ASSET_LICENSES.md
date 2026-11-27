@@ -159,3 +159,14 @@ Docs/ASSET_MANIFEST.md (rows land with this PR, register v2).
 | SM_Prop_SchoolDesk.fbx | https://grab3d.com/models/furniture/school-desk/ | https://grab3d.com/dl/school-desk/school-desk.fbx | CC0 1.0 | Grab3D | 6,536 tris, 2K textures, FBX 7400, 0.74 x 0.51 x 0.76 m |
 | SM_Prop_SchoolLocker.fbx | https://grab3d.com/models/furniture/school-locker/ | https://grab3d.com/dl/school-locker/school-locker.fbx | CC0 1.0 | Grab3D | 13,044 tris, 2K textures, FBX 7400 |
 | SM_Prop_Lighter.obj + T_Prop_Lighter.jpg | https://opengameart.org/content/lighter | https://opengameart.org/sites/default/files/Lighter.zip | CC0 1.0 | plaggy | 1,024 faces / 709 verts, obj + texture |
+## ambientCG CC0 texture sets - props (workstream C, downloaded + verified 2026-11-27)
+
+License verified at https://ambientcg.com/license (CC0 1.0; no attribution required).
+2K JPG sets; Albedo/Normal/Roughness imported, smoothness twins generated (roughness
+inverted into alpha, house convention). Android 1K override follows the existing
+Concrete texture metas. CC0: no attribution list entries needed.
+
+| Set | Source URL | License | Author | Imported at | Maps to |
+| --- | --- | --- | --- | --- | --- |
+| PaintedMetal006 (2K JPG) | https://ambientcg.com/view?id=PaintedMetal006 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustedPaintedMetal_* / Mat_Art_RustedPaintedMetal |
+| Metal064 (2K JPG) | https://ambientcg.com/view?id=Metal064 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustMetal_* / Mat_Art_RustMetal |
