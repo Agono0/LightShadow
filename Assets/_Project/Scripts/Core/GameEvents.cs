@@ -42,6 +42,16 @@ namespace LightShadow.Core
         // (Patrol 0, Stalk 1, Chase 2, Repelled 3). Raised from EnemyBehaviour.EnterState.
         public static event Action<int> EnemyStateChanged;
 
+        // A wing puzzle was solved. Payload: puzzle id (PuzzleBase.puzzleId).
+        public static event Action<string> PuzzleSolved;
+
+        // A wing puzzle registered a wrong move. Payload: puzzle id. The noise
+        // bus hooks here so mistakes can be heard.
+        public static event Action<string> PuzzleFailed;
+
+        // The player asked for a puzzle hint. Payload: puzzle id.
+        public static event Action<string> PuzzleHintUsed;
+
         // ---- Raise helpers -----------------------------------------------------
         // Each one-liner guards its event so callers never need to.
 
@@ -93,6 +103,21 @@ namespace LightShadow.Core
         public static void RaiseEnemyStateChanged(int state)
         {
             EnemyStateChanged?.Invoke(state);
+        }
+
+        public static void RaisePuzzleSolved(string puzzleId)
+        {
+            PuzzleSolved?.Invoke(puzzleId);
+        }
+
+        public static void RaisePuzzleFailed(string puzzleId)
+        {
+            PuzzleFailed?.Invoke(puzzleId);
+        }
+
+        public static void RaisePuzzleHintUsed(string puzzleId)
+        {
+            PuzzleHintUsed?.Invoke(puzzleId);
         }
     }
 }
