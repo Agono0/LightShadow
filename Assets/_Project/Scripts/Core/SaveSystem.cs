@@ -120,7 +120,7 @@ namespace LightShadow.Core
             {
                 string directory = Path.GetDirectoryName(SlotPath(slot));
                 if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
-                File.WriteAllText(SlotPath(slot), JsonUtility.ToJson(data, true));
+                AtomicFile.WriteAllText(SlotPath(slot), JsonUtility.ToJson(data, true));
                 return true;
             }
             catch (Exception exception)
@@ -130,13 +130,20 @@ namespace LightShadow.Core
             }
         }
 
+        static bool LooksLikeJsonObject(string text)
+        {
+            string trimmed = text.Trim();
+            return trimmed.StartsWith("{") && trimmed.EndsWith("}");
+        }
+
         public static SaveData LoadFromSlot(int slot)
         {
             if (slot < 0 || slot >= SlotCount || !HasSave(slot)) return null;
 
             try
             {
-                return JsonUtility.FromJson<SaveData>(File.ReadAllText(SlotPath(slot)));
+                string json = AtomicFile.ReadAllText(SlotPath(slot), LooksLikeJsonObject);
+                return json == null ? null : JsonUtility.FromJson<SaveData>(json);
             }
             catch (Exception exception)
             {
@@ -156,7 +163,7 @@ namespace LightShadow.Core
             if (slot < 0 || slot >= SlotCount) return;
             try
             {
-                if (File.Exists(SlotPath(slot))) File.Delete(SlotPath(slot));
+                AtomicFile.Delete(SlotPath(slot));
             }
             catch (Exception exception)
             {
