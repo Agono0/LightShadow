@@ -17,6 +17,16 @@ The game itself contains **no AI features** — this log is about the developmen
 
 ---
 
+## New entries live in AI_DEV_LOG.d/ (since 2026-11-27)
+
+Every PR logs its AI-assisted changes in its own fragment file
+`AI_DEV_LOG.d/<YYYYMMDD>-<short-slug>.md` (same entry template as below), one
+file per PR. Fragments never share a tail line, so parallel PRs stop
+conflicting with each other here. The entries below are the pre-fragment
+history and stay untouched (append-only).
+
+---
+
 ## Entries
 
 ### 2026-10-19 — Week 1 scaffold: Section 6.6 folder tree, README.md, this log — Abdelrhman Mohamed
@@ -439,3 +449,349 @@ The game itself contains **no AI features** — this log is about the developmen
   paper: code 4729 = Egypt 4, Lebanon 7, Iraq 2, Morocco 9 in the note's route order; the
   door offset (0,0,0.75) slides the 0.7-deep door clear of the locker front; save restore
   reopens the door without replaying events or rewards.
+### 2026-11-19 — P2 Blender hero-prop pipeline (Art/pipeline + Assets/_Project/Models/Hero) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) driving Blender 5.3 headless (`blender -b -P`).
+- What AI provided: the full pipeline — `Art/pipeline/` (`ls_common.py` registry/helpers,
+  `ls_props.py` procedural builders, `ls_export.py` Unity-ready FBX exporter, `ls_preview.py`
+  EEVEE turntable renderer, `run_all.cmd` driver); 14 procedural props per the mission list
+  (8 story items incl. the crank flashlight with pivot-ready Crank node, SM_Wraith_HD
+  smoke silhouette, door with iron grille, chalkboard with tray, gate crank, iron gate);
+  112 turntable preview frames; the `HeroModels` import-settings table in `ArtImporter.cs`
+  with a UV1 presence check; tri-count manifest at `Art/pipeline/manifest.json`.
+- What I changed myself: kept every prop under its tri budget (small ≤ 3k, hero ≤ 30k) by
+  construction instead of decimating; chose `bake_space_transform=True` for single-mesh props
+  (master plan §7.4 "Apply Transform on") but `False` for the flashlight FBX so the Crank
+  child keeps its axle pivot for the P3 crank minigame; named Blender materials after the
+  existing `Mat_Art_*` Unity assets for name-for-name remap; caught and fixed three
+  Blender 5.3 API breaks (`cap_ends`→`end_fill_type`, removed `use_anim`, spot light `size`)
+  and a cube-scale halving bug (5.3 `size=1` cube spans ±0.5) by round-trip verifying the
+  exported FBX in Blender; did NOT touch the SceneBuilderArt swap tables (lead wires swaps).
+- Teach-back check: pending — walk the lead through `run_all.cmd` (build → export → render),
+  the manifest tri counts, and why the flashlight FBX must keep Apply Transform off.
+- Test result: `ls_export` RESULT: PASS — 14/14 FBX exported, all within budget (largest:
+  SM_Wraith_HD 13,728 tris of 30k; smallest: SM_Story_Prism 52 of 3k); FBX re-import
+  verifies UV0+UV1 on every mesh, correct material names, upright axes, and the Crank pivot
+  at (-0.03, 0, 0.135) with identity rotation; 8 turntable PNGs per prop in Art/Previews/;
+  Unity runs intentionally left to the lead (no Unity.exe invoked).
+
+### 2026-11-19 — P2 hero-prop wiring (SceneBuilder partials + ArtImporter) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) — code-only pass, no Unity.exe runs (lead verifies).
+- What AI provided: the full swap wiring for the 14 Blender FBX models — `LoadModelAsset` now
+  resolves `Assets/_Project/Models/Hero` beside the Kenney packs; an `AddHeroModelChild` helper
+  that instantiates hero FBX on an unscaled carrier under scaled greybox hosts (uniform
+  world-space height, metre offsets, defensive collider removal, layer sync) and rebinds every
+  renderer onto the canonical `Mat_*`/`M_*` art materials through the new
+  `ArtImporter.HeroMaterialMap` (FBX-embedded names verified 1:1 against
+  `Art/pipeline/manifest.json`); `BuildStoryMaterials` for the three FBX slots that had no
+  factory asset (`Mat_Story_RedInk` red/smooth, `Mat_Story_Glass` transparent/smoothness 0.92,
+  `Mat_Story_LED` emissive amber with `_EMISSION`); scene swaps — MemoryBox →
+  `SM_Story_MemoryBox` + card on the lid, six fragment instances → their hero story items
+  (paper placeholder darkened, kept as fallback), `Door_Classroom`/`Door_Staff` decor hosts →
+  `SM_Arch_DoorGrille`, classroom chalkboard host → `SM_Arch_Chalkboard`, ExitGate console →
+  `SM_Arch_GateCrank` with the wheel hub on the interact point, forecourt fence gap extended
+  with `SM_Arch_IronGate` sections; prefab swaps — `SM_Wraith_HD` inside Shadow_Art (marker
+  `ArtModel_SM_Wraith_HD`, procedural mesh kept as fallback, M_ShadowSmoke + SmokeHalo
+  untouched), `SM_Player_Flashlight` at the shared hand anchor (`FlashlightHandAnchor`
+  compensates the tail origin), QuizBoard board → hero chalkboard; `ValidateBatch` now reports
+  14/14 hero FBX assets, per-model swap counts, null material slots, and the story-material
+  looks; AI_DEV_LOG + TASKS ticked.
+- What I changed myself: chose an unscaled carrier because a child of a scaled greybox cube
+  inherits its per-axis scale and a yaw would swap the compensation axes; derived every anchor
+  from the exporter conventions (`set_base_origin` bottom-centre, Blender (x,z,-y) → Unity
+  mapping, Forward -Z/Up Y) instead of eyeballing — e.g. the classroom chalkboard needs yaw
+  180 because the FBX chalk face points +Z while that wall faces -Z into the room, and the
+  gate crank needs yaw 90 so the wheel plane (axle along Blender X) faces the player with the
+  wall plate flush against the console front; kept the beam cone/cookie on the Flashlight
+  light object completely untouched; made every swap optional so a missing FBX degrades to the
+  existing primitive/Kenney stand-in; kept prefab GUIDs stable (Shadow_Art rebuild keeps the
+  marker-based skip; Hands_Art is not deleted — the restyle migrates it in place).
+- Teach-back check: pending — walk the lead through the swap table entries, the fallback
+  behaviour per hero model, and why `ImportAllBatch` must run before `BuildAllBatch` (fresh
+  prefab builds embed Shadow_Art/flashlight only when the assets already exist).
+- Test result: Roslyn (C# 9) parse check clean on all five edited editor scripts; Unity
+  intentionally not run — lead to run `ImportAllBatch` then `BuildAllBatch` then
+  `ValidateBatch` and grep for `RESULT: PASS` (see the wiring report for expected lines).
+
+### 2026-11-19 — Phase 3 horror systems — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) implementing Docs/TASKS.md P3 + Docs/MASTER_PLAN.md
+  §4.6/§4.7/§4.11/§4.12 on branch `feat/horror-systems` (stacked PR; Lead runs the Unity batches
+  and git push).
+- What AI provided: `NoiseEmitter` + `GameEvents.NoiseEmitted` (per-action hearing radii:
+  sprint 10 / walk 4 / crouch 1 / crank 12 / wrong-answer 6 m) and the Shadow `Investigate`
+  state (walk to the noise, sweep look-around, resume Patrol — replaces the old stop-and-face
+  sprint hack); `FlashlightCrank` (hold + circular-gesture accumulator over mouse/touch/left
+  stick, charge capped at crankMaxCharge, ratchet SFX + 12 m noise per tick, SFX_Crank
+  library-first with a synthesised fallback); `MenaceDirector` (gauge 0–100, forced
+  ForcedCooldown 45–60 s at the cap, 30 s post-chase grace consumed by the Chase decision,
+  dawn multiplier); hiding v1 (`HideSpot` registry + `HidingSystem` enter/exit hop, hold-breath
+  meter draining story Calm, breath/release noises, `Search` state that checks 1–2 random spots
+  and never the occupied one on the first pass, `EnemySight` hidden check with the
+  watched-entry exemption); banish rebalance (focused beam hold 2 s at meter ≥ 25 → 20 s
+  retreat costing 25 meter; old instant-repel fields deprecated); `CalmEffectsController`
+  (high-priority runtime Volume override vignette + heartbeat pacer + `CameraShake.SetTremor`
+  floor, fed by the new `GameEvents.CalmChanged` raised from StoryDirector's single
+  `ChangeCalm` funnel); `InspectViewController` (self-building 360° close-up, drag/swipe orbit,
+  auto-close); RecapScreen SAVE PNG export; `HapticsService` (Handheld.Vibrate wrappers,
+  light/heavy hooks); `DevConsole` (backquote + DEBUG chip behind the new LS_DebugMode flag;
+  setflag/givemeter/teleport/skipact/toggleai/timescale); scene-builder wiring for all of it
+  (player prefab components, MenaceDirector on Systems, CRANK/BREATH touch buttons, SAVE PNG
+  button, 6 hide spots + 2 corridor lockers) and ValidateBatch additions.
+- What I changed myself: kept `sprintNoiseRange`/`repelRecoil`/`repelCooldown`/
+  `repelMeterThreshold` serialized but deprecated (existing GameConfig assets keep loading) and
+  used new spec-valued fields instead; mapped the plan's "hold-breath drains Calm 2/s" (0–100
+  scale) onto the implemented -1..1 story stat as `breathCalmPerSecond = 0.05` with the unit
+  mismatch documented in GameConfig comments; routed Investigate/Search into the existing Stalk
+  audio snapshot; made the desk hide plates full height so the exit ray works at standing eye
+  height; added ExitCurrent input paths for all three input families (touch Interact reroute,
+  gamepad A poll, desktop E) because the interact ray cannot see the spot from inside the prop.
+- Teach-back check: pending — walk a teammate through the noise bus contract
+  (NoiseEmitter → GameEvents → FSM) and the banish hold-vs-tap input split on the LIGHT button.
+- Test result: pending Lead batch run — expected `BuildAllBatch` (scenes/prefabs rebuilt:
+  new lockers bake into the NavMesh) then `ValidateBatch` → `RESULT: PASS` with the new
+  Hide spots / MenaceDirector / player-component checks; NOT yet run by the agent
+  (no Unity.exe per task rules).
+
+### 2026-11-19 — P3 horror-systems review fixes (feat/horror-systems, worktree LS-p3) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) fixing the quality-review findings on the same
+  stacked branch; Lead runs the Unity batches and git push.
+- What AI provided: the nine review fixes, each its own conventional commit —
+  (1) `HidingSystem.ResetState()` (clears IsHidden/CurrentSpot/EnteredUnderWatch, resets the
+  breath meter, releases the input lock, NO teleport) called from `PlayerController.RespawnReset`
+  and `GameManager.WakeAtCheckpoint`, plus a `!HidingSystem.IsHidden` exclusion on the
+  EnemyBehaviour catch check so the Shadow can no longer grab a hidden player through the spot
+  wall (Search's witnessed-entry found-path is untouched); (2) FlashlightBattery's desktop F
+  toggle now waits for key release and is skipped when `FlashlightCrank.IsCranking` consumed the
+  press, so tap = toggle / hold = crank no longer fight on one key; (3) TouchButton's
+  hold-to-focus honours `ExternalInputLocked` (no new focus while locked, press dropped and
+  started focus released when the lock engages); (4) `EnemySight.HasLineOfSightCached()`
+  frame-stamped lazy cache shared by EnemyBehaviour and MenaceDirector — one sight Linecast per
+  frame instead of two (witnessed-entry check keeps the uncached call on purpose); (5)
+  CalmEffectsController.OnDestroy detaches and destroys the runtime VolumeProfile it created in
+  Awake (was leaked every scene load); (6) GameEvents.EnemyStateChanged comment now lists the
+  full state payload (ForcedCooldown 5, Search 6); (7) RecapScreen per-export Debug.Log removed;
+  (8) FlashlightCrank ratchet clock resets to 0 when idle — no instant ratchet on re-engage;
+  (9) defensive port from main: `VolumeCategories.SetMixer` runs `ApplyAll()` after group
+  resolution so sources registered before mixer activation land on their buses.
+- What I changed myself: deviated from the reviewer's literal fix for finding 2 — gating the F
+  toggle on `FlashlightCrank.IsHeld` as suggested would have killed the desktop flashlight
+  toggle entirely, because `IsHeld` includes `KeyboardHeld` (GetKey F), which is already true on
+  the GetKeyDown frame and F is the only desktop toggle (gamepad X / touch button cover the
+  other platforms). Implemented the hold-vs-tap split instead, matching the LIGHT touch button's
+  existing pattern; no new GameConfig fields were needed (no new tunables introduced anywhere).
+- Teach-back check: pending — walk a teammate through why the hiding statics must be cleared on
+  the respawn path (EnemySight reads the static) and the F tap-vs-crank decision tree.
+- Test result: pending Lead batch run — expected `BuildAllBatch` + `ValidateBatch` →
+  `RESULT: PASS` (validation asserts the touched systems: player components, MenaceDirector,
+  hide spots); NOT run by the agent (no Unity.exe per task rules).
+
+### 2026-11-19 - Task P4: Arabic question content for all 60 questions - Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) - task P4 of Docs/TASKS.md.
+- What AI provided: full Arabic translation table (questionAr/optionsAr/explanationAr for all 60
+  Q_*.asset questions) in Egyptian-flavored MSA with the mother's voice for explanations; the fill
+  script `Art/pipeline/fill_arabic_questions.py` (append-only YAML edit after `factSource`, asserts
+  correctIndex and untouched EN bytes, mimics Unity's YAML quoting, refuses strings that the
+  ArabicSupport display shim would word-reverse - e.g. multi-word English runs or a number last
+  inside parentheses); a ValidateBatch assertion counting Arabic-complete questions
+  (SceneBuilderValidation: "Question Arabic fields: 60/60").
+- What I changed myself: kept every correctIndex and all EN bytes untouched (git diff: 420
+  insertions, 0 deletions, GUIDs/.meta identical); adapted the Language items whose on-screen
+  display would break - Lan_002/Lan_004 prompts re-anchored to Arabic sentences (same grammar
+  skill, same correctIndex), Lan_003/Lan_009 options kept pure-English so the shim skips them;
+  flagged those adaptations for teacher review.
+- Teach-back check: pending - walk a teammate through one .asset diff (7 appended lines per file)
+  and the ArabicSupport token-order rule the script enforces.
+- Test result: script re-parses all 60 assets with YAML and round-trips every Arabic field (0
+  empty); empty-field grep = 0; factSource stays NEEDS-FACT-CHECK on all 60 (never claimed
+  review). Unity ValidateBatch to be run by the lead (no Unity run in this task). Human/native
+  Arabic review still required before release.
+
+### 2026-11-19 — Premium pass P5: app-icon pipeline, store listing, VO recording specs — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) on a dedicated release-prep worktree
+  (`LS-p5`, branch `feat/release-prep`).
+- What AI provided: `Art/Pipeline/ls_icon.py` — a Blender 5.3 EEVEE headless
+  pipeline that builds the flashlight emblem (stylized silhouette + warm beam
+  cone on the STYLE_GUIDE gold-on-dark palette, #E8B54A on #0B0F16) and renders
+  `Art/Previews/icon_{1024,512,192,96}.png` natively per size; `Docs/STORE_LISTING.md`
+  (EN/AR titles within limits, short + full descriptions, keyword candidates,
+  IARC age-rating answer sheet, no-data privacy blurb); `Docs/VO_RECORDING_SPECS.md`
+  (per-character voice profiles from STORY_BIBLE §3-4, dry 48 kHz/24-bit chain
+  normalized to −16 LUFS, `VO_<character>_<nodeId>_<lang>.wav` naming, and the
+  per-speaker line-count table grepped from the 44 `SN_*.asset` files —
+  Nour 22 / Mother 7 / Shadow 9 / Memory 6, plus the 4 ending-epilogue echoes
+  found in `EndingController.localizationKeys[1]` = 96 delivered files EN+AR).
+- What I changed myself: iterated the icon render three times from visual checks
+  (rotated the cylinders onto the beam axis, made emissive planes black-base and
+  specular-free after a diagnostic render showed the area lights washing the
+  backdrop grey, smoothed the beam to four nested cones); kept ProjectSettings
+  untouched and documented the PlayerSettings wiring path in the script header
+  instead; verified the 96 px render stays readable; kept TASKS.md honest by
+  splitting the store-assets item (screenshots need Unity runs, this pass had
+  none) rather than marking it done.
+- Teach-back check: pending — walk the team through the icon pipeline header
+  (how Unity consumes the previews) and the VO integration point
+  (StoryDirector.cs:314 + the empty Voice group in the M_Main mixer).
+- Test result: no Unity runs by design; Blender headless exits 0 and wrote all
+  four PNGs (verified visually at 1024/192/96); speaker tallies re-derived
+  twice (22+7+9+6 = 44 nodes); docs-only changes so the CI fast-checks are the
+  gate for this branch.
+
+### 2026-11-19 - Task P4 follow-up: question bank expansion 60 -> 120 - Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) - P4 follow-up item in Docs/TASKS.md.
+- What AI provided: 60 new school-level questions (Q_<Cat>_011+, Sci/Mat/His/Geo/Lan/Hea) each
+  with EN prompt, 4 EN options, correctIndex, mother-voice EN explanation, and the full Arabic
+  set (questionAr/optionsAr/explanationAr, Egyptian-flavored MSA, single-token Latin islands for
+  the ArabicSupport shim); the authoring script Art/pipeline/add_120_questions.py (writes assets
+  in the exact serialized QuestionData format, gates wing quotas, numbering continuity, display
+  safety and duplicate prompts, refuses to touch existing files) and the verifier extension
+  Art/pipeline/verify_arabic_questions.py (120 files; legacy 60 byte-identical to the branch
+  base, new 60 fully fielded).
+- What I changed myself: assigned the wing mapping and the 4 easy / 5 standard / 3 hard quota per
+  wing (MASTER_PLAN section 4.5: Library, Science wing, Courtyard, Assembly hall, Staff room);
+  verified every fact against general knowledge and reworded His_016's prompt after the
+  duplicate-prompt gate flagged a collision with His_004; kept every factSource at
+  NEEDS-FACT-CHECK (rule 5), recorded the source=curriculum designation in the authoring table
+  because QuestionData has no serialized `source` field, and authored no .meta files (Unity
+  generates them on import; QuestionDatabase relinks via GenerateQuestionsSilent on the next
+  editor run - SceneBuilder.cs calls it before building the school).
+- Teach-back check: pending - walk a teammate through the wing-to-id mapping table in
+  add_120_questions.py and the append-only guarantee (git diff shows 0 deletions on the legacy
+  assets).
+- Test result: python -I add_120_questions.py --apply created 60 assets (folder count 120), each
+  round-tripped via YAML (EN+AR fields, 4 options, correctIndex, category, difficulty);
+  python -I verify_arabic_questions.py -> "RESULT: PASS - 120-question bank intact: legacy 60
+  untouched at the base ref, new 60 carry all EN+AR fields (4 options each), factSource
+  untouched, no duplicate prompts." Unity ValidateBatch to be run by the lead (no Unity run in
+  this task); human fact-check of all 120 still required before release.
+
+### 2026-11-19 — Deferred audio item: reverb zones + occlusion (feat/audio-reverb-occlusion, worktree LS-p3) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) implementing AGENT_REPORT_AUDIO_MIXER §5 (the
+  premium-pass brief §8.3 audio item deferred from the mixer PR); Lead runs the Unity
+  batches and git push.
+- What AI provided: (1) `SceneBuilderScenes.AttachReverbZones` — a builder table of the
+  eight interior rooms (bounds mirroring the shell-wall literals) attaching an
+  idempotent `AudioReverbZone` child per room with preset tiers Library/PhysicsLab/
+  Classroom/Garden/StaffRoom = `Room`, Corridor/Entrance = `MediumRoom`, MainHall =
+  `ConcertHall`; minDistance = half the smaller floor extent, maxDistance = the floor
+  diagonal, both computed from the bounds; zone colliders are triggers on the Default
+  layer so the Level-layer NavMesh bake and every gameplay query (all use
+  `QueryTriggerInteraction.Ignore`) never see them. (2) `AudioOcclusionProbe` (new,
+  on the player camera next to the AudioListener, attached by SceneBuilderPrefabs):
+  every `occlusionIntervalSeconds` (0.25) it linecasts listener -> source for each
+  active 3D source and muffles blocked ones with a lazily added `AudioLowPassFilter`
+  (`occlusionCutoffHz` 2400) plus a −6 dB volume dip, restoring on a clear line;
+  cached per-source state, no per-frame work. (3) GameConfig occlusion fields
+  (interval/cutoff/dip); (4) `SceneBuilderValidation` checks (≥ 6 zones with colliders
+  and sane falloffs, probe on the player camera); (5) Docs/TASKS.md P3 line.
+- What I changed myself: resolved the spec's volume-dip conflict with the per-frame
+  envelope writers (ShadowAudio growl, AdaptiveMusic) via an ownership arbitration —
+  the probe re-scales `source.volume` only when the current value is exactly the one
+  it wrote last tick, so it can never divide a stale dip factor out of another
+  writer's fresh value (which would boost the source past its envelope); confirmed the
+  low-pass/snapshot orthogonality (per-source filter vs mixer-level duck gains, they
+  chain and never share a parameter, so `AssertNotSnapshotOwned` is untouched); chose
+  "add filter once, toggle enabled" over add/destroy to avoid churn when hugging a
+  wall; skipped 2D sources (music/ambience are omniscient by design).
+- Teach-back check: pending — walk a teammate through the three-writer volume
+  arbitration (probe vs VolumeCategories vs envelope owners) and why the reverb zone
+  colliders must not be on the Level layer (NavMesh bake).
+- Test result: pending Lead batch run — expected `BuildAllBatch` (scenes/prefabs
+  rebuilt: zones + probe attached) then `ValidateBatch` → `RESULT: PASS` with the new
+  "Reverb zones: 8 (need at least 6)" and occlusion-probe checks; NOT run by the agent
+  (no Unity.exe per task rules).
+
+### 2026-11-19 — Docs finalization for the premium integration (Session 3) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) on the `LS-p5` worktree, branch
+  `feat/docs-final` (stacked on `feat/release-prep`), read-only against the
+  main checkout and the GitHub API; no Unity runs, no git push.
+- What AI provided: refreshed the seven living docs to the integration state —
+  `Docs/PROGRESS.md` Session 3 (what landed per phase P1–P5, verification
+  results, open items); `Docs/CHANGELOG.md` 0.6.0-premium-integration block
+  (folds the Phase-1 [Unreleased] draft into the versioned entry, adds P2/P3/
+  P4/P5); `Docs/PROJECT_STATE.md` status/what-works/issues/human-only rewrite;
+  `Docs/PERFORMANCE.md` CI build ledger (artifact byte sizes + per-job build
+  times + honest delta vs the 73.7 MB baseline); README status/features/
+  settings/build updates (horror systems, Arabic questions, hero props, fonts,
+  all with review flags); `Docs/TASKS.md` reconciliation (P2/P3/P4/P5 ticks
+  ported from `feat/premium-integration` + a human-only/deferred open-items
+  section); this log entry.
+- What I changed myself: verified every number against the GitHub API before
+  writing it — artifact byte sizes from run 44608154090 (arm64 88,040,419 /
+  armv7 86,145,163 / Windows 152,043,678) and the pre-P1 comparison run
+  44592065316 (65,613,495 / 63,726,235 / 129,698,324), per-job wall-clocks
+  from three runs (Windows 7m12s–8m57s, arm64 9m45s–18m28s, armv7 8m44s–16m08s;
+  the second-hand PR #3/#4 merge-day figures are quoted as reported, inside
+  the measured envelope); checked `feat/horror-systems` history for
+  reverb/occlusion before listing it deferred (nothing landed — only an SSAO
+  hotfix matched); counted the P3 review fixes as nine from the review-fix
+  dev-log entry on the branch; kept the Arabic-questions entry at "AI
+  translation pending human/native review", the 120-bank expansion at "in
+  progress", and `factSource = NEEDS-FACT-CHECK` claims untouched — no human
+  review claimed anywhere; kept TASKS.md honest by splitting the landed first
+  batch of 14 hero props from the un-built master-plan props rather than
+  ticking the whole P2 item.
+- Teach-back check: pending — walk a teammate through why PERFORMANCE.md
+  compares same-pipeline CI runs (65.6 → 88.0 MB arm64 artifact, +22.4 MB for
+  P1 alone) instead of comparing a CI zip artifact against the 30 Oct local
+  73.7 MB APK, and why the integration PR's own artifact sizes amend that
+  table only when its run completes.
+- Test result: docs-only change; no Unity runs by design; every quoted number
+  re-derived from `gh api` output or `git log` at write time; CI fast-checks
+  are the gate for this branch.
+
+### 2026-11-19 — Premium integration branch assembled (single-merge) — Abdelrhman Mohamed
+- Tool used: ZCode (AI coding agent, GLM) + 3 parallel sub-agents (questions-120, reverb/occlusion, docs-final).
+- What AI provided: integration branch merging 7 feature branches (hero props, horror systems +
+  review fixes, Arabic 60→120, reverb zones + occlusion, release prep, docs final); compile
+  reconciliations (PadHeld/KeyboardHeld members, label shadowing, validation brace structure
+  from the P1+P2 stitch); full batch chain green.
+- What I changed myself: enforced the single-merge protocol per owner decision (PRs #5/#6
+  closed as superseded); resolved every cross-branch conflict keep-both; verified
+  BuildAllBatch + ValidateBatch on the final tree.
+- Teach-back check: pending — walk the team through the integration branch layout.
+- Test result: ValidateBatch RESULT: PASS ×2; Question bank 120/120 linked; Arabic 120/120;
+  Reverb zones 8; Hero FBX 14/14; 0 compile errors.
+
+### 2026-11-27 — Docs/AUDIT_2.md (finish-the-game static audit) — Abdelrhman Mohamed
+- Tool used: Instinct (AI coding agent)
+- What AI provided: the audit pass itself (core-loop read, pattern scans for event leaks, hot-path
+  costs, timeScale and PlayerPrefs usage, platform guards) and the AUDIT_2.md write-up, including
+  the mobile-stretch root cause and the deferred-restore edge case in SaveSystem.
+- What I changed myself: pending review — lands through the PR workflow.
+- Teach-back check: pending — the findings table is written so a teammate can repro each item.
+- Test result: static audit only; no code changed on this branch, CI fast-checks are the gate.
+
+### 2026-11-27 — Mobile stretch fix: native-resolution guard + safe-area fitter — Abdelrhman Mohamed
+- Tool used: Instinct (AI coding agent)
+- What AI provided: diagnosis that `GameSettings.ApplyResolution` forced a picked resolution on
+  Android (framebuffer stretched to fill a different-aspect display); the mobile gate in
+  `ApplyResolution`; `SafeAreaFitter` (fits canvas content to `Screen.safeArea`); the
+  `SceneBuilderUI.CreateCanvas` change parenting every canvas's content under a `SafeArea` child.
+- What I changed myself: pending review — changes land through the PR workflow (AGENTS.md rule 9).
+- Teach-back check: pending — explained in the PR body (why forcing a resolution distorts on 20:9
+  phones, and why the safe-area child only insets on notched devices).
+- Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
+  no local Unity editor available.
+
+### 2026-11-27 — SaveSystem deferred-restore fix (audit A3) — Abdelrhman Mohamed
+- Tool used: Instinct (AI coding agent)
+- What AI provided: `SaveSystem.ClearPendingRestore` and the new-game hook in
+  `SaveSlotUI.StartRun`, so a deferred restore from an earlier Load attempt cannot apply
+  a stale save to a fresh run; the AUDIT_2.md status flip for finding A3.
+- What I changed myself: pending review — lands through the PR workflow.
+- Teach-back check: pending — repro steps are in the PR body and AUDIT_2.md.
+- Test result: static reasoning only (no editor); CI build workflow is the gate.
+
+### 2026-11-27 — feat/audio-core-sfx: 43 core SFX imports + Docs/ASSET_MANIFEST.md + manifest validator — Instinct agent (for Ahmed)
+- Tool used: Instinct (AI agent)
+- What AI provided: selected 43 CC0 clips from the already-licensed Kenney packs
+  (Interface/Impact/RPG) for the cue-sheet P1/P2 ids, copied them into
+  Assets/_Project/Audio/SFX/ with hand-authored fresh-GUID importer .meta files
+  (ADPCM/mono/DecompressOnLoad per MASTER_PLAN §8.4), wrote the 62-row audio
+  asset manifest and Art/pipeline/validate_asset_manifest.py, and updated the
+  ASSET_LICENSES.md pack usage notes.
+- What I changed myself: n/a (agent-authored; no human edits yet).
+- Teach-back check: pending — PR review with the owner.
+- Test result: validator prints RESULT: PASS locally (62 rows). No Unity on this
+  machine: import correctness (meta format, levels, audition) needs human/CI
+  verification. Files are not wired to any consumer; wiring is the Scripts
+  owner's side (mapping sent).

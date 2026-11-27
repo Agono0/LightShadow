@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_Geo_017
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: The needle of a compass points toward...
+  options:
+  - The South Pole
+  - The North Pole
+  - The Equator
+  - The Sun
+  correctIndex: 1
+  category: 3
+  difficulty: 2
+  explanation: Earth acts like a magnet, and the compass needle lines up with it, pointing north.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: إبرة البوصلة تشير نحو...
+  optionsAr:
+  - القطب الجنوبي
+  - القطب الشمالي
+  - خط الاستواء
+  - الشمس
+  explanationAr: للأرض مجال مغناطيسي يجعل إبرة البوصلة تصطف معه وتشير إلى الشمال.

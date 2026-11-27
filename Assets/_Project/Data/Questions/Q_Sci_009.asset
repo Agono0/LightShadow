@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: The heart is a muscular pump that pushes blood through arteries, veins
     and capillaries.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي عضو يضخ الدم في أنحاء جسم الإنسان؟
+  optionsAr:
+  - الرئتان
+  - الكبد
+  - القلب
+  - الكليتان
+  explanationAr: القلب مضخة عضلية تدفع الدم في الشرايين والأوردة والشعيرات الدموية.
