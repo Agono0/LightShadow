@@ -13,6 +13,7 @@ namespace LightShadow.Audio
     public static class SfxRegistry
     {
         static readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
+        static readonly Dictionary<string, int> familyCounts = new Dictionary<string, int>();
 
         public static void Register(string id, AudioClip clip)
         {
@@ -23,11 +24,23 @@ namespace LightShadow.Audio
         public static void RegisterMany(string id, AudioClip[] array)
         {
             if (array == null || array.Length == 0) return;
+            int registered = 0;
             for (int i = 0; i < array.Length; i++)
             {
                 if (array[i] == null) continue;
                 clips[id + "_" + i] = array[i];
+                registered++;
             }
+            familyCounts[id] = registered;
+        }
+
+        /// <summary>How many variants a family registered (0 when absent), so
+        /// consumers size their random picks from the library instead of a
+        /// hardcoded constant that goes stale when packs grow.</summary>
+        public static int VariantCount(string id)
+        {
+            int count;
+            return familyCounts.TryGetValue(id, out count) ? count : 0;
         }
 
         public static AudioClip Clip(string id)
@@ -53,6 +66,10 @@ namespace LightShadow.Audio
             return false;
         }
 
-        public static void Clear() => clips.Clear();
+        public static void Clear()
+        {
+            clips.Clear();
+            familyCounts.Clear();
+        }
     }
 }
