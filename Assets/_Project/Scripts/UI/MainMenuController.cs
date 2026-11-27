@@ -127,6 +127,8 @@ namespace LightShadow.UI
         public void ToggleHowTo()
         {
             if (howToPanel == null) return;
+            // Symmetric with ToggleCredits: the two cards never stack.
+            if (creditsPanel != null) creditsPanel.SetActive(false);
             howToPanel.SetActive(!howToPanel.activeSelf);
         }
 
