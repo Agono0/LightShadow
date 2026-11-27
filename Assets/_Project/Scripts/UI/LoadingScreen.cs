@@ -81,6 +81,7 @@ namespace LightShadow.UI
             }
 
             Instance = this;
+            Localization.LanguageChanged += RefreshLanguage;
             BuildUI();
             group.alpha = 0f;
             canvas.gameObject.SetActive(false);
@@ -88,7 +89,34 @@ namespace LightShadow.UI
 
         void OnDestroy()
         {
+            Localization.LanguageChanged -= RefreshLanguage;
             if (Instance == this) Instance = null;
+        }
+
+        // audit v3 5.4: this canvas persists across scene loads
+        // (DontDestroyOnLoad in EnsureCreated), so a language switch while it
+        // exists must re-translate and re-font the visible strings in place or
+        // they stay in the previous language until the object is destroyed.
+        internal void RefreshLanguage()
+        {
+            Font font = Localization.CurrentFont;
+            if (captionText != null)
+            {
+                captionText.text = StoryStrings.Tr(CaptionKey);
+                captionText.font = font;
+            }
+            if (tipText != null)
+            {
+                tipText.text = StoryStrings.Tr(TipKey);
+                tipText.font = font;
+            }
+            if (progressText != null)
+            {
+                // Only the static label is language-dependent; the live
+                // percent readout rewrites itself every frame while loading.
+                if (progressLabelShowing) progressText.text = StoryStrings.Tr("Loading...");
+                progressText.font = font;
+            }
         }
 
         void Update()
@@ -122,8 +150,6 @@ namespace LightShadow.UI
 
             group = canvasGo.AddComponent<CanvasGroup>();
 
-            Font font = Localization.EnglishFont;
-
             // Redesigned loading look: gradient night, the school silhouette,
             // and a flashlight beam that sweeps across it while you wait.
             var background = MakeRect(canvasGo.transform, "Background", Vector2.zero, Vector2.one, Color.white);
@@ -145,7 +171,7 @@ namespace LightShadow.UI
             beam.rectTransform.anchoredPosition = new Vector2(-700f, 80f);
 
             captionText = MakeText(canvasGo.transform, "Caption",
-                StoryStrings.Tr("DEMOLITION AT DAWN"), 30,
+                StoryStrings.Tr(CaptionKey), 30,
                 new Color(0.78f, 0.83f, 0.92f, 0.85f), TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.62f), new Vector2(0.5f, 0.62f), new Vector2(1100f, 60f));
 
@@ -158,7 +184,7 @@ namespace LightShadow.UI
             track.rectTransform.sizeDelta = new Vector2(920f, 22f);
 
             tipText = MakeText(canvasGo.transform, "Tip",
-                StoryStrings.Tr("Knowledge is the only light that follows a person into the dark."), 19,
+                StoryStrings.Tr(TipKey), 19,
                 new Color(0.62f, 0.60f, 0.55f, 0.85f), TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.34f), new Vector2(0.5f, 0.34f), new Vector2(1100f, 46f));
 
@@ -274,13 +300,36 @@ namespace LightShadow.UI
 
         void RunTransition(string sceneName)
         {
-            StopAllCoroutines();
-            if (inTransition) return; // a second click must not queue a second gated load
+            if (inTransition)
+            {
+                // Latest-wins (audit v3 5.4): queue the request instead of
+                // dropping it; a newer request replaces any older queued one.
+                pendingScene = sceneName;
+                return;
+            }
+
+            StopAllCoroutines(); // cancel any Show/Hide fade before loading
             inTransition = true;
             StartCoroutine(TransitionRoutineGuarded(sceneName));
         }
 
         static bool inTransition;
+
+        // LATEST-WINS concurrency (audit v3 5.4): a Transition() requested
+        // while another transition is in flight is QUEUED here, not dropped.
+        // A newer request replaces any older queued one, so the LAST scene
+        // requested always wins; the queued scene loads as soon as the
+        // current transition finishes.
+        string pendingScene;
+
+        // Source-string keys, kept so RefreshLanguage can re-translate the
+        // persistent canvas in place (audit v3 5.4).
+        const string CaptionKey = "DEMOLITION AT DAWN";
+        const string TipKey = "Knowledge is the only light that follows a person into the dark.";
+
+        // True only while the static "Loading..." label is on screen; the
+        // live percent readout is language-independent.
+        bool progressLabelShowing;
 
         IEnumerator TransitionRoutineGuarded(string sceneName)
         {
@@ -288,10 +337,17 @@ namespace LightShadow.UI
             // must not leave the guard closed forever.
             try
             {
-                yield return TransitionRoutine(sceneName);
+                string next = sceneName;
+                while (next != null)
+                {
+                    pendingScene = null;
+                    yield return TransitionRoutine(next);
+                    next = pendingScene; // latest-wins handoff (audit v3 5.4)
+                }
             }
             finally
             {
+                pendingScene = null;
                 inTransition = false;
             }
         }
@@ -301,6 +357,7 @@ namespace LightShadow.UI
             canvas.gameObject.SetActive(true);
             yield return FadeTo(1f, FadeSeconds);
             progressFill.fillAmount = 0f;
+            progressLabelShowing = true;
             progressText.text = StoryStrings.Tr("Loading...");
 
             float shownAt = Time.unscaledTime;
@@ -317,6 +374,7 @@ namespace LightShadow.UI
                 while (!operation.isDone)
                 {
                     progressFill.fillAmount = Mathf.Clamp01(operation.progress);
+                    progressLabelShowing = false;
                     progressText.text = Mathf.RoundToInt(progressFill.fillAmount * 100f) + "%";
                     // Belt and braces: if the loader ever stalls outright,
                     // force activation rather than hanging the night.
