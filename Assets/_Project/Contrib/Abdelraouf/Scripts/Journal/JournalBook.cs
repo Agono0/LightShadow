@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using LightShadow.Core;
 using LightShadow.Player;
 using LightShadow.UI;
@@ -37,6 +38,7 @@ namespace LightShadow.Contrib.Abdelraouf.Journal
         readonly List<Text> listLabels = new List<Text>();
         string selectedId = "";
         bool cursorWasLocked;
+        InputLockToken lockToken;
 
         public bool IsOpen => panel != null && panel.activeSelf;
 
@@ -67,6 +69,13 @@ namespace LightShadow.Contrib.Abdelraouf.Journal
 
         void Update()
         {
+            // Esc closes the journal first; PauseMenu sees the token (or the
+            // close this frame) and stays shut, in either Update order.
+            if (IsOpen && Input.GetKeyDown(KeyCode.Escape))
+            {
+                Close();
+                return;
+            }
             if (!Input.GetKeyDown(KeyCode.J)) return;
             Toggle();
         }
@@ -83,7 +92,7 @@ namespace LightShadow.Contrib.Abdelraouf.Journal
             // Do not stack on the pause menu or another overlay.
             if (PauseMenu.IsOpen || PlayerController.ExternalInputLocked) return;
 
-            PlayerController.ExternalInputLocked = true;
+            lockToken = OverlayStack.Acquire("Journal", true, true, Close);
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
             {
@@ -104,7 +113,7 @@ namespace LightShadow.Contrib.Abdelraouf.Journal
 
         void ReleaseLock()
         {
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (cursorWasLocked && !Application.isMobilePlatform)
             {
                 Cursor.lockState = CursorLockMode.Locked;
