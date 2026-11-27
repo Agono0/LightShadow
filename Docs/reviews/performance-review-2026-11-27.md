@@ -28,7 +28,7 @@ About 175 MB in total [E]. On a mid-range phone this is likely the largest singl
 ### 2. `SFX_Whisper_Burst.wav` is a 192 s file used as a one-shot (high impact, size and memory) [M]
 
 33.9 MB on disk, ADPCM mono, DecompressOnLoad, about 17 MB PCM in RAM [E]. It is 192 s long. The manifest itself notes "words may need trimming".
-**Recommend:** trim to the real burst (a few seconds) in the asset lane, or set Streaming if it must stay long. This alone is about 22% of the Android arm64 build (88 MB, CI ledger in `PERFORMANCE.md`) if the file is stored as-is [E].
+**Recommend:** trim to the real burst (a few seconds) in the asset lane, or set Streaming if it must stay long. The file is 33.9 MB on disk against an Android arm64 build of 88 MB (CI ledger in `PERFORMANCE.md`). How much of that it adds to the build was not measured.
 
 ### 3. Shadowed point lights in the school scene (high impact, GPU) [M counts, E cost]
 
