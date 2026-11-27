@@ -42,7 +42,7 @@ namespace LightShadow.Gameplay
             }
 
             if (restoreClip == null) restoreClip = ProceduralSfx.Power;
-            if (restoreClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(restoreClip);
+            LightShadow.Audio.Sfx.Play("SFX_PowerSurge", restoreClip);
 
             if (indicator != null && restoredMaterial != null) indicator.sharedMaterial = restoredMaterial;
 

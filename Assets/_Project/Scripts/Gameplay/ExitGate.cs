@@ -59,7 +59,7 @@ namespace LightShadow.Gameplay
             Powered = true;
 
             if (powerClip == null) powerClip = ProceduralSfx.Power;
-            if (powerClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(powerClip);
+            LightShadow.Audio.Sfx.Play("SFX_GateCrank", powerClip);
             if (dawnChaseRoot != null) dawnChaseRoot.SetActive(true);
             if (escapeZone != null) escapeZone.enabled = true;
             if (gateLeaf != null) StartCoroutine(TurnCrank());

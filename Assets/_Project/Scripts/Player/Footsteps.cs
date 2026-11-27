@@ -80,28 +80,48 @@ namespace LightShadow.Player
             // volume approximates it until a grass pack ships; concrete is the
             // base with an occasional wood plank step indoors. Variant counts
             // come from the registry, so growing a pack needs no script edit.
-            bool softGround = false;
+            string materialName = "";
             if (Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 0.5f))
             {
                 Renderer floor = hit.collider.GetComponent<Renderer>();
-                string materialName = floor != null && floor.sharedMaterial != null ? floor.sharedMaterial.name : "";
-                softGround = materialName.Contains("Grass");
+                materialName = floor != null && floor.sharedMaterial != null ? floor.sharedMaterial.name : "";
             }
 
-            int concreteCount = SfxRegistry.VariantCount("SFX_FootstepConcrete");
-            int woodCount = SfxRegistry.VariantCount("SFX_FootstepWood");
-            AudioClip clip;
+            // Surface selects the clip family by floor material name. The
+            // palette grows Mat_Gravel / Mat_Leaves / Mat_Mud / Mat_Carpet as
+            // those floors land; a family with no clips yet falls through to
+            // the indoor concrete/wood mix, so a missing pack never silences.
+            string family = null;
             float volumeScale = 1f;
-            if (softGround && woodCount > 0)
+            if (materialName.Contains("Grass")) { family = "SFX_FootstepGrass"; volumeScale = 0.85f; }
+            else if (materialName.Contains("Gravel")) { family = "SFX_FootstepGravel"; volumeScale = 0.95f; }
+            else if (materialName.Contains("Leaves")) { family = "SFX_FootstepLeaves"; volumeScale = 0.9f; }
+            else if (materialName.Contains("Mud")) { family = "SFX_FootstepMud"; volumeScale = 0.8f; }
+            else if (materialName.Contains("Carpet")) { family = "SFX_FootstepCarpet"; volumeScale = 0.7f; }
+
+            AudioClip clip = null;
+            if (family != null)
             {
-                clip = SfxRegistry.ClipVariant("SFX_FootstepWood", woodCount);
-                volumeScale = 0.55f; // soft ground swallows the step
+                int familyCount = SfxRegistry.VariantCount(family);
+                if (familyCount > 0) clip = SfxRegistry.ClipVariant(family, familyCount);
             }
-            else
+            if (clip == null)
             {
-                clip = Random.value < 0.75f || woodCount == 0
-                    ? SfxRegistry.ClipVariant("SFX_FootstepConcrete", concreteCount)
-                    : SfxRegistry.ClipVariant("SFX_FootstepWood", woodCount);
+                int concreteCount = SfxRegistry.VariantCount("SFX_FootstepConcrete");
+                int woodCount = SfxRegistry.VariantCount("SFX_FootstepWood");
+                bool softGround = materialName.Contains("Grass");
+                if (softGround && woodCount > 0)
+                {
+                    clip = SfxRegistry.ClipVariant("SFX_FootstepWood", woodCount);
+                    volumeScale = 0.55f; // soft ground swallows the step
+                }
+                else
+                {
+                    clip = Random.value < 0.75f || woodCount == 0
+                        ? SfxRegistry.ClipVariant("SFX_FootstepConcrete", concreteCount)
+                        : SfxRegistry.ClipVariant("SFX_FootstepWood", woodCount);
+                    volumeScale = 1f;
+                }
             }
             if (clip == null) return;
 

@@ -27,12 +27,10 @@ namespace LightShadow.Tools
             PlaceDoor(parent, "Door_Physics",   2.65f, -16f, "",              false, 105f, palette);
             PlaceDoor(parent, "Door_Garden",    2.65f, 10f,  "",              false, 105f, palette);
 
-            // The key chain (plain pickups for now; moving them behind puzzle
-            // solves is the keys-through-puzzles follow-up).
-            PlaceKey(parent, "Key_Classroom", "classroom_key", "the classroom key", "مفتاح الفصل",
-                new Vector3(-19.5f, 0.98f, -18f), palette);
-            PlaceKey(parent, "Key_Staff", "staff_key", "the staff room key", "مفتاح غرفة المعلمين",
-                new Vector3(-19.5f, 0.98f, 8f), palette);
+            // The key chain lives behind puzzle solves now
+            // (Gameplay/PuzzleKeyRewards): the chalkboard cipher pays the
+            // classroom key, the map locker pays the staff room key. No loose
+            // keys in corridors.
 
             // Two medkits, rare per the brief: the infirmary shelf and the
             // staff room. More arrive as puzzle rewards in a later batch.

@@ -360,6 +360,44 @@ Scripts owner's side.
 | Asset | Source page | File URL | License | Author | Notes |
 | --- | --- | --- | --- | --- | --- |
 | T_UI_HealthFrame_Night.png, T_UI_HealthFill_Night.png, T_UI_Icon_Key_Night.png, T_UI_Icon_Medkit_Night.png, T_UI_Icon_Checkpoint_Night.png | - | - | n/a - script-generated | Instinct agent (for Ahmed) | original procedural assets, no external source; parameters in Art/pipeline/generate_ui_procedural.py |
+## SFX wave 2 (added 2026-11-27, peer reservation grant)
+
+17 new SFX clips, 9 families, all CC0 1.0, all mono 44.1kHz Vorbis q4,
+silence-trimmed, peak -3 dBFS target. No clip has been listened to; every row
+carries human_check "unverified - no listening performed" and per-file
+source+processed sha256 in Docs/ASSET_MANIFEST.md. Labels per peer rulings
+2026-11-27: SFX_ChalkWrite_0..2 are PROVISIONAL (scratch-derived from the
+Kenney Interface pack; chalk fit UNVERIFIED - scratch is not proof of chalk)
+and SFX_FlashlightBuzz_0 is a provisional ONE-SHOT (no loop or seam claim).
+
+10 clips from OpenGameArt pages, each page observed 2026-11-27 showing the
+CC0 license block; direct file/archive URLs in the manifest rows:
+Circuit breaker (CleytonKauffman, https://opengameart.org/content/sfx-circuit-breaker),
+Alien Sounds (EZduzziteh, https://opengameart.org/content/alien-sounds-0),
+Electricity Sound Effects (BMacZero, https://opengameart.org/content/electricity-sound-effects-0),
+Mechanical Sounds (BMacZero, https://opengameart.org/content/mechanical-sounds),
+Chain winch sounds (bart, https://opengameart.org/content/chain-winch-sounds;
+GateCrank_0 = "winch - Marker #2.wav", GateCrank_1 = "winch - Marker #5.wav" -
+Marker #3 is byte-identical to #2).
+
+7 clips from EXISTING in-repo Kenney pack bytes (Kenney Interface Sounds /
+Impact Sounds, CC0 1.0, author Kenney kenney.nl). Source: existing repo
+bytes, no stable archive URL - kenney.nl uses a signed download flow, so no
+direct archive link exists or is claimed. Member paths and pack-local license
+files (Assets/ThirdParty/KenneyInterfaceSounds/LICENSE.md and
+Assets/ThirdParty/KenneyImpactSounds/LICENSE.md, both stating CC0 1.0) are
+recorded per row in Docs/ASSET_MANIFEST.md. Peer lead accepted this
+existing-byte provenance on 2026-11-27.
+
+| Asset | Source page | File URL / member | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SFX_PowerSurge_0.ogg | https://opengameart.org/content/sfx-circuit-breaker | https://opengameart.org/sites/default/files/Circuit%20Breaker.zip (member "switch on.wav") | CC0 1.0 | CleytonKauffman | fuse-box breaker ON |
+| SFX_ShadowHiss_0.ogg | https://opengameart.org/content/alien-sounds-0 | https://opengameart.org/sites/default/files/alien_hiss.mp3 | CC0 1.0 | EZduzziteh | banish recoil hiss |
+| SFX_FlashlightBuzz_0.ogg | https://opengameart.org/content/electricity-sound-effects-0 | https://opengameart.org/sites/default/files/continuousspark.wav | CC0 1.0 | BMacZero | provisional ONE-SHOT, no loop claim |
+| SFX_MirrorTurn_0/1.ogg, SFX_Crank_0..2.ogg | https://opengameart.org/content/mechanical-sounds | https://opengameart.org/sites/default/files/ squeakyclick1.wav, squeakyclick2.wav, mechanical1.wav, mechanical2.wav, rattle1.wav | CC0 1.0 | BMacZero | optics mirror turn; manual-charge crank |
+| SFX_GateCrank_0/1.ogg | https://opengameart.org/content/chain-winch-sounds | https://opengameart.org/sites/default/files/winch.zip (members "winch - Marker #2.wav", "winch - Marker #5.wav") | CC0 1.0 | bart | Act III gate crank |
+| SFX_ChalkWrite_0..2.ogg, SFX_UIPaperTap_0/1.ogg | https://kenney.nl/assets/interface-sounds | existing repo bytes: Assets/ThirdParty/KenneyInterfaceSounds/Audio/ scratch_001..003.ogg, drop_001/002.ogg (no stable archive URL) | CC0 1.0 | Kenney (kenney.nl) | ChalkWrite PROVISIONAL, fit unverified |
+| SFX_GlassShard_0/1.ogg | https://kenney.nl/assets/impact-sounds | existing repo bytes: Assets/ThirdParty/KenneyImpactSounds/Audio/ impactGlass_light_002/003.ogg (no stable archive URL) | CC0 1.0 | Kenney (kenney.nl) | unused pack members |
 ## Loading screen art (added 2026-11-27, peer reservation grant)
 
 T_UI_Loading_Night.png is an ORIGINAL in-house script-generated asset - no

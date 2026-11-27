@@ -142,6 +142,7 @@ namespace LightShadow.UI
         {
             if (busy || index < 0 || index >= rotations.Length) return;
             rotations[index] = (rotations[index] + 1) % 4;
+            LightShadow.Audio.Sfx.Play("SFX_MirrorTurn");
             RenderRotors();
         }
 

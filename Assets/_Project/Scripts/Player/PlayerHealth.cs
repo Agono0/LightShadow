@@ -39,6 +39,7 @@ namespace LightShadow.Player
         {
             if (HitsRemaining <= 0) return false;
             HitsRemaining--;
+            LightShadow.Audio.Sfx.Play(HitsRemaining <= 0 ? "SFX_HurtHeavy" : "SFX_HurtHit");
             Action<float> changed = Changed;
             if (changed != null) changed(Normalized);
             if (HitsRemaining <= 0)

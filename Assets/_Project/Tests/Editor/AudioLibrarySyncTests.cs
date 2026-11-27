@@ -36,6 +36,8 @@ namespace LightShadow.Tests.Editor
             Assert.AreEqual("hurtHeavy", AudioLibrarySync.FieldForId("SFX_HurtHeavy"));
             Assert.AreEqual("respawn", AudioLibrarySync.FieldForId("SFX_Respawn"));
             Assert.AreEqual("throwWhoosh", AudioLibrarySync.FieldForId("SFX_ThrowWhoosh"));
+            Assert.AreEqual("gateCrank", AudioLibrarySync.FieldForId("SFX_GateCrank"));
+            Assert.AreEqual("uiPaperTap", AudioLibrarySync.FieldForId("SFX_UIPaperTap"));
             Assert.AreEqual("throwImpactSoft", AudioLibrarySync.FieldForId("SFX_ThrowImpactSoft"));
             Assert.AreEqual("throwImpactHard", AudioLibrarySync.FieldForId("SFX_ThrowImpactHard"));
             Assert.AreEqual("crateScrape", AudioLibrarySync.FieldForId("SFX_CrateScrape"));

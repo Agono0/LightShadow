@@ -91,8 +91,13 @@ namespace LightShadow.Enemy
                     stingerSource.PlayOneShot(ambushClip);
                 }
 
+                if (state == EnemyBehaviour.State.Repelled)
+                    LightShadow.Audio.Sfx.PlayAt("SFX_ShadowHiss", transform.position);
+
                 if (state == EnemyBehaviour.State.Chase || state == EnemyBehaviour.State.Repelled)
                 {
+                    LightShadow.Contrib.Abdelraouf.Captions.CaptionService.Raise(
+                        LightShadow.Contrib.Abdelraouf.Captions.CaptionKeys.ShadowGrowl, transform.position);
                     if (stingerClip != null) stingerSource.PlayOneShot(stingerClip);
 
                     // Pooled whisper burst at the Shadow's position (premium pass
