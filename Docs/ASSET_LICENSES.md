@@ -28,6 +28,23 @@ pack ships its original `License.txt` inside its folder under `Assets/ThirdParty
 | leafy_grass (2K JPG) | https://polyhaven.com/a/leafy_grass | CC0 1.0 | Charlotte Baglioni | 2026-10-30 | Mat_Art_Grass (garden ground) |
 | quatrefoil_jacquard_fabric (2K JPG) | https://polyhaven.com/a/quatrefoil_jacquard_fabric | CC0 1.0 | colormass, Rico Cilliers | 2026-10-30 | Mat_Art_Fabric (stage backdrop) |
 
+### OpenGameArt CC0 SFX/ambience additions (downloaded + verified 2026-11-27)
+
+License verified on each asset's own page ("License(s): CC0"); originals + a License.txt ship in
+each folder under `Assets/ThirdParty/`. Selective import (only the files listed).
+
+| Asset / Pack | Source URL | License | Author | Imported at | Used for |
+| --- | --- | --- | --- | --- | --- |
+| Heartbeat sounds | https://opengameart.org/content/heartbeat-sounds | CC0 1.0 | bart | 2026-11-27 | heartbeat loops (SFX_Heartbeat_0 slow / SFX_Heartbeat_1 fast) for low-Calm + Hide snapshot |
+| horror breathing | https://opengameart.org/content/horror-breathing | CC0 1.0 | primbal | 2026-11-27 | scared breathing loop (SFX_Breath_Scared) |
+| wind whoosh loop | https://opengameart.org/content/wind-whoosh-loop | CC0 1.0 | sketchman3 | 2026-11-27 | wind-through-broken-glass gust loop (SFX_WindBrokenGlass_0) |
+| johnny whispers | https://opengameart.org/content/johnny-whispers | CC0 1.0 | iamoneabe | 2026-11-27 | Shadow whisper burst (SFX_Whisper_Burst, drop-in id) |
+| electric buzz | https://opengameart.org/content/electric-buzz | CC0 1.0 | themightyglider | 2026-11-27 | fluorescent tube hum loop (SFX_FluorescentHum_0) |
+| crickets ambient noise (loopable) | https://opengameart.org/content/crickets-ambient-noise-loopable | CC0 1.0 | wolfgang | 2026-11-27 | courtyard night crickets bed (AMB_Crickets) |
+| Lost in a bad place (horror ambience loop) | https://opengameart.org/content/lost-in-a-bad-place-horror-ambience-loop | CC0 1.0 | congusbongus | 2026-11-27 | library-wing drone (MUS_Drone_Library from lost_1; lost_2 kept as alternate in ThirdParty) |
+| Abandoned passages (horror ambience loop) | https://opengameart.org/content/abandoned-passages-horror-ambience-loop | CC0 1.0 | congusbongus | 2026-11-27 | science-wing drone (MUS_Drone_Science from freezer) |
+| 100 CC0 metal and wood SFX (selected) | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | CC0 1.0 | rubberduck | 2026-11-27 | building creaks (SFX_BuildingCreak_0-2 from wood_cracking_01-03); rest of the pack not imported |
+
 ### Fonts (Phase 1, downloaded + verified 2026-11-19)
 
 All five families ship their original license text next to the import:

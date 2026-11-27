@@ -372,3 +372,18 @@ The game itself contains **no AI features** — this log is about the developmen
   machine: import correctness (meta format, levels, audition) needs human/CI
   verification. Files are not wired to any consumer; wiring is the Scripts
   owner's side (mapping sent).
+
+### 2026-11-27 — feat/audio-oga-sfx: OpenGameArt CC0 SFX/ambience imports — Instinct agent (for Ahmed)
+- Tool used: Instinct (AI agent)
+- What AI provided: selected and downloaded 9 OpenGameArt CC0 assets (heartbeat,
+  breathing, wind gust, whispers, electric buzz, crickets, 2 horror drones,
+  wood creaks), verified the license on each asset page, staged originals +
+  License.txt under Assets/ThirdParty/OGA*, copied 12 clips into
+  Assets/_Project/Audio/ with fresh-GUID importer .meta (ADPCM mono for short
+  SFX, Vorbis q70 streaming for loops per MASTER_PLAN §8.4), and logged every
+  file in Docs/ASSET_MANIFEST.md + Docs/ASSET_LICENSES.md.
+- What I changed myself: n/a (agent-authored; no human edits yet).
+- Teach-back check: pending — PR review with the owner.
+- Test result: validate_asset_manifest.py RESULT: PASS (75 rows). No Unity on
+  this machine: import settings, loop seams, levels and wing-fit of the drone
+  candidates all need a human audition (marked per-row in the manifest).
