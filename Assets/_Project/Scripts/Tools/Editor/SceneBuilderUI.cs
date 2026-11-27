@@ -697,6 +697,13 @@ namespace LightShadow.Tools
                 ButtonDark, 19, out quitLabel);
             Localize(quitLabel);
 
+            Text creditsLabel;
+            Button creditsButton = MakeButton(root, "CreditsButton", "CREDITS", new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -348f), new Vector2(430f, 46f),
+                ButtonDark, 18, out creditsLabel);
+            Localize(creditsLabel);
+            creditsButton.gameObject.AddComponent<MenuButtonFX>();
+
             // Animated buttons (the plan's menu pass): hover lift, press dip,
             // unscaled ease, on every top-level menu button.
             play.gameObject.AddComponent<MenuButtonFX>();
@@ -716,6 +723,8 @@ namespace LightShadow.Tools
             controller.quitButton = quit;
             controller.howToPanel = BuildHowTo(root, controller);
             controller.settings = BuildSettingsPanel(canvas);
+            controller.creditsButton = creditsButton;
+            controller.creditsPanel = BuildCreditsPanel(root, controller);
 
             return controller;
         }
