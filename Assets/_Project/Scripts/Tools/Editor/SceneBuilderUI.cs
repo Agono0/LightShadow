@@ -624,6 +624,13 @@ namespace LightShadow.Tools
                 ButtonDark, 19, out quitLabel);
             Localize(quitLabel);
 
+            // Animated buttons (the plan's menu pass): hover lift, press dip,
+            // unscaled ease, on every top-level menu button.
+            play.gameObject.AddComponent<MenuButtonFX>();
+            how.gameObject.AddComponent<MenuButtonFX>();
+            settingsButton.gameObject.AddComponent<MenuButtonFX>();
+            quit.gameObject.AddComponent<MenuButtonFX>();
+
             Text footer = MakeText(root, "Footer", "A game for good  ·  no combat, no gore  ·  one night, one flashlight",
                 16, new Color(0.45f, 0.44f, 0.42f), TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
