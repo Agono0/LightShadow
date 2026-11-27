@@ -11,7 +11,7 @@ namespace LightShadow.Tools
     // Programmatic uGUI for the three UI scenes. Keeping the UI in code means the
     // whole interface is rebuilt identically on every machine - no prefab drift,
     // no missing font references, no hand-wiring mistakes.
-    public static class SceneBuilderUI
+    public static partial class SceneBuilderUI
     {
         static Font _font;
         static Font _titleFont;
@@ -297,6 +297,9 @@ namespace LightShadow.Tools
 
             // ---- quiz overlay -----------------------------------------------
             QuizUIController quiz = BuildQuiz(root);
+
+            // ---- wing puzzle overlays (workstream 5) -------------------------
+            BuildCodeLockPanel(root);
 
             // ---- pause overlay ----------------------------------------------
             BuildPause(root, pause);
