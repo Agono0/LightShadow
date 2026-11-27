@@ -12,6 +12,8 @@ namespace LightShadow.UI
     {
         public RectTransform stripRoot;
         public Text chipTemplate;
+        public Sprite keyIcon;
+        public Sprite medkitIcon;
         public float chipWidth = 220f;
         public float chipHeight = 34f;
 
@@ -49,7 +51,21 @@ namespace LightShadow.UI
             {
                 Text chip = Instantiate(chipTemplate, stripRoot);
                 chip.gameObject.SetActive(true);
-                chip.text = Inventory.DisplayName(id);
+                Sprite icon = id == "medkit" ? medkitIcon : (id.EndsWith("key") ? keyIcon : null);
+                chip.text = icon != null ? "      " + Inventory.DisplayName(id) : Inventory.DisplayName(id);
+                if (icon != null)
+                {
+                    var iconGo = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+                    iconGo.transform.SetParent(chip.transform, false);
+                    RectTransform iconRect = (RectTransform)iconGo.transform;
+                    iconRect.anchorMin = iconRect.anchorMax = new Vector2(0f, 0.5f);
+                    iconRect.pivot = new Vector2(0f, 0.5f);
+                    iconRect.anchoredPosition = Vector2.zero;
+                    iconRect.sizeDelta = new Vector2(30f, 30f);
+                    Image iconImage = iconGo.GetComponent<Image>();
+                    iconImage.sprite = icon;
+                    iconImage.raycastTarget = false;
+                }
                 RectTransform rect = chip.rectTransform;
                 rect.anchoredPosition = new Vector2(x, 0f);
                 x += chipWidth + 8f;

@@ -237,10 +237,11 @@ namespace LightShadow.Tools
             Image healthFill = MakeBar(root, "HealthBar", new Vector2(410f, -88f), new Vector2(180f, 14f),
                 new Color(0.72f, 0.20f, 0.16f), "HEALTH", out healthLabel);
             Localize(healthLabel);
+            ApplyHealthBarArt(healthFill);
 
             // ---- inventory strip (carried items, hidden while empty) ---------
             RectTransform stripRoot = MakeRect(root, "InventoryStrip", new Vector2(0f, 1f),
-                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(36f, -120f),
+                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(36f, -150f),
                 new Vector2(1400f, 40f));
             Text chipTemplate = MakeText(stripRoot, "ChipTemplate", "", 18, Paper, TextAnchor.MiddleLeft,
                 new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
@@ -249,6 +250,8 @@ namespace LightShadow.Tools
             InventoryStripUI strip = canvas.gameObject.AddComponent<InventoryStripUI>();
             strip.stripRoot = stripRoot;
             strip.chipTemplate = chipTemplate;
+            strip.keyIcon = LoadHudSprite("T_UI_Icon_Key_Night");
+            strip.medkitIcon = LoadHudSprite("T_UI_Icon_Medkit_Night");
             stripRoot.gameObject.SetActive(false);
 
             // ---- prompt, message, crosshair ---------------------------------
@@ -1031,6 +1034,40 @@ namespace LightShadow.Tools
             labelText.raycastTarget = false;
 
             return button;
+        }
+
+        static Sprite LoadHudSprite(string name)
+        {
+            return AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Textures/UI/" + name + ".png");
+        }
+
+        // Night HUD art (bro's #105): sliced frame (16 px border) behind a rose
+        // fill. Applied only when both sprites imported; otherwise the plain
+        // bar stays. NOT SEEN IN THE EDITOR: the 16 px border is larger than
+        // the bar height, so Unity scales it down; check the look.
+        static void ApplyHealthBarArt(Image fill)
+        {
+            Sprite frame = LoadHudSprite("T_UI_HealthFrame_Night");
+            Sprite fillSprite = LoadHudSprite("T_UI_HealthFill_Night");
+            if (frame == null || fillSprite == null) return;
+
+            Image background = fill.transform.parent.GetComponent<Image>();
+            background.sprite = frame;
+            background.type = Image.Type.Sliced;
+            background.color = Color.white;
+            RectTransform bgRect = background.rectTransform;
+            bgRect.sizeDelta = new Vector2(200f, 28f);
+            Outline outline = background.GetComponent<Outline>();
+            if (outline != null) Object.DestroyImmediate(outline);
+
+            fill.sprite = fillSprite;
+            fill.color = Color.white;
+            fill.type = Image.Type.Filled;
+            fill.fillMethod = Image.FillMethod.Horizontal;
+            fill.fillOrigin = (int)Image.OriginHorizontal.Left;
+            RectTransform fillRect = fill.rectTransform;
+            fillRect.offsetMin = new Vector2(6f, 6f);
+            fillRect.offsetMax = new Vector2(-6f, -6f);
         }
 
         static Image MakeBar(Transform parent, string name, Vector2 topLeft, Vector2 size, Color fillColor,
