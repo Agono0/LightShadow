@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: Twelve groups of twelve make 144.
   factSource: NEEDS-FACT-CHECK
+  questionAr: كم يساوي 12 مضروبًا في 12؟
+  optionsAr:
+  - 124
+  - 132
+  - 144
+  - 154
+  explanationAr: اثنتا عشرة مجموعة من اثني عشر تجعل 144.

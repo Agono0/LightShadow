@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: At standard atmospheric pressure water boils at 100 degrees Celsius
     (212 degrees Fahrenheit).
   factSource: NEEDS-FACT-CHECK
+  questionAr: عند مستوى سطح البحر، عند أي درجة حرارة يغلي الماء النقي؟
+  optionsAr:
+  - 50 درجة مئوية
+  - 90 درجة مئوية
+  - 100 درجة مئوية
+  - 150 درجة مئوية
+  explanationAr: عند الضغط الجوي المعتاد يغلي الماء عند 100 درجة مئوية، أي ما يعادل 212 درجة فهرنهايت.

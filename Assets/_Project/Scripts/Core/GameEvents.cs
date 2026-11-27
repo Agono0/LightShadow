@@ -39,8 +39,19 @@ namespace LightShadow.Core
         public static event Action EscapeStarted;
 
         // The Shadow changed FSM state. Payload: (int)LightShadow.Enemy.EnemyBehaviour.State
-        // (Patrol 0, Stalk 1, Chase 2, Repelled 3). Raised from EnemyBehaviour.EnterState.
+        // (Patrol 0, Stalk 1, Chase 2, Repelled 3, Investigate 4, ForcedCooldown 5,
+        // Search 6). Raised from EnemyBehaviour.EnterState.
         public static event Action<int> EnemyStateChanged;
+
+        // The player made a noise the Shadow may hear (P3 noise bus). Payload:
+        // the hearing radius in metres (GameConfig noise fields). The listener
+        // decides what to do; NoiseEmitter is the usual raiser.
+        public static event Action<float> NoiseEmitted;
+
+        // Calm moved (P3, plan 4.7). Payload: normalized 0-1 where 0 is the
+        // worst calm and 1 the best; the story stat lives on the -1..1 scale
+        // and maps (calm + 1) / 2. Raised by StoryDirector on every change.
+        public static event Action<float> CalmChanged;
 
         // ---- Raise helpers -----------------------------------------------------
         // Each one-liner guards its event so callers never need to.
@@ -93,6 +104,16 @@ namespace LightShadow.Core
         public static void RaiseEnemyStateChanged(int state)
         {
             EnemyStateChanged?.Invoke(state);
+        }
+
+        public static void RaiseNoiseEmitted(float radius)
+        {
+            NoiseEmitted?.Invoke(radius);
+        }
+
+        public static void RaiseCalmChanged(float normalized)
+        {
+            CalmChanged?.Invoke(normalized);
         }
     }
 }
