@@ -252,6 +252,16 @@ namespace LightShadow.Tools
                 torchRenderer.enabled = false;
             }
 
+            // Real torch rig (audit v2 S2-E): the beam now starts at the torch
+            // LENS in the hand instead of floating off the camera. The hand
+            // root is tilted for the pose, so the light is counter-rotated to
+            // keep the beam aimed down the camera's view axis (aim and the
+            // interaction ray stay honest); only its ORIGIN moves with the
+            // hand, so walking bob and crouch dip carry the light too.
+            flashlightGo.transform.SetParent(handRootGo.transform, false);
+            flashlightGo.transform.localPosition = new Vector3(0.01f, 0.035f, 0.13f);
+            flashlightGo.transform.localRotation = Quaternion.Inverse(handRootGo.transform.localRotation);
+
             FirstPersonHands hands = handRootGo.AddComponent<FirstPersonHands>();
             hands.handRoot = handRootGo.transform;
             hands.player = player;
