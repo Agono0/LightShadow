@@ -126,7 +126,7 @@ namespace LightShadow.Player
             if (clip == null) return;
 
             source.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
-            source.PlayOneShot(clip, CurrentVolume() * volumeScale);
+            source.PlayOneShot(clip, CurrentVolume() * volumeScale * LightShadow.Audio.AudioDirector.Mix.Footsteps);
         }
     }
 }

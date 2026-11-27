@@ -11,10 +11,13 @@ namespace LightShadow.Player
     public class PlayerBreathing : MonoBehaviour
     {
         AudioSource source;
-        float intensity; // 0 calm .. 1 gasping
+        PlayerController player;
+        readonly BreathingModel model = new BreathingModel();
+        float cycleClock;
 
         void Start()
         {
+            player = GetComponent<PlayerController>();
             source = gameObject.AddComponent<AudioSource>();
             // Bro's recorded tired breath wins when the library has it
             // (SFX_Breath_Tired); the synthesized loop stays the fallback.
@@ -27,31 +30,47 @@ namespace LightShadow.Player
             source.Play();
         }
 
+        void OnDisable()
+        {
+            model.Reset();
+            if (source != null) source.volume = 0f;
+        }
+
         void Update()
         {
-            float exertion = 0f;
-            PlayerController player = GetComponent<PlayerController>();
-            if (player != null)
+            BreathingInputs input = new BreathingInputs
             {
-                exertion = player.IsSprinting ? 0.8f : 1f - player.Stamina01;
-                if (player.IsExhausted) exertion = 1f;
-            }
+                Stamina01 = player != null ? player.Stamina01 : 1f,
+                IsSprinting = player != null && player.IsSprinting,
+                IsExhausted = player != null && player.IsExhausted,
+                WraithDistance = 999f,
+                WraithAware = false,
+                HitsRemaining = PlayerHealth.Instance != null ? PlayerHealth.Instance.HitsRemaining : PlayerHealth.MaxHits,
+            };
 
-            float fear = 0f;
             Enemy.EnemyBehaviour enemy = GameManager.Instance != null ? GameManager.Instance.enemy : null;
             if (enemy != null)
             {
-                float distance = Vector3.Distance(transform.position, enemy.transform.position);
-                fear = Mathf.Clamp01((14f - distance) / 14f);
+                input.WraithDistance = Vector3.Distance(transform.position, enemy.transform.position);
+                // Only a wraith that has noticed her frightens her; a distant
+                // patrol does not make her pant.
+                Enemy.EnemyBehaviour.State state = enemy.CurrentState;
+                input.WraithAware = state == Enemy.EnemyBehaviour.State.Chase
+                    || state == Enemy.EnemyBehaviour.State.Stalk
+                    || state == Enemy.EnemyBehaviour.State.Search;
             }
 
-            float target = Mathf.Clamp01(Mathf.Max(exertion, fear * 0.9f));
-            intensity = Mathf.MoveTowards(intensity, target, Time.deltaTime * 0.5f);
-            if (source != null)
-            {
-                source.volume = intensity * 0.35f;
-                source.pitch = Mathf.Lerp(0.85f, 1.5f, intensity);
-            }
+            model.Tick(input, Time.deltaTime);
+            if (source == null) return;
+
+            // One slow swell per breath: audible inhale and exhale, a gap
+            // between them, instead of a constant hiss.
+            cycleClock += Time.deltaTime / Mathf.Max(0.5f, model.CycleSeconds());
+            if (cycleClock > 1f) cycleClock -= 1f;
+            float swell = 0.5f - 0.5f * Mathf.Cos(cycleClock * Mathf.PI * 2f);
+
+            source.volume = model.Volume() * swell * AudioDirector.Mix.Breathing / 0.55f;
+            source.pitch = model.Pitch();
         }
 
         // One slow breath: a shaped noise inhale and exhale through a one-pole

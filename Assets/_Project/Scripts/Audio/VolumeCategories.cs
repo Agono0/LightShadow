@@ -40,7 +40,7 @@ namespace LightShadow.Audio
             "ls_vol_voice", "ls_vol_shadow",
         };
 
-        const float DefaultLevel = 8f;
+        const float DefaultLevel = 6f;
 
         // Mixer handle (§4.4.3): wired by AudioSnapshotController.SetMixer; an
         // unresolved group leaves GroupFor null and the legacy path keeps working.

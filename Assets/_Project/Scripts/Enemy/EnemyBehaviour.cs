@@ -56,6 +56,7 @@ namespace LightShadow.Enemy
         float catchCooldownTimer;
         bool aggressive;
         bool catching;
+        float catchingSeconds;
 
         // Hearing (P3 noise bus): the last noise the player made and how loud
         // it was. OnNoiseEmitted fills these; the FSM reacts in Update.
@@ -203,7 +204,20 @@ namespace LightShadow.Enemy
         void Update()
         {
             if (player == null || agent == null || !agent.isOnNavMesh) return;
-            if (catching) return;
+            if (catching)
+            {
+                // Watchdog: the catch must always hand back. If the sequence or
+                // the checkpoint wake never clears it, force the wraith to
+                // withdraw so it can never freeze in place for good.
+                catchingSeconds += Time.deltaTime;
+                if (CatchRecovery.WatchdogExpired(catchingSeconds))
+                {
+                    Debug.LogWarning("[LightShadow] Catch watchdog fired: forcing the wraith to withdraw.");
+                    StopAllCoroutines();
+                    ApplyCatchPlan(CatchRecovery.AfterStrike(true));
+                }
+                return;
+            }
 
             float dt = Time.deltaTime;
             if (repelCooldownTimer > 0f) repelCooldownTimer -= dt;
@@ -237,9 +251,10 @@ namespace LightShadow.Enemy
                 && distance <= CatchDistance && !LitZone.PlayerInLitZone
                 && !HidingSystem.IsHidden)
             {
+                // No cinematic close-up here any more: it swapped the camera
+                // while input stayed live and was part of the first-hit
+                // freeze report. The shake in CatchSequence carries the hit.
                 StartCoroutine(CatchSequence());
-                // The catch close-up (premium pass); no-op if the rigs/CM are absent.
-                Systems.CinematicDirector.PlayShot(Systems.CinematicDirector.ShotCatch);
                 return;
             }
 
@@ -645,6 +660,7 @@ namespace LightShadow.Enemy
         public void ResetToPatrol()
         {
             catching = false;
+            catchingSeconds = 0f;
             catchCooldownTimer = 1.5f;
             sightLostTimer = 0f;
             investigateTimer = 0f;
@@ -661,6 +677,7 @@ namespace LightShadow.Enemy
         System.Collections.IEnumerator CatchSequence()
         {
             catching = true;
+            catchingSeconds = 0f;
             sightLostTimer = 0f;
             investigateTimer = 0f;
             forcedCooldownTimer = 0f;
@@ -688,13 +705,29 @@ namespace LightShadow.Enemy
 
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.EnemyHitPlayer();
-                // Two-hit health (user brief 2026-11-27): after the strike the
-                // wraith withdraws into the dark, so a surviving Nour gets room
-                // to run instead of an instant second hit.
-                EnterState(State.ForcedCooldown);
+                bool survived = GameManager.Instance.EnemyHitPlayer();
+                ApplyCatchPlan(CatchRecovery.AfterStrike(survived));
             }
             else ResetToPatrol();
+        }
+
+        // Applies the pure CatchRecovery plan. A survived strike clears the
+        // catching flag (the old code never did, which froze the wraith after
+        // the first hit) and sends it away for a while; a lethal one stays
+        // frozen until the checkpoint wake calls ResetToPatrol.
+        void ApplyCatchPlan(CatchRecovery.Plan plan)
+        {
+            catchingSeconds = 0f;
+            if (plan.ClearCatching) catching = false;
+            catchCooldownTimer = Mathf.Max(catchCooldownTimer, plan.CatchCooldownSeconds);
+            if (plan.Retreat)
+            {
+                ForceCooldown(plan.RetreatSeconds);
+            }
+            else if (plan.ResetToPatrol && !catching)
+            {
+                ResetToPatrol();
+            }
         }
 
         // Doc Act III: when the gate is powered, dawn lights the corridors and

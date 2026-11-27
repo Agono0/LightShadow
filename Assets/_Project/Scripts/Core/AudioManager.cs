@@ -104,12 +104,22 @@ namespace LightShadow.Core
 
         public void PlaySfxAt(AudioClip clip, Vector3 position)
         {
+            PlaySfxAt(clip, position, 1f);
+        }
+
+        public void PlaySfxAt(AudioClip clip, Vector3 position, float volume)
+        {
             if (clip == null) return;
             AudioSource source = GetOneShotSource();
             if (source == null) return;
             source.transform.position = position;
             source.spatialBlend = 1f;
-            source.PlayOneShot(clip);
+            // Positional sounds fade out with distance instead of carrying
+            // across the whole school (default max distance is 500 m).
+            source.rolloffMode = AudioRolloffMode.Linear;
+            source.minDistance = 1.5f;
+            source.maxDistance = LightShadow.Audio.DangerModel.AudibleRadius(volume);
+            source.PlayOneShot(clip, Mathf.Clamp01(volume));
         }
 
         AudioSource GetOneShotSource()

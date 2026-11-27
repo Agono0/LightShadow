@@ -34,7 +34,7 @@ namespace LightShadow.Audio
         void OnEnable()
         {
             GameEvents.EnemyStateChanged += OnEnemyState;
-            ScheduleNext(15f);
+            ScheduleNext(60f);
         }
 
         void OnDisable()
@@ -49,14 +49,15 @@ namespace LightShadow.Audio
 
         void ScheduleNext(float minDelay)
         {
-            nextEventTime = Time.time + Mathf.Max(minDelay, Random.Range(25f, 70f));
+            // Calm rooms get long silences; danger shortens the gaps.
+            nextEventTime = Time.time + Mathf.Max(minDelay, DangerModel.ScareDelaySeconds(AudioDirector.Danger, Random.value));
         }
 
         void OnEnemyState(int state)
         {
             if (state != ChaseState || Time.time < nextBreathTime) return;
             nextBreathTime = Time.time + 20f;
-            Sfx.Play("SFX_Breath_Scared", null, 0.8f);
+            Sfx.Play("SFX_Breath_Scared", null, 0.8f * AudioDirector.Mix.Breathing);
         }
 
         void Update()
@@ -73,8 +74,8 @@ namespace LightShadow.Audio
             if (Random.value < 0.5f && Vector3.Dot(dir, player.forward) > 0f) dir = -dir;
             Vector3 pos = player.position + dir * Random.Range(6f, 12f);
 
-            Sfx.PlayAt(Random.value < 0.7f ? "SFX_BuildingCreak" : "SFX_WindBrokenGlass", pos);
-            ScheduleNext(25f);
+            Sfx.PlayAt(Random.value < 0.7f ? "SFX_BuildingCreak" : "SFX_WindBrokenGlass", pos, null, AudioDirector.Mix.ScareEvents);
+            ScheduleNext(40f);
         }
     }
 }

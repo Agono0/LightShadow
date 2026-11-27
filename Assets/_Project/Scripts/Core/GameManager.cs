@@ -260,15 +260,17 @@ namespace LightShadow.Core
         // Two-hit health (user brief 2026-11-27): a strike costs half; the
         // second ends the run and Nour wakes at the chapter checkpoint at full
         // health. Rigs without PlayerHealth keep the old one-hit flow.
-        public void EnemyHitPlayer()
+        // Returns true when Nour survived the strike, false when it ended the
+        // run (or the strike was ignored because a respawn is already running).
+        public bool EnemyHitPlayer()
         {
-            if (respawning || escaped) return;
+            if (respawning || escaped) return false;
 
             PlayerHealth health = player != null ? player.GetComponentInChildren<PlayerHealth>() : null;
             if (health == null)
             {
                 CaughtPlayer();
-                return;
+                return false;
             }
 
             GameEvents.RaisePlayerCaught();
@@ -291,15 +293,15 @@ namespace LightShadow.Core
                 // (EnemyBehaviour enters ForcedCooldown) so the second hit is
                 // never free.
                 if (hud != null) hud.ShowMessage("It struck her - she is barely standing. Find a medkit.", 4f);
+                return true;
             }
-            else
-            {
-                // Lethal: a slower, heavier fade than the old catch, then the
-                // checkpoint wake restores her to full.
-                respawning = true;
-                if (hud != null) hud.FadeToBlack(2f, WakeAtCheckpoint);
-                else WakeAtCheckpoint();
-            }
+
+            // Lethal: a slower, heavier fade than the old catch, then the
+            // checkpoint wake restores her to full.
+            respawning = true;
+            if (hud != null) hud.FadeToBlack(2f, WakeAtCheckpoint);
+            else WakeAtCheckpoint();
+            return false;
         }
 
         public void CaughtPlayer()
