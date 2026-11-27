@@ -91,6 +91,9 @@ namespace LightShadow.Enemy
                     stingerSource.PlayOneShot(ambushClip);
                 }
 
+                if (state == EnemyBehaviour.State.Repelled)
+                    LightShadow.Audio.Sfx.PlayAt("SFX_ShadowHiss", transform.position);
+
                 if (state == EnemyBehaviour.State.Chase || state == EnemyBehaviour.State.Repelled)
                 {
                     if (stingerClip != null) stingerSource.PlayOneShot(stingerClip);
