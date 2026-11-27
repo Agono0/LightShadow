@@ -48,6 +48,10 @@ namespace LightShadow.Story
         }
 
         readonly HashSet<string> played = new HashSet<string>();
+        // Nodes visited in the CURRENT conversation only: the loop guard for linked
+        // (trigger None) nodes, so a shared linked node can play again in a later
+        // conversation (audit 2.2) without ever looping inside one.
+        readonly HashSet<string> conversationVisited = new HashSet<string>();
         readonly HashSet<string> flags = new HashSet<string>();
         readonly Queue<(StoryTrigger trigger, int ordinal)> pending = new Queue<(StoryTrigger, int)>();
         readonly Dictionary<string, StoryNode> nodesById = new Dictionary<string, StoryNode>();
@@ -86,6 +90,7 @@ namespace LightShadow.Story
             Instance.StopAllCoroutines();      // a stale PlayAfterGap must not fire
             Instance.state = new StoryState();
             Instance.played.Clear();
+            Instance.conversationVisited.Clear();
             Instance.flags.Clear();
             Instance.pending.Clear();
             Instance.chainScheduled = false;
@@ -298,6 +303,7 @@ namespace LightShadow.Story
         {
             current = node;
             played.Add(node.nodeId);
+            conversationVisited.Add(node.nodeId);
 
             if (!string.IsNullOrEmpty(node.onEnterEventHint)
                 && node.onEnterEventHint.IndexOf("Autosave", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -441,9 +447,9 @@ namespace LightShadow.Story
         {
             if (string.IsNullOrEmpty(nodeId)) return null;
             nodesById.TryGetValue(nodeId, out StoryNode node);
-            if (node != null && played.Contains(node.nodeId) && node.trigger == StoryTrigger.None)
+            if (node != null && conversationVisited.Contains(node.nodeId) && node.trigger == StoryTrigger.None)
             {
-                // Loop guard: never replay a linked node in the same conversation.
+                // Loop guard: never replay a linked node within the same conversation.
                 return null;
             }
             return node;
@@ -462,6 +468,7 @@ namespace LightShadow.Story
         void EndConversation(StoryNode node)
         {
             current = null;
+            conversationVisited.Clear();
             lastConversationEndedAt = Time.unscaledTime;
             OverlayStack.Release(ref storyLock);
             VoiceoverPlayer.Stop();
