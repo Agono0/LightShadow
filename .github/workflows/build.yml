@@ -52,6 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: changes
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     steps:
       - if: needs.changes.outputs.code == 'true'
         name: Free runner disk space (GameCI editor image + project do not fit otherwise)
