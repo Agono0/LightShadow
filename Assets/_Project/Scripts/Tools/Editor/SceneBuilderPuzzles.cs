@@ -165,5 +165,74 @@ namespace LightShadow.Tools
             puzzle.drawer = drawer.transform;
             puzzle.rewardRoot = battery;
         }
+
+        // Wing puzzle 4 (plan, workstream 5): the staff-room wall map and
+        // locker. A map board on the north wall with six numbered country
+        // pins; the note (shown in the lock overlay) gives the route order;
+        // the middle locker slides open on the right code with the master key.
+        static void CreateMapLocker(Prefabs prefabs, Transform parent, Palette palette)
+        {
+            var root = new GameObject("Puzzle_MapLocker");
+            root.transform.SetParent(parent, false);
+
+            // The map on the staff room's north wall (z 26.7), facing -Z into
+            // the room, so its labels take yaw 180 like the board texts.
+            Box(root.transform, "MapBoard", new Vector3(-12f, 1.8f, 26.62f),
+                new Vector3(3.2f, 1.6f, 0.06f), palette.paper, true, LevelLayer);
+
+            // Six pins: a small cube plus a country label carrying its digit.
+            // Country names stay in English as diegetic map text (the lock UI
+            // around them is fully translated, like the cipher's chalk sums).
+            string[] pinLabels = { "EGYPT 4", "SUDAN 5", "LEBANON 7", "IRAQ 2", "TUNISIA 1", "MOROCCO 9" };
+            Vector2[] pinSpots =
+            {
+                new Vector2(-12.9f, 2.0f), new Vector2(-12.7f, 1.6f),
+                new Vector2(-12.3f, 2.15f), new Vector2(-11.7f, 2.0f),
+                new Vector2(-13.2f, 2.2f), new Vector2(-11.1f, 2.2f),
+            };
+            for (int i = 0; i < pinLabels.Length; i++)
+            {
+                Box(root.transform, "Pin_" + (i + 1), new Vector3(pinSpots[i].x, pinSpots[i].y + 0.12f, 26.56f),
+                    new Vector3(0.05f, 0.05f, 0.04f), palette.indicatorOff, false);
+                CreateWorldText(root.transform, "PinLabel_" + (i + 1), pinLabels[i],
+                    new Vector3(pinSpots[i].x, pinSpots[i].y, 26.55f), Quaternion.Euler(0f, 180f, 0f),
+                    0.006f, 48, new Color(0.2f, 0.16f, 0.12f));
+            }
+
+            // The lock plate on the middle locker's door (Lockers_2 spans
+            // x -21.75--21.05, z 22.6-23.4; its front faces east).
+            GameObject door = Box(root.transform, "LockerDoor", new Vector3(-21.03f, 1.1f, 23f),
+                new Vector3(0.05f, 2.0f, 0.7f), palette.metal, true, LevelLayer);
+            Box(root.transform, "LockPlate", new Vector3(-20.99f, 1.1f, 23.2f),
+                new Vector3(0.04f, 0.22f, 0.14f), palette.wood, true, LevelLayer);
+
+            // The master key on a hook inside the locker (a small bright prop;
+            // the real key model arrives with bro's model batch).
+            var key = new GameObject("MapReward_MasterKey");
+            key.transform.SetParent(root.transform, false);
+            Box(key.transform, "KeyShaft", new Vector3(-21.2f, 1.0f, 23f),
+                new Vector3(0.04f, 0.16f, 0.03f), palette.lamp, false);
+            Box(key.transform, "KeyRing", new Vector3(-21.2f, 1.12f, 23f),
+                new Vector3(0.07f, 0.07f, 0.03f), palette.lamp, false);
+            key.SetActive(false);
+
+            MapLockerPuzzle puzzle = root.AddComponent<MapLockerPuzzle>();
+            puzzle.displayNameEn = "the middle locker's lock";
+            puzzle.displayNameAr = "قفل الخزانة الوسطى";
+            puzzle.hintsEn = new[]
+            {
+                "The map pins carry numbers.",
+                "The note gives an order of cities; the map turns cities into countries.",
+                "Cairo, Beirut, Baghdad, Rabat - read the digits in that order.",
+            };
+            puzzle.hintsAr = new[]
+            {
+                "دبابيس الخريطة تحمل أرقامًا.",
+                "الملاحظة ترتّب المدن؛ والخريطة تحوّل المدن إلى دول.",
+                "القاهرة، بيروت، بغداد، الرباط - اقرأ الأرقام بهذا الترتيب.",
+            };
+            puzzle.door = door.transform;
+            puzzle.rewardRoot = key;
+        }
     }
 }
