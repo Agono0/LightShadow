@@ -357,3 +357,12 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: pending Lead batch run — expected `AudioMixerTool.EnsureBatch` → `RESULT: PASS`
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
+
+### 2026-11-27 — Docs/AUDIT_2.md (finish-the-game static audit) — Abdelrhman Mohamed
+- Tool used: Instinct (AI coding agent)
+- What AI provided: the audit pass itself (core-loop read, pattern scans for event leaks, hot-path
+  costs, timeScale and PlayerPrefs usage, platform guards) and the AUDIT_2.md write-up, including
+  the mobile-stretch root cause and the deferred-restore edge case in SaveSystem.
+- What I changed myself: pending review — lands through the PR workflow.
+- Teach-back check: pending — the findings table is written so a teammate can repro each item.
+- Test result: static audit only; no code changed on this branch, CI fast-checks are the gate.
