@@ -368,3 +368,15 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: docs-only change; no Unity run available on this machine. Content grounded
   in `main` @ 2dd3376 sources (SfxRegistry.cs, AudioLibraryBootstrap.cs, AudioLibrary.asset,
   MASTER_PLAN §8, ASSET_LICENSES.md). Needs human verification before cues are imported.
+### 2026-11-27 — Mobile stretch fix: native-resolution guard + safe-area fitter — Abdelrhman Mohamed
+- Tool used: Instinct (AI coding agent)
+- What AI provided: diagnosis that `GameSettings.ApplyResolution` forced a picked resolution on
+  Android (framebuffer stretched to fill a different-aspect display); the mobile gate in
+  `ApplyResolution`; `SafeAreaFitter` (fits canvas content to `Screen.safeArea`); the
+  `SceneBuilderUI.CreateCanvas` change parenting every canvas's content under a `SafeArea` child.
+- What I changed myself: pending review — changes land through the PR workflow (AGENTS.md rule 9).
+- Teach-back check: pending — explained in the PR body (why forcing a resolution distorts on 20:9
+  phones, and why the safe-area child only insets on notched devices).
+- Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
+  no local Unity editor available.
+ origin/main
