@@ -243,6 +243,9 @@ T_DustMote was downscaled 512 -> 128 px RGBA (LANCZOS), alpha preserved.
 | SM_DoorProp.glb | https://poly.pizza/m/JuTzNjtD54 | https://static.poly.pizza/7c257cc3-8ade-4813-86c2-82615b4c8eda.glb.br | CC0 1.0 | Quaternius | 2216 tris (exception); 3.08 m tall; flat-color |
 | SM_TorchBody.glb | https://poly.pizza/m/WGsvr4KOZd | https://static.poly.pizza/035c4897-22f3-4e9c-b29f-ebafe2b566da.glb.br | CC0 1.0 | Quaternius | 610 tris; 2.51 m tall; mid-height pivot; flat-color |
 | T_DustMote.png | https://opengameart.org/content/particle-pack-80-sprites | https://opengameart.org/sites/default/files/kenney_particlePack.zip | CC0 1.0 | Kenney | circle_05.png from zip, downscaled to 128x128 RGBA; original https://kenney.nl/assets/particle-pack |
+## P0 SFX: throw whoosh / impacts / crate scrape (added 2026-11-27, peer-approved picks)
+
+Licenses re-verified on the source pages 2026-11-27: all CC0 1.0, no attribution
 ## P0 SFX: key pickup / door unlock / locked rattle (added 2026-11-27, peer-approved picks)
 
 Licenses re-verified on the source pages 2026-11-27: both CC0 1.0, no attribution
@@ -254,6 +257,10 @@ UNVERIFIED (per-row human_check).
 
 | Asset | Source page | File URL | License | Author | Notes |
 | --- | --- | --- | --- | --- | --- |
+| SFX_ThrowWhoosh_0.ogg | https://opengameart.org/content/swishes-sound-pack | https://opengameart.org/sites/default/files/swishes.zip | CC0 1.0 | artisticdude | swish-9.wav from zip; 0.11s after trim |
+| SFX_ThrowImpactSoft_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | wood_misc_01.ogg from zip; dry dull knock, peer-chosen over wet squelch |
+| SFX_ThrowImpactHard_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | wood_hit_02.ogg from zip; 0.21s after trim |
+| SFX_CrateScrape_0.ogg | https://opengameart.org/content/scrapes | https://opengameart.org/sites/default/files/scrapes.zip | CC0 1.0 | AntumDeluge | scrape-3.ogg from zip; 1.16s after trim |
 | SFX_KeyPickup_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | keys_02.ogg from zip; key jingle 0.36s after trim |
 | SFX_DoorUnlock_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | lock_open_01.ogg from zip; lock open click 0.60s after trim |
 | SFX_DoorLockedRattle_0.ogg | https://opengameart.org/content/trying-to-unlock-sound | https://opengameart.org/sites/default/files/trying_to_unlock.mp3 | CC0 1.0 | pauliuw | locked-handle jiggle 0.61s after trim |
