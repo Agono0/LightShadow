@@ -25,3 +25,12 @@
   band reading amber (an earlier #8A5A38 low stop read brown and was replaced
   with #C97F4A after the visual check). No in-editor or runtime check:
   in-Unity appearance UNVERIFIED.
+- Retint (peer decision 2026-11-27 6:17 PM EET): the original warm amber frame
+  (#E8A24B) read gold/brass in the relay preview and was rejected. Method:
+  same script + members, palette parameters only - FRAME #E8A24B -> #8FC3CE
+  (soft cyan; picked over cool silver #C9D6DB by side-by-side visual
+  comparison: silver read washed on the dark fill, cyan reads luminous),
+  backdrop stops re-spaced so blue-teal covers 90% of the height and the warm
+  band became THIN and low-saturation (#AC8378 amber-rose, bottom 10%;
+  replaces the #C97F4A band), glow unchanged (lantern-warm #F2C078 per peer).
+  All four PNGs re-rendered and re-inspected visually after the retint.

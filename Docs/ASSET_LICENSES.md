@@ -249,7 +249,11 @@ and T_UI_Backdrop_Night.png are ORIGINAL script-generated assets (radial glow;
 plain moonlit vertical gradient, no motif) - no external source, no stock, no
 third-party license. Visual review of all four rendered PNGs was performed on
 the actual pixels 2026-11-27; no in-editor or runtime check. Palette:
-blue-teal night with warm amber accents; no browns, no brass. The four
+blue-teal night; frames are soft cyan #8FC3CE (peer retint 2026-11-27: the
+original warm amber frame read gold/brass and was rejected); the warm accent
+lives only in the lantern-like glow #F2C078 and a thin low-saturation
+amber-rose band #AC8378 at the very bottom of the backdrop; no orange, gold,
+browns or brass in the frames. The four
 existing placeholders (UI_Panel/UI_Button/UI_Glow/UI_Backdrop) are untouched.
 
 | Asset | Source page | File URL | License | Author | Notes |

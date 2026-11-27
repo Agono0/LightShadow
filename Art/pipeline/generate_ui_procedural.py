@@ -24,13 +24,17 @@ Recolor method: the pack art is flat white silhouette + alpha; each output
 pixel keeps the source alpha and takes a flat palette color per region
 (frame vs fill). No hue-shift of colored pixels is involved.
 
-Palette (blue-teal night, warm accents; intentionally no browns/brass):
+Palette (blue-teal night; peer-retinted 2026-11-27: frames cool, warm only
+in the glow and a thin low-saturation band at the backdrop's very bottom;
+no orange/gold/brown in the frames, no browns/brass anywhere):
   PANEL_FILL  #122E3A  deep blue-teal
   BUTTON_FILL #1A3D4B  lighter blue-teal
-  FRAME       #E8A24B  warm amber accent
-  GLOW_CORE   #F2C078  warm amber core, fades to transparent
-  BACKDROP    #0B1E29 (top) -> #16414E (mid) -> #1D4A55, warm band #C97F4A
-              blended into the bottom (plain moonlit gradient, no motif)
+  FRAME       #8FC3CE  soft cyan (picked over cool silver #C9D6DB by visual
+              comparison: reads luminous on the dark fill, silver read washed)
+  GLOW_CORE   #F2C078  warm lantern amber core, fades to transparent
+  BACKDROP    #0B1E29 (top) -> #16414E -> #1D4A55 (to 90% height), then a
+              THIN low-saturation amber-rose band #AC8378 at the very bottom
+              (plain moonlit gradient, no motif)
 
 Glow parameters: radius = half canvas, falloff alpha = (1 - (r/R))**2.2,
 peak alpha 0.85. Backdrop: piecewise-linear vertical stops below.
@@ -61,15 +65,15 @@ CORNER_DST = 48                        # 9-slice corner in the button (fits 128p
 
 PANEL_FILL = (0x12, 0x2E, 0x3A)
 BUTTON_FILL = (0x1A, 0x3D, 0x4B)
-FRAME = (0xE8, 0xA2, 0x4B)
+FRAME = (0x8F, 0xC3, 0xCE)
 GLOW_CORE = (0xF2, 0xC0, 0x78)
 GLOW_FALLOFF = 2.2
 GLOW_PEAK_ALPHA = 0.85
 BACKDROP_STOPS = [  # (y fraction, rgb)
     (0.00, (0x0B, 0x1E, 0x29)),
     (0.55, (0x16, 0x41, 0x4E)),
-    (0.80, (0x1D, 0x4A, 0x55)),
-    (1.00, (0xC9, 0x7F, 0x4A)),  # warm amber horizon band (terracotta amber, not brown/brass)
+    (0.90, (0x1D, 0x4A, 0x55)),
+    (1.00, (0xAC, 0x83, 0x78)),  # thin low-saturation amber-rose band at the very bottom
 ]
 # --------------------------------------------------------------------------
 
