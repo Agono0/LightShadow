@@ -529,7 +529,9 @@ namespace LightShadow.Tools
             if (director == null) director = systems.AddComponent<StoryDirector>();
             director.config = config;
 
-            if (systems.GetComponent<AdaptiveMusic>() == null) systems.AddComponent<AdaptiveMusic>();
+            // User decision (2026-11-27): no background music. AdaptiveMusic is
+            // deliberately NOT added; the horror mix is ambience + SFX + the
+            // memory-flash one-shot only. The class stays for a possible return.
 
             // Snapshot driving survives story-scene rebuilds too (idempotent;
             // D15 follow-up §4.5).
