@@ -34,6 +34,8 @@ namespace LightShadow.UI
         public Text dawnBody;
         public RecapScreen recap;
         public CanvasGroup dawnGroup;
+        [Tooltip("Subtitle line shown during the unified ending cinematic (spec: Docs/ENDING_VO_SPEC.md).")]
+        public Text cinematicSubtitle;
 
         [Header("Dawn set")]
         public Transform sun;
@@ -103,6 +105,17 @@ namespace LightShadow.UI
             Time.timeScale = 1f;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+
+            // Keep the dawn UI hidden until after the cinematic.
+            if (dawnGroup != null) dawnGroup.alpha = 0f;
+
+            // The unified ending: one third-person cinematic for every run,
+            // played before the dawn screen (spec: Docs/ENDING_VO_SPEC.md).
+            // Inert when the builder has placed no shot waypoints.
+            EndingCinematicController cinematic = GetComponent<EndingCinematicController>();
+            if (cinematic == null) cinematic = Object.FindFirstObjectByType<EndingCinematicController>();
+            if (cinematic != null && cinematic.HasRig)
+                yield return StartCoroutine(cinematic.Play(endingCamera, cinematicSubtitle));
 
             // D13: the director (if present) picks the ending from run state.
             StoryNode endingNode = null;
