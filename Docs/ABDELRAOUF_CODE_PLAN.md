@@ -64,7 +64,7 @@ each its own small PR from us):
 - **H1 save blob**: `SaveData.contribJson` keyed by feature id.
 - **H2 scene hook**: a `ILevelContribution` interface in `Scripts/Tools/Editor`
   that `SceneBuilder.BuildAll()` discovers by reflection. Implement it in your
-  `Contrib/Abdelraouf/Editor/` folder; `Build(Scene scene, LevelContext ctx)`
+  `Contrib/Abdelraouf/Editor/` folder; `Build(LevelContext ctx)`
   is called after the base scene is generated, with `ctx` giving the spawn
   point, the root transform for dynamic objects, and the layer constants.
   Dynamic objects MUST use layer 0 (not `LevelLayer`), or they seal the
