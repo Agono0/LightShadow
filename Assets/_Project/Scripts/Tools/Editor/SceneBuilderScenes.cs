@@ -834,6 +834,7 @@ namespace LightShadow.Tools
 
             CreateBattery(prefabs, t, "Battery_Staff", new Vector3(-16f, 0.9f, 23f));
             CreateBoard(prefabs, t, database, "Board_Staff", new Vector3(-8f, 1.7f, 20.18f), Quaternion.Euler(0f, 180f, 0f));
+            CreateMapLocker(prefabs, t, palette);
         }
 
         static void BuildMainHall(Transform parent, ZoneSet zones, Prefabs prefabs, Palette palette, QuestionDatabase database)
