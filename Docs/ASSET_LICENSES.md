@@ -234,3 +234,17 @@ of every clip is UNVERIFIED (per-row human_check).
 | SFX_WraithRoam_0.ogg | https://opengameart.org/content/whispers-in-the-fog | https://opengameart.org/sites/default/files/whispers_in_the_fog.ogg | CC0 1.0 | Ruhinre | segment 0.00-7.00s + short fades; whisper bed |
 | SFX_WraithAmbushStinger_0.ogg | https://opengameart.org/content/string-and-piano-horror-stings | https://opengameart.org/sites/default/files/abyss.ogg | CC0 1.0 | congusbongus | full file; string/piano horror sting 7.5s |
 | SFX_WraithBreathNear_0.ogg | https://opengameart.org/content/ghost-breath | https://opengameart.org/sites/default/files/ghostbreath.flac | CC0 1.0 | qubodup | one-shot only; loop seam unverified |
+## P0 SFX: key pickup / door unlock / locked rattle (added 2026-11-27, peer-approved picks)
+
+Licenses re-verified on the source pages 2026-11-27: both CC0 1.0, no attribution
+needed. Files were processed before import (mono downmix where stereo, silence trim
+-50 dB/20 ms, peak normalized to -3.0 dBFS, Vorbis q4 44.1 kHz mono); exact gain
+plus source and processed sha256 per file are recorded in Docs/ASSET_MANIFEST.md.
+No audition was possible in the agent environment: suitability of every clip is
+UNVERIFIED (per-row human_check).
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SFX_KeyPickup_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | keys_02.ogg from zip; key jingle 0.36s after trim |
+| SFX_DoorUnlock_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | lock_open_01.ogg from zip; lock open click 0.60s after trim |
+| SFX_DoorLockedRattle_0.ogg | https://opengameart.org/content/trying-to-unlock-sound | https://opengameart.org/sites/default/files/trying_to_unlock.mp3 | CC0 1.0 | pauliuw | locked-handle jiggle 0.61s after trim |
