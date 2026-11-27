@@ -219,3 +219,19 @@ import test was possible here: scale/pivot, materials and motion are UNVERIFIED
 | Model | Source page | File URL | License | Author | Notes |
 | --- | --- | --- | --- | --- | --- |
 | SM_Wraith_GhostSkull.glb | https://poly.pizza/m/TX8r9WBXpe | https://static.poly.pizza/0716bf8e-1894-4a90-8d10-34868975a239.glb.br | CC0 1.0 | Quaternius | mesh Ghost_Skull, 3,144 tris, 8 clips; pack https://quaternius.com/packs/ultimatemonsters.html |
+
+## P0 SFX: throw whoosh / impacts / crate scrape (added 2026-11-27, peer-approved picks)
+
+Licenses re-verified on the source pages 2026-11-27: all CC0 1.0, no attribution
+needed. Files were processed before import (mono downmix where stereo, silence trim
+-50 dB/20 ms, peak normalized to -3.0 dBFS, Vorbis q4 44.1 kHz mono); exact gain
+plus source and processed sha256 per file are recorded in Docs/ASSET_MANIFEST.md.
+No audition was possible in the agent environment: suitability of every clip is
+UNVERIFIED (per-row human_check).
+
+| Asset | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SFX_ThrowWhoosh_0.ogg | https://opengameart.org/content/swishes-sound-pack | https://opengameart.org/sites/default/files/swishes.zip | CC0 1.0 | artisticdude | swish-9.wav from zip; 0.11s after trim |
+| SFX_ThrowImpactSoft_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | wood_misc_01.ogg from zip; dry dull knock, peer-chosen over wet squelch |
+| SFX_ThrowImpactHard_0.ogg | https://opengameart.org/content/100-cc0-metal-and-wood-sfx | https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip | CC0 1.0 | rubberduck | wood_hit_02.ogg from zip; 0.21s after trim |
+| SFX_CrateScrape_0.ogg | https://opengameart.org/content/scrapes | https://opengameart.org/sites/default/files/scrapes.zip | CC0 1.0 | AntumDeluge | scrape-3.ogg from zip; 1.16s after trim |
