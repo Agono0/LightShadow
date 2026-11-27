@@ -210,6 +210,15 @@ namespace LightShadow.Audio
             ApplyTo(source, category, baseVolume);
         }
 
+        static bool IsRegistered(AudioSource source)
+        {
+            for (int i = 0; i < registered.Count; i++)
+            {
+                if (registered[i].source == source) return true;
+            }
+            return false;
+        }
+
         public static void Unregister(AudioSource source)
         {
             for (int i = registered.Count - 1; i >= 0; i--)
@@ -226,6 +235,10 @@ namespace LightShadow.Audio
             {
                 AudioSource source = sources[i];
                 if (source == null) continue;
+                // Already registered (explicitly or by an earlier scan): do not
+                // re-register. Re-registering captured the already scaled volume
+                // as the new base and stomped pads for one frame (audit 4.3).
+                if (IsRegistered(source)) continue;
                 Category category = CategoryFor(source);
                 if (category == Category.Master) continue; // not a category source
                 Register(source, category, source.volume);
@@ -239,6 +252,9 @@ namespace LightShadow.Audio
         static Category CategoryFor(AudioSource source)
         {
             if (source == null) return Category.Sfx;
+
+            LightShadow.Core.AudioManager manager = LightShadow.Core.AudioManager.Instance;
+            if (manager != null && manager.voiceSource == source) return Category.Voice;
 
             if (source.GetComponentInParent<LightShadow.Enemy.EnemyBehaviour>() != null) return Category.Shadow;
             if (source.GetComponent<LightShadow.Core.AmbientDrone>() != null) return Category.Ambience;

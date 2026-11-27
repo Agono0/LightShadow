@@ -22,7 +22,14 @@ namespace LightShadow.Core
             // so narration reads as inner voice in every room. Music and SFX
             // keep the default mix (1) and take the room's reverb; UI clicks
             // share sfxSource until a dedicated UI source exists.
-            if (voiceSource != null) voiceSource.reverbZoneMix = 0f;
+            if (voiceSource != null)
+            {
+                voiceSource.reverbZoneMix = 0f;
+                // Voiceover gets its own category (audit 4.2); it used to fall
+                // through the name scan onto the SFX bus.
+                LightShadow.Audio.VolumeCategories.Register(voiceSource, LightShadow.Audio.VolumeCategories.Category.Voice,
+                    voiceSource.volume);
+            }
         }
 
         void OnDestroy()

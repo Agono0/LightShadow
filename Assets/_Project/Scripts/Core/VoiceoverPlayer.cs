@@ -23,8 +23,9 @@ namespace LightShadow.Core
             loadedLocale = Locale;
             clips.Clear();
             missing.Clear();
-            AudioClip[] all = Resources.LoadAll<AudioClip>("VO/" + loadedLocale);
-            for (int i = 0; i < all.Length; i++) clips[all[i].name] = all[i];
+            // Clips load one at a time on first use (audit 4.4): no bulk load
+            // spike, and the old locale's clips are dropped here and unloaded.
+            Resources.UnloadUnusedAssets();
         }
 
         public static bool Play(string lineId)
@@ -34,7 +35,13 @@ namespace LightShadow.Core
             EnsureLocale();
 
             AudioClip clip;
-            if (missing.Contains(lineId) || !clips.TryGetValue(lineId, out clip))
+            if (missing.Contains(lineId)) return false;
+            if (!clips.TryGetValue(lineId, out clip))
+            {
+                clip = Resources.Load<AudioClip>("VO/" + loadedLocale + "/" + lineId);
+                if (clip != null) clips[lineId] = clip;
+            }
+            if (clip == null)
             {
                 // Cache misses too: a line without a clip should not rescan
                 // the dictionary every time it shows.
