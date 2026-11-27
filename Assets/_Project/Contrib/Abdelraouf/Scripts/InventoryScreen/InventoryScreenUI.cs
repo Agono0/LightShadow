@@ -73,7 +73,7 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
         public static void Toggle()
         {
             InventoryScreenUI ui = EnsureExists();
-            if (ui.IsOpen) ui.Close();
+            if (IsOpen) ui.Close();
             else ui.Open();
         }
 
