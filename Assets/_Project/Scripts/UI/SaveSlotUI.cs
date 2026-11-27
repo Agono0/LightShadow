@@ -163,8 +163,25 @@ namespace LightShadow.UI
             // translated first, then formatted.
             int chapter = data.fusesRestored <= 0 ? 1 : data.fusesRestored < GameManager.FuseTarget ? 2 : 3;
             return string.Format(StoryStrings.Tr("CHAPTER {0}"), chapter) + "\n"
-                + string.Format(StoryStrings.Tr("Fragments: {0}/6"), data.fragmentsCollected) + "\n"
+                + FormatFragments(data.fragmentsCollected) + "\n"
                 + string.Format(StoryStrings.Tr("Saved {0}"), FormatStamp(data.savedAtUtc));
+        }
+
+        // audit v3 5.5: the fragment target lives in GameManager.FragmentTarget.
+        // The translated template carries a baked "/6", so substitute the live
+        // target - the UI can never desync if the target moves.
+        internal static string FormatFragments(int collected)
+        {
+            string template = StoryStrings.Tr("Fragments: {0}/6");
+            const string baked = "/6";
+            int slash = template.LastIndexOf(baked, StringComparison.Ordinal);
+            if (slash >= 0)
+            {
+                template = template.Substring(0, slash)
+                    + "/" + GameManager.FragmentTarget
+                    + template.Substring(slash + baked.Length);
+            }
+            return string.Format(template, collected);
         }
 
         static string FormatStamp(string savedAtUtc)
