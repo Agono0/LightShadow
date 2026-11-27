@@ -369,6 +369,7 @@ The game itself contains **no AI features** — this log is about the developmen
   phones, and why the safe-area child only insets on notched devices).
 - Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
   no local Unity editor available.
+
 ## 2026-11-27 (late) - Voice line sheet from the verified story inventory (PR #16)
 - Task: A-workstream voice kit deliverable - a per-line recording sheet for VO casting.
 - What AI provided: Docs/VO_LINE_SHEET.md with 77 lines extracted from the repo's
