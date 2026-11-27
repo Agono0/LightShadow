@@ -51,6 +51,15 @@ namespace LightShadow.Audio
             SfxRegistry.RegisterMany("SFX_WraithRoam", library.wraithRoam);
             SfxRegistry.RegisterMany("SFX_WraithAmbushStinger", library.wraithAmbushStinger);
             SfxRegistry.RegisterMany("SFX_WraithBreathNear", library.wraithBreathNear);
+            SfxRegistry.RegisterMany("SFX_ChalkWrite", library.chalkWrite);
+            SfxRegistry.RegisterMany("SFX_Crank", library.crank);
+            SfxRegistry.RegisterMany("SFX_FlashlightBuzz", library.flashlightBuzz);
+            SfxRegistry.RegisterMany("SFX_GateCrank", library.gateCrank);
+            SfxRegistry.RegisterMany("SFX_GlassShard", library.glassShard);
+            SfxRegistry.RegisterMany("SFX_MirrorTurn", library.mirrorTurn);
+            SfxRegistry.RegisterMany("SFX_PowerSurge", library.powerSurge);
+            SfxRegistry.RegisterMany("SFX_ShadowHiss", library.shadowHiss);
+            SfxRegistry.RegisterMany("SFX_UIPaperTap", library.uiPaperTap);
             SfxRegistry.Register("AMB_SchoolyardNight", library.ambienceYard);
             SfxRegistry.RegisterMany("SFX_DoorClose", library.doorClose);
             SfxRegistry.RegisterMany("SFX_PaperRustle", library.paperRustle);

@@ -42,6 +42,15 @@ namespace LightShadow.Tools
                 case "SFX_ThrowImpactHard": return "throwImpactHard";
                 case "SFX_CrateScrape": return "crateScrape";
                 case "SFX_WraithRoam": return "wraithRoam";
+                case "SFX_ChalkWrite": return "chalkWrite";
+                case "SFX_Crank": return "crank";
+                case "SFX_FlashlightBuzz": return "flashlightBuzz";
+                case "SFX_GateCrank": return "gateCrank";
+                case "SFX_GlassShard": return "glassShard";
+                case "SFX_MirrorTurn": return "mirrorTurn";
+                case "SFX_PowerSurge": return "powerSurge";
+                case "SFX_ShadowHiss": return "shadowHiss";
+                case "SFX_UIPaperTap": return "uiPaperTap";
                 case "SFX_WraithAmbushStinger": return "wraithAmbushStinger";
                 case "SFX_WraithBreathNear": return "wraithBreathNear";
                 case "AMB_SchoolyardNight": return "ambienceYard";

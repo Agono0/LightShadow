@@ -181,7 +181,7 @@ namespace LightShadow.Player
         {
             if (AudioManager.Instance != null)
             {
-                AudioManager.Instance.PlaySfx(ProceduralSfx.Crank);
+                LightShadow.Audio.Sfx.Play("SFX_Crank", ProceduralSfx.Crank);
             }
             if (noise != null) noise.Emit(config != null ? config.crankNoiseRange : 12f);
         }
