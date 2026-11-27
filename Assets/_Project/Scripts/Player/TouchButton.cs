@@ -8,7 +8,7 @@ namespace LightShadow.Player
     // no code changes needed to re-purpose a button in the mobile HUD.
     public class TouchButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives, CrankHold, BreathHold }
+        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives, CrankHold, BreathHold, Medkit }
 
         [Header("Wiring")]
         public Kind kind;
@@ -122,6 +122,15 @@ namespace LightShadow.Player
                     break;
                 case Kind.BreathHold:
                     if (hiding != null) hiding.SetBreathHold(true);
+                    break;
+                case Kind.Medkit:
+                    // Two-hit health (user brief 2026-11-27): medkits are the
+                    // only healing; using one at full health wastes nothing.
+                    if (PlayerHealth.Instance != null && PlayerHealth.Instance.TryUseMedkit()
+                        && Core.GameManager.Instance != null)
+                    {
+                        Core.GameManager.Instance.ShowMessage("Medkit used. Back on her feet.", 3f);
+                    }
                     break;
             }
         }

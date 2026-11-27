@@ -137,6 +137,9 @@ namespace LightShadow.Tools
 
             PlayerController player = root.AddComponent<PlayerController>();
             FlashlightBattery battery = root.AddComponent<FlashlightBattery>();
+            // Two-hit health (user brief 2026-11-27): strikes drain it, the
+            // checkpoint wake refills it, medkits are the only other heal.
+            root.AddComponent<PlayerHealth>();
             BrightIdeaMeter meter = root.AddComponent<BrightIdeaMeter>();
             InteractionRaycaster raycaster = root.AddComponent<InteractionRaycaster>();
 

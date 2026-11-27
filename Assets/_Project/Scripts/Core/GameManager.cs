@@ -257,6 +257,51 @@ namespace LightShadow.Core
         }
 
         // Doc 4.3: caught -> quick fade, lose 15 meter, wake at the last lit checkpoint.
+        // Two-hit health (user brief 2026-11-27): a strike costs half; the
+        // second ends the run and Nour wakes at the chapter checkpoint at full
+        // health. Rigs without PlayerHealth keep the old one-hit flow.
+        public void EnemyHitPlayer()
+        {
+            if (respawning || escaped) return;
+
+            PlayerHealth health = player != null ? player.GetComponentInChildren<PlayerHealth>() : null;
+            if (health == null)
+            {
+                CaughtPlayer();
+                return;
+            }
+
+            GameEvents.RaisePlayerCaught();
+
+            // P3 haptics: the strike lands with a heavy buzz (Android only).
+            LightShadow.Platform.HapticsService.Heavy();
+
+            if (caughtClip == null) caughtClip = ProceduralSfx.Wrong;
+            if (caughtClip != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySfx(caughtClip);
+            }
+
+            BrightIdeaMeter meter = GetMeter();
+            if (meter != null && config != null) meter.RemoveMeter(config.caughtMeterPenalty);
+
+            if (health.ApplyHit())
+            {
+                // Survived: scare beat only, no respawn. The wraith withdraws
+                // (EnemyBehaviour enters ForcedCooldown) so the second hit is
+                // never free.
+                if (hud != null) hud.ShowMessage("It struck her - she is barely standing. Find a medkit.", 4f);
+            }
+            else
+            {
+                // Lethal: a slower, heavier fade than the old catch, then the
+                // checkpoint wake restores her to full.
+                respawning = true;
+                if (hud != null) hud.FadeToBlack(2f, WakeAtCheckpoint);
+                else WakeAtCheckpoint();
+            }
+        }
+
         public void CaughtPlayer()
         {
             if (respawning || escaped) return;
@@ -302,6 +347,10 @@ namespace LightShadow.Core
             // camera facing the Shadow and movement feeling reversed.
             PlayerController playerController = player != null ? player.GetComponent<PlayerController>() : null;
             if (playerController != null) playerController.RespawnReset();
+
+            // Two-hit health: waking at the checkpoint restores her to full.
+            PlayerHealth health = player != null ? player.GetComponentInChildren<PlayerHealth>() : null;
+            if (health != null) health.ResetHealth();
 
             if (enemy != null) enemy.ResetToPatrol();
 

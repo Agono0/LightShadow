@@ -206,3 +206,16 @@ human audition; no grass rows added.
 | --- | --- | --- | --- | --- | --- |
 | SFX_Breath_Tired.ogg | https://opengameart.org/content/breathing-tired | https://opengameart.org/sites/default/files/breathing%20tired.wav | CC0 1.0 | mikeask | labored/tired breathing; distinct from SFX_Breath_Scared |
 | SFX_FootstepWood_5/6/7, SFX_FootstepLeaves_0/1, SFX_FootstepGravel_0, SFX_FootstepMud_0 (.ogg) | https://lpc.opengameart.org/content/different-steps-on-wood-stone-leaves-gravel-and-mud | https://lpc.opengameart.org/sites/default/files/%5Bkdd%5DDifferentSteps_0.zip | CC0 1.0 | TinyWorlds | real recordings (ex-pdsounds.org); wood01-03, leaves01-02, gravel, mud02 from zip |
+
+## Wave-2 model: Ghost Skull wraith (added 2026-11-27, peer-approved pick)
+
+License verified 2026-11-27 on the model page (Public Domain / CC0) and the pack
+page: Quaternius Ultimate Monsters, CC0 1.0, no attribution needed. The GLB is
+published UNCHANGED (sha256 in Docs/ASSET_MANIFEST.md); flat-color materials, no
+embedded textures - tint or pack atlas assignment is an in-editor step. No Unity
+import test was possible here: scale/pivot, materials and motion are UNVERIFIED
+(human_check outstanding).
+
+| Model | Source page | File URL | License | Author | Notes |
+| --- | --- | --- | --- | --- | --- |
+| SM_Wraith_GhostSkull.glb | https://poly.pizza/m/TX8r9WBXpe | https://static.poly.pizza/0716bf8e-1894-4a90-8d10-34868975a239.glb.br | CC0 1.0 | Quaternius | mesh Ghost_Skull, 3,144 tris, 8 clips; pack https://quaternius.com/packs/ultimatemonsters.html |
