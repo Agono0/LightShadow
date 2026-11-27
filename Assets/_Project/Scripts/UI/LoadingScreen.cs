@@ -127,7 +127,12 @@ namespace LightShadow.UI
             // Redesigned loading look: gradient night, the school silhouette,
             // and a flashlight beam that sweeps across it while you wait.
             var background = MakeRect(canvasGo.transform, "Background", Vector2.zero, Vector2.one, Color.white);
-            background.sprite = LoadingTheme.Sprite(LoadingTheme.Gradient, "LoadingGradient", Vector4.zero);
+            // Night art ships as a Resources copy of T_UI_Loading_Night (see
+            // ASSET_MANIFEST row T_UI_Loading_Night_Res); the gradient stays as fallback.
+            Sprite nightArt = Resources.Load<Sprite>("UI/T_UI_Loading_Night");
+            background.sprite = nightArt != null
+                ? nightArt
+                : LoadingTheme.Sprite(LoadingTheme.Gradient, "LoadingGradient", Vector4.zero);
             background.type = Image.Type.Simple;
 
             BuildSilhouette(canvasGo.transform);
