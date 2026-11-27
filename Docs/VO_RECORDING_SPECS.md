@@ -1,7 +1,12 @@
 # LIGHT SHADOW — VO Recording Specs
 
-Briefing for the future human voice-recording session that replaces the SAPI
-TTS narrator (`Scripts/Core/StoryTeller.cs`) with real performances. Scope:
+Briefing for a POSSIBLE future human voice-recording session that would
+replace the generated voice with real performances. As of 2026-11-27 the
+generated clips are accepted as the shipped voice for this batch (Ahmed via
+the lead); this session is optional, unscheduled and not promised - the spec
+stays ready in case it ever happens. Until then the shipped lines are the
+generated clips (`Docs/VO_CLIP_MAP.md`), with the SAPI TTS narrator
+(`Scripts/Core/StoryTeller.cs`) as fallback. Scope:
 the story graph only — the 44 `StoryNode` assets under
 `Assets/_Project/Data/Story/`, in **English and Egyptian Arabic** (the two
 languages the game ships in).
