@@ -1,3 +1,4 @@
+using LightShadow.Audio;
 using LightShadow.Core;
 using UnityEngine;
 
@@ -15,7 +16,10 @@ namespace LightShadow.Player
         void Start()
         {
             source = gameObject.AddComponent<AudioSource>();
-            source.clip = MakeBreathLoop();
+            // Bro's recorded tired breath wins when the library has it
+            // (SFX_Breath_Tired); the synthesized loop stays the fallback.
+            AudioClip recorded = SfxRegistry.Clip("SFX_Breath_Tired");
+            source.clip = recorded != null ? recorded : MakeBreathLoop();
             source.loop = true;
             source.spatialBlend = 0f; // her own breath: inside the head
             source.volume = 0f;
