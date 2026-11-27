@@ -28,7 +28,7 @@ namespace LightShadow.Gameplay
 
         public string Prompt =>
             Localization.Current == GameLanguage.Arabic
-                ? Localization.Present("خذ") + " " + DisplayName
+                ? "خذ" + " " + DisplayName
                 : "Take " + DisplayName;
 
         public bool CanInteract => true;
@@ -53,7 +53,7 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("أخذت") + ": " + DisplayName
+                        ? "أخذت" + ": " + DisplayName
                         : "Taken: " + DisplayName,
                     3f);
             }

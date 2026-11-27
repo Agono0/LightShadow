@@ -82,7 +82,7 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("سقطت بطاقة المكتبة في الصينية - وخلفها بطارية مشحونة.")
+                        ? "سقطت بطاقة المكتبة في الصينية - وخلفها بطارية مشحونة."
                         : "A librarian's key card drops into the tray - and behind it, a charged battery.",
                     4f);
             }

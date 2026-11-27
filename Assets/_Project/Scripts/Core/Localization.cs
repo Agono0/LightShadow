@@ -330,6 +330,11 @@ namespace LightShadow.Core
             // Added with the recap export feedback; machine-written, NOT native-verified.
             { "Recap saved: {0}", "تم حفظ الخلاصة: {0}" },
             { "Recap export failed", "تعذّر حفظ الخلاصة" },
+            // Prompts that were missing from the table (audit 3.2/3.4); not native-verified.
+            { "Locked - {0} needed", "مغلق - يلزم {0}" },
+            { "Pick it up", "التقطه" },
+            { "Put it down", "ضعه" },
+            { "Take the medkit", "خذ الإسعافات" },
             { "No questions were answered tonight.", "لم تُجب عن أي سؤال هذه الليلة." },
             { "Nothing was asked tonight.", "لم يُطرح شيء هذه الليلة." },
             { "Answered: {0}    Correct: {1} ({2}%)", "أجبت: {0}    صحيح: {1} ({2}%)" },

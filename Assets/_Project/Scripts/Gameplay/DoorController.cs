@@ -45,7 +45,7 @@ namespace LightShadow.Gameplay
         {
             get
             {
-                if (IsLocked) return "Locked - " + Inventory.DisplayName(keyId) + " needed";
+                if (IsLocked) return string.Format(Localization.Tr("Locked - {0} needed"), Inventory.DisplayName(keyId)); // logical text: the HUD shapes it once
                 return IsOpen ? "Close the door" : "Open the door";
             }
         }

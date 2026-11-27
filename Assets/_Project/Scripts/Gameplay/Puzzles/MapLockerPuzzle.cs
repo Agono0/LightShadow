@@ -71,7 +71,7 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("انزلق باب الخزانة جانبًا. بداخلها المفتاح الرئيسي.")
+                        ? "انزلق باب الخزانة جانبًا. بداخلها المفتاح الرئيسي."
                         : "The locker door slides aside. Inside, the master key.",
                     4f);
             }

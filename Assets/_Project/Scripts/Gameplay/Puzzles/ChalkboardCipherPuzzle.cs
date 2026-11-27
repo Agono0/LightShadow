@@ -71,7 +71,7 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("انزلق الدرج مفتوحًا. بداخله بطارية ما زالت مشحونة.")
+                        ? "انزلق الدرج مفتوحًا. بداخله بطارية ما زالت مشحونة."
                         : "The drawer slides open. A battery, still holding a charge.",
                     4f);
             }

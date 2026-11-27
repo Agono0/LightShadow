@@ -68,7 +68,7 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("أصاب الشعاع المستشعر - انزلق درج الخزانة مفتوحًا.")
+                        ? "أصاب الشعاع المستشعر - انزلق درج الخزانة مفتوحًا."
                         : "The beam hits the sensor - the lab cabinet's drawer slides open.",
                     4f);
             }
