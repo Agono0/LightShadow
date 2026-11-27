@@ -358,6 +358,14 @@ The game itself contains **no AI features** — this log is about the developmen
   (mixer), `BuildAllBatch` rebuild, then `ValidateBatch` → `RESULT: PASS`; NOT yet run by the
   agent (single-Unity-instance rule).
 
+### 2026-11-27 — Docs/AUDIT_2.md (finish-the-game static audit) — Abdelrhman Mohamed
+- Tool used: Instinct (AI coding agent)
+- What AI provided: the audit pass itself (core-loop read, pattern scans for event leaks, hot-path
+  costs, timeScale and PlayerPrefs usage, platform guards) and the AUDIT_2.md write-up, including
+  the mobile-stretch root cause and the deferred-restore edge case in SaveSystem.
+- What I changed myself: pending review — lands through the PR workflow.
+- Teach-back check: pending — the findings table is written so a teammate can repro each item.
+- Test result: static audit only; no code changed on this branch, CI fast-checks are the gate.
 ### 2026-11-27 — Mobile stretch fix: native-resolution guard + safe-area fitter — Abdelrhman Mohamed
 - Tool used: Instinct (AI coding agent)
 - What AI provided: diagnosis that `GameSettings.ApplyResolution` forced a picked resolution on
@@ -369,6 +377,15 @@ The game itself contains **no AI features** — this log is about the developmen
   phones, and why the safe-area child only insets on notched devices).
 - Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
   no local Unity editor available.
+
+### 2026-11-27 — SaveSystem deferred-restore fix (audit A3) — Abdelrhman Mohamed
+- Tool used: Instinct (AI coding agent)
+- What AI provided: `SaveSystem.ClearPendingRestore` and the new-game hook in
+  `SaveSlotUI.StartRun`, so a deferred restore from an earlier Load attempt cannot apply
+  a stale save to a fresh run; the AUDIT_2.md status flip for finding A3.
+- What I changed myself: pending review — lands through the PR workflow.
+- Teach-back check: pending — repro steps are in the PR body and AUDIT_2.md.
+- Test result: static reasoning only (no editor); CI build workflow is the gate.
 
 ## 2026-11-27 (late) - Voice line sheet from the verified story inventory (PR #16)
 - Task: A-workstream voice kit deliverable - a per-line recording sheet for VO casting.
