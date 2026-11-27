@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: 29 has no divisors other than 1 and itself. The others are all divisible
     by 3.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي الأعداد الآتية عدد أولي؟
+  optionsAr:
+  - 21
+  - 29
+  - 33
+  - 51
+  explanationAr: العدد 29 لا يقبل القسمة إلا على 1 وعلى نفسه، أما الباقية فكلها تقبل القسمة على 3.

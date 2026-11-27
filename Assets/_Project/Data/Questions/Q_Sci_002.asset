@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Oxygen enters the blood through the lungs and is used to release energy
     from food.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي غاز من الهواء يحتاج الإنسان إلى تنفسه ليحيا؟
+  optionsAr:
+  - النيتروجين
+  - الأكسجين
+  - ثاني أكسيد الكربون
+  - الهيليوم
+  explanationAr: الأكسجين يدخل إلى الدم عبر الرئتين، ويُستعمل في تحرير الطاقة من الغذاء.

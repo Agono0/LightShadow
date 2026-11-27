@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 2
   explanation: A quarter of 80 is 20.
   factSource: NEEDS-FACT-CHECK
+  questionAr: ما قيمة 25% من 80؟
+  optionsAr:
+  - 15
+  - 20
+  - 25
+  - 40
+  explanationAr: ربع العدد 80 يساوي 20.

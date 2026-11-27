@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2cb65e0913b0784b98ecec4a74e5c1f, type: 3}
+  m_Name: Q_His_021
+  m_EditorClassIdentifier: Assembly-CSharp::LightShadow.UI.QuestionData
+  question: In which country was the Great Wall built?
+  options:
+  - Japan
+  - China
+  - India
+  - Korea
+  correctIndex: 1
+  category: 2
+  difficulty: 1
+  explanation: The Great Wall of China stretches thousands of kilometres across the north of the country.
+  factSource: NEEDS-FACT-CHECK
+  questionAr: في أي بلد بُني السور العظيم؟
+  optionsAr:
+  - اليابان
+  - الصين
+  - الهند
+  - كوريا
+  explanationAr: يمتد سور الصين العظيم آلاف الكيلومترات عبر شمال البلد.

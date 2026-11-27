@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: The Giza pyramids were built in ancient Egypt, roughly 4,500 years
     ago.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي حضارة قديمة هي التي بنت أهرامات الجيزة؟
+  optionsAr:
+  - الرومان
+  - الإغريق
+  - المصريون القدماء
+  - الفرس
+  explanationAr: بُنيت أهرامات الجيزة في مصر القديمة قبل نحو 4,500 عام.

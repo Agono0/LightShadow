@@ -29,6 +29,10 @@ namespace LightShadow.Core
             // the auto-detected URP tier AFTER the settings card's fine controls,
             // so the tier provides the base and player tweaks stay on top.
             Systems.PerformanceManager.EnsureCreated();
+
+            // P3: the dev console builds only when the LS_DebugMode flag is on
+            // (default off - see GameSettings.DebugMode).
+            LightShadow.DebugTools.DevConsole.EnsureCreated();
         }
 
         void Start()
