@@ -274,7 +274,7 @@ namespace LightShadow.UI
             for (int i = 0; i < feedLabels.Length; i++)
             {
                 SetLocalized(feedLabels[i], (i + 1) + ". " + (i < feedsEn.Length ? feedsEn[i] : ""),
-                    i < feedsAr.Length ? feedsAr[i] : "");
+                    i < feedsAr.Length ? KeyPrefixed((i + 1).ToString(), feedsAr[i]) : "");
                 if (feedLabels[i] != null)
                 {
                     feedLabels[i].alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleCenter;
@@ -284,12 +284,19 @@ namespace LightShadow.UI
             for (int i = 0; i < terminalLabels.Length; i++)
             {
                 SetLocalized(terminalLabels[i], termKeys[i] + ". " + (i < terminalsEn.Length ? terminalsEn[i] : ""),
-                    i < terminalsAr.Length ? terminalsAr[i] : "");
+                    i < terminalsAr.Length ? KeyPrefixed(termKeys[i], terminalsAr[i]) : "");
                 if (terminalLabels[i] != null)
                 {
                     terminalLabels[i].alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleCenter;
                 }
             }
+        }
+
+        // Arabic labels keep the key hint too (audit 3.6): the keys work in
+        // either language, so the player must be told in either language.
+        static string KeyPrefixed(string key, string label)
+        {
+            return string.IsNullOrEmpty(label) ? "" : key + ". " + label;
         }
 
         void RenderProgress()

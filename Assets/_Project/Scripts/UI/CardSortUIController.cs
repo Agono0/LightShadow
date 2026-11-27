@@ -225,7 +225,7 @@ namespace LightShadow.UI
             {
                 string en = i < drawersEn.Length ? drawersEn[i] : "";
                 string ar = i < drawersAr.Length ? drawersAr[i] : "";
-                SetLocalized(drawerLabels[i], (i + 1) + ". " + en, ar);
+                SetLocalized(drawerLabels[i], (i + 1) + ". " + en, string.IsNullOrEmpty(ar) ? "" : (i + 1) + ". " + ar);
                 if (drawerLabels[i] != null)
                 {
                     drawerLabels[i].alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleCenter;

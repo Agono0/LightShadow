@@ -280,7 +280,7 @@ namespace LightShadow.UI
             {
                 string en = i < colorsEn.Length ? colorsEn[i] : "";
                 string ar = i < colorsAr.Length ? colorsAr[i] : "";
-                SetLocalized(switchLabels[i], (i + 1) + ". " + en, ar);
+                SetLocalized(switchLabels[i], (i + 1) + ". " + en, string.IsNullOrEmpty(ar) ? "" : (i + 1) + ". " + ar);
                 if (switchLabels[i] != null)
                 {
                     switchLabels[i].alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleCenter;
