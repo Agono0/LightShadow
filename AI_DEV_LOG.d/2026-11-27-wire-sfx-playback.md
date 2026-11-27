@@ -8,7 +8,7 @@ doors, throws, crates and pickups still used synthesised placeholders.
   library is absent, so headless runs behave exactly as before.
 - Wired: door open/close/unlock/locked rattle, key and generic pickups,
   throw whoosh, soft/hard throw impact, glass crack on breakables, crate
-  scrape, hurt (survived hit vs lethal).
-- Not wired here: wraith roam/stinger/breath and ambient events (next PR).
+  scrape.
+- Not wired here: hurt (clips arrive with #92), wraith roam/stinger/breath and ambient events (next PR).
 - Unverified: nothing heard in the editor or on a device; clip levels and
   loudness vs the mixer are untested.
