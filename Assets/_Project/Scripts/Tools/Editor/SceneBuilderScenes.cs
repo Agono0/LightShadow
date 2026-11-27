@@ -380,9 +380,11 @@ namespace LightShadow.Tools
             AudioSource music = CreateAudioSource(systems.transform, "MusicSource");
             AudioSource ambience = CreateAudioSource(systems.transform, "AmbienceSource");
             AudioSource sfx = CreateAudioSource(systems.transform, "SfxSource");
+            AudioSource voice = CreateAudioSource(systems.transform, "VoiceSource");
             audio.musicSource = music;
             audio.ambienceSource = ambience;
             audio.sfxSource = sfx;
+            audio.voiceSource = voice;
 
             // The brightness option acts through URP post-exposure and ambient lift.
             systems.AddComponent<BrightnessController>();
