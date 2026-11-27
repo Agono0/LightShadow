@@ -288,8 +288,6 @@ The game itself contains **no AI features** — this log is about the developmen
   limited` — Unity 6000.4 deprecates that target, so the x86_64 matrix entry and batch method
   were removed and the pipeline corrected on this branch.
 
-
-
 ### 2026-11-19 — Docs/SOURCING_FONTS_MUSIC.md (premium-pass font + music sourcing) — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) with WebSearch/WebFetch license-and-URL verification.
 - What AI provided: verified sourcing doc — 5 font families (Noto Naskh Arabic, Cairo, Reem Kufi,
@@ -681,16 +679,6 @@ The game itself contains **no AI features** — this log is about the developmen
 - Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
   no local Unity editor available.
 
-### 2026-11-27 — Puzzle framework (PuzzleBase, PuzzleManager, events, save blob) — Abdelrhman Mohamed
-- Tool used: Instinct (AI coding agent)
-- What AI provided: the framework design and code — `PuzzleBase` (states, hints EN/AR,
-  solve/wrong-attempt flow, restore hooks), `PuzzleManager` (registry + save bridge over
-  the SaveCaptured/SaveApplied events), additive `GameEvents` puzzle events, the
-  `GameConfig.puzzleWrongMeterPenalty` field, and `Docs/PUZZLES.md` with the seven-puzzle plan.
-- What I changed myself: pending review — lands through the PR workflow.
-- Teach-back check: pending — Docs/PUZZLES.md explains the restore-timing choice
-  (manager keeps the id set; puzzles pick it up when they register).
-- Test result: static only; CI build workflow is the compile gate. No scene changes.
 ### 2026-11-27 — SaveSystem deferred-restore fix (audit A3) — Abdelrhman Mohamed
 - Tool used: Instinct (AI coding agent)
 - What AI provided: `SaveSystem.ClearPendingRestore` and the new-game hook in
