@@ -925,12 +925,13 @@ namespace LightShadow.Tools
         // partial of SceneBuilder and its helpers are private), with the same
         // dark-card palette and builtin uGUI sprites.
 
-        static readonly Color StoryWarm = new Color(1f, 0.86f, 0.62f);
-        static readonly Color StoryPaper = new Color(0.90f, 0.88f, 0.80f);
-        static readonly Color StoryDim = new Color(0.62f, 0.60f, 0.56f);
-        static readonly Color StoryPanelDark = new Color(0.055f, 0.055f, 0.065f, 0.97f);
-        static readonly Color StoryButtonDark = new Color(0.16f, 0.15f, 0.14f, 0.95f);
-        static readonly Color StoryButtonWarm = new Color(0.36f, 0.25f, 0.13f, 0.98f);
+        // Same moonlit-night retheme as SceneBuilderUI (user brief 2026-11-27).
+        static readonly Color StoryWarm = new Color(0.84f, 0.89f, 0.98f);
+        static readonly Color StoryPaper = new Color(0.85f, 0.87f, 0.91f);
+        static readonly Color StoryDim = new Color(0.55f, 0.58f, 0.65f);
+        static readonly Color StoryPanelDark = new Color(0.045f, 0.055f, 0.075f, 0.97f);
+        static readonly Color StoryButtonDark = new Color(0.13f, 0.15f, 0.19f, 0.95f);
+        static readonly Color StoryButtonWarm = new Color(0.28f, 0.36f, 0.50f, 0.98f);
 
         static Sprite _storyBackground;
         static Sprite StoryBackground

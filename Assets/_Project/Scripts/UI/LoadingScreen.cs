@@ -101,7 +101,7 @@ namespace LightShadow.UI
             if (beam != null)
             {
                 beam.rectTransform.anchoredPosition = new Vector2(sweep * 760f, 80f);
-                beam.color = new Color(1f, 0.94f, 0.80f, Mathf.Lerp(0.10f, 0.22f, (sweep + 1f) / 2f));
+                beam.color = new Color(0.80f, 0.87f, 1f, Mathf.Lerp(0.10f, 0.22f, (sweep + 1f) / 2f));
             }
         }
 
@@ -133,7 +133,7 @@ namespace LightShadow.UI
             BuildSilhouette(canvasGo.transform);
 
             // The sweeping flashlight: a soft glow panning across the skyline.
-            beam = MakeRect(canvasGo.transform, "BeamSweep", Vector2.zero, Vector2.one, new Color(1f, 0.94f, 0.80f, 0.0f));
+            beam = MakeRect(canvasGo.transform, "BeamSweep", Vector2.zero, Vector2.one, new Color(0.80f, 0.87f, 1f, 0.0f));
             beam.sprite = LoadingTheme.Sprite(LoadingTheme.Glow, "LoadingGlow", Vector4.zero);
             beam.type = Image.Type.Simple;
             beam.rectTransform.sizeDelta = new Vector2(560f, 560f);
@@ -141,7 +141,7 @@ namespace LightShadow.UI
 
             captionText = MakeText(canvasGo.transform, "Caption",
                 StoryStrings.Tr("DEMOLITION AT DAWN"), 30,
-                new Color(0.85f, 0.78f, 0.62f, 0.85f), TextAnchor.MiddleCenter,
+                new Color(0.78f, 0.83f, 0.92f, 0.85f), TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.62f), new Vector2(0.5f, 0.62f), new Vector2(1100f, 60f));
 
             // Progress bar (bottom centre, rounded track with an amber fill).
@@ -158,7 +158,7 @@ namespace LightShadow.UI
                 new Vector2(0.5f, 0.34f), new Vector2(0.5f, 0.34f), new Vector2(1100f, 46f));
 
             progressFill = MakeRect(track.transform, "Fill", Vector2.zero, Vector2.one,
-                new Color(1f, 0.86f, 0.62f, 0.95f));
+                new Color(0.65f, 0.75f, 0.95f, 0.95f));
             progressFill.type = Image.Type.Filled;
             progressFill.fillMethod = Image.FillMethod.Horizontal;
             progressFill.fillOrigin = (int)Image.OriginHorizontal.Left;
