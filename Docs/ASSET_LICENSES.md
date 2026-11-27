@@ -144,7 +144,20 @@ Download volume: Kenney packs 21.5 MB zips + Poly Haven 67 MB (24 × 2K JPG) ≈
   `Assets/_Project/Fonts/Licenses/`; the OFL FAQ is https://openfontlicense.org (verified 2026-11-19).
 
 ## ambientCG CC0 texture sets - floors (workstream C, downloaded + verified 2026-11-27)
+## ambientCG CC0 texture sets - decals (workstream C, downloaded + verified 2026-11-27)
 
+## OpenGameArt music + ambience pack (added 2026-11-27, workstream B music selections)
+
+All six tracks are OpenGameArt submissions marked CC0 1.0 on their pages (license
+bar re-verified 2026-11-27; CC0 permits redistribution of raw files in this public repo).
+Page URL and exact file URL are recorded per track in Docs/ASSET_MANIFEST.md.
+
+- "Paranoid Truth" by Tsorthan Grove - CC0 - full mix used (NOT the Solo variant)
+- "Horror Atmosphere" by SubspaceAudio (Juhani Junkala) - CC0 - loop-ready ogg
+- "First Light Particles" by Yoiyami - CC0 - page notice explicitly allows standalone soundtrack use and derivative works
+- "A New Start (short solo piano)" by Wolfgang_ - CC0 - ending alternate only
+- "Determined Pursuit (epic orchestra loop)" by Emma_MA - CC0 - page notice: public domain as of Jan 2017, no attribution
+- "AMB Morning Sounds (Perfect Loop)" by Kresiek The Furry - CC0 - perfect-loop dawn ambience
 ## Grab3D + OpenGameArt model fills (added 2026-11-27, workstream D candidates)
 
 Grab3D models are site-wide CC0 1.0 (license page https://grab3d.com/license/ verified
@@ -172,5 +185,6 @@ Concrete texture metas. CC0: no attribution list entries needed.
 | WoodFloor065B (2K JPG) | https://ambientcg.com/view?id=WoodFloor065B | CC0 1.0 | ambientCG | 2026-11-27 | T_WornWoodFloor_* / Mat_Art_WornWoodFloor |
 | Planks009 (2K JPG) | https://ambientcg.com/view?id=Planks009 | CC0 1.0 | ambientCG | 2026-11-27 | T_OldPlanks_* / Mat_Art_OldPlanks |
 | Fabric028 (2K JPG) | https://ambientcg.com/view?id=Fabric028 | CC0 1.0 | ambientCG | 2026-11-27 | T_DirtyCarpet_* / Mat_Art_DirtyCarpet |
+| SurfaceImperfections015 (2K JPG) | https://ambientcg.com/view?id=SurfaceImperfections015 | CC0 1.0 | ambientCG | 2026-11-27 | T_DustImperfection_* detail/decal overlay (no material) |
 | PaintedMetal006 (2K JPG) | https://ambientcg.com/view?id=PaintedMetal006 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustedPaintedMetal_* / Mat_Art_RustedPaintedMetal |
 | Metal064 (2K JPG) | https://ambientcg.com/view?id=Metal064 | CC0 1.0 | ambientCG | 2026-11-27 | T_RustMetal_* / Mat_Art_RustMetal |
