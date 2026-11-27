@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -39,6 +40,7 @@ namespace LightShadow.UI
 
         [Header("P3 export")]
         public Button savePngButton;
+        public Text exportFeedbackText;
 
         string endingId = "";
 
@@ -49,6 +51,7 @@ namespace LightShadow.UI
             if (menuButton != null) menuButton.onClick.AddListener(ReturnToMenu);
             if (replayButton != null) replayButton.onClick.AddListener(ReplayTheNight);
             if (savePngButton != null) savePngButton.onClick.AddListener(SavePng);
+            EnsureFeedbackLabel();
         }
 
         // EndingController calls this before Show(). Empty string hides the row.
@@ -213,26 +216,93 @@ namespace LightShadow.UI
             StartCoroutine(CaptureRoutine());
         }
 
+        // audit v3 5.6: the export used to succeed (or fail) silently. The
+        // result is now shown in a feedback label under the panel and the
+        // button re-arms when the capture finishes.
+        internal string lastExportMessage = "";
+
+        internal static string FormatSavedMessage(string fileName)
+        {
+            return Localization.Format("Recap saved: {0}", fileName);
+        }
+
+        internal static string FormatFailedMessage()
+        {
+            return Localization.TrPresent("Recap export failed");
+        }
+
+        internal void SetExportFeedback(string message)
+        {
+            lastExportMessage = message;
+            if (exportFeedbackText != null)
+            {
+                exportFeedbackText.text = message;
+                exportFeedbackText.font = Localization.CurrentFont;
+            }
+        }
+
+        // Runtime-built feedback label so SceneBuilderStory (outside this
+        // lane's scope) needs no edit; a pre-wired exportFeedbackText wins.
+        void EnsureFeedbackLabel()
+        {
+            if (exportFeedbackText != null) return;
+
+            Transform parent = panel != null ? panel.transform : transform;
+            var labelGo = new GameObject("ExportFeedback", typeof(RectTransform), typeof(Text));
+            labelGo.transform.SetParent(parent, false);
+            var rect = (RectTransform)labelGo.transform;
+            rect.anchorMin = new Vector2(0.5f, 0f);
+            rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 12f);
+            rect.sizeDelta = new Vector2(640f, 28f);
+
+            exportFeedbackText = labelGo.GetComponent<Text>();
+            exportFeedbackText.font = Localization.CurrentFont;
+            exportFeedbackText.fontSize = 18;
+            exportFeedbackText.alignment = TextAnchor.MiddleCenter;
+            exportFeedbackText.color = new Color(0.85f, 0.9f, 0.92f, 0.95f);
+            exportFeedbackText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            exportFeedbackText.text = "";
+        }
+
         IEnumerator CaptureRoutine()
         {
             // ScreenCapture only works at the end of a rendered frame.
             yield return new WaitForEndOfFrame();
 
-            Texture2D texture = ScreenCapture.CaptureScreenshotAsTexture();
-            if (texture == null) yield break;
-
+            if (savePngButton != null) savePngButton.interactable = false;
             try
             {
-                string directory = Path.Combine(Application.persistentDataPath, "lightshadow");
-                if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+                Texture2D texture = ScreenCapture.CaptureScreenshotAsTexture();
+                if (texture == null)
+                {
+                    SetExportFeedback(FormatFailedMessage());
+                    yield break;
+                }
 
-                string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string path = Path.Combine(directory, "recap_" + timestamp + ".png");
-                File.WriteAllBytes(path, texture.EncodeToPNG());
+                try
+                {
+                    string directory = Path.Combine(Application.persistentDataPath, "lightshadow");
+                    if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+                    string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                    string path = Path.Combine(directory, "recap_" + timestamp + ".png");
+                    File.WriteAllBytes(path, texture.EncodeToPNG());
+                    SetExportFeedback(FormatSavedMessage(Path.GetFileName(path)));
+                }
+                catch (Exception)
+                {
+                    SetExportFeedback(FormatFailedMessage());
+                }
+                finally
+                {
+                    Destroy(texture);
+                }
             }
             finally
             {
-                Destroy(texture);
+                if (savePngButton != null) savePngButton.interactable = true;
             }
         }
     }
