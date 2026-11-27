@@ -128,6 +128,8 @@ namespace LightShadow.Core
         public static void RaisePuzzleHintUsed(string puzzleId)
         {
             PuzzleHintUsed?.Invoke(puzzleId);
+        }
+
         public static void RaiseNoiseEmitted(float radius)
         {
             NoiseEmitted?.Invoke(radius);
