@@ -53,6 +53,7 @@ namespace LightShadow.Gameplay
         {
             Carried = this;
             if (body != null) body.isKinematic = true;
+            SetCollidersEnabled(false); // a carried prop must not shove the player or the camera
             Transform hold = HoldPoint();
             transform.SetParent(hold, false);
             transform.localPosition = Vector3.zero;
@@ -77,9 +78,16 @@ namespace LightShadow.Gameplay
             Carried.Release(impulse);
         }
 
+        void SetCollidersEnabled(bool enabled)
+        {
+            Collider[] colliders = GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++) colliders[i].enabled = enabled;
+        }
+
         void Release(Vector3 impulse)
         {
             Carried = null;
+            SetCollidersEnabled(true);
             transform.SetParent(homeParent, true);
             if (body != null)
             {
@@ -150,6 +158,7 @@ namespace LightShadow.Gameplay
         public void ResetHome()
         {
             if (Carried == this) Carried = null;
+            SetCollidersEnabled(true);
             gameObject.SetActive(true);
             transform.SetParent(homeParent, false);
             transform.position = homePosition;
