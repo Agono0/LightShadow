@@ -46,8 +46,8 @@ namespace LightShadow.Gameplay
             if (string.IsNullOrEmpty(itemId)) return;
             Inventory.Add(itemId);
 
-            if (pickupClip == null) pickupClip = ProceduralSfx.Pickup;
             if (pickupClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(pickupClip);
+            else LightShadow.Audio.Sfx.Play(itemId.EndsWith("key") ? "SFX_KeyPickup" : "SFX_Pickup", ProceduralSfx.Pickup);
 
             if (GameManager.Instance != null)
             {
