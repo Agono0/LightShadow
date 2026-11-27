@@ -15,3 +15,9 @@
 - Test result: pending — CI compile + builds are the gate; no local Unity editor. Verified on
   paper: NarratorEnabled gates both paths; locale switch clears the clip cache; Resources move
   keeps every .meta (no GUID churn).
+
+Amendment (bro review + reverb zone spec): choice lines (VO_*_C<n>) are
+unwired per the recording spec - node lines only are voiced; the generated
+choice clips stay in Resources as an optional layer. Voice source now runs
+dry (`reverbZoneMix = 0`) so VO reads as inner voice inside reverb zones;
+music/SFX keep the default wet mix.

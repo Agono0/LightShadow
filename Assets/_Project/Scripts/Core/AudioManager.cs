@@ -18,6 +18,11 @@ namespace LightShadow.Core
         void Awake()
         {
             Instance = this;
+            // Reverb zone mix policy (Docs/REVERB_ZONES.md): voice stays dry
+            // so narration reads as inner voice in every room. Music and SFX
+            // keep the default mix (1) and take the room's reverb; UI clicks
+            // share sfxSource until a dedicated UI source exists.
+            if (voiceSource != null) voiceSource.reverbZoneMix = 0f;
         }
 
         void OnDestroy()

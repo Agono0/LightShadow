@@ -379,11 +379,10 @@ namespace LightShadow.Story
                 }
                 else
                 {
-                    // The picked choice has its own inner-voice line (sheet id
-                    // VO_<nodeId>_C<n>); it interrupts the node line still
-                    // playing. No clip recorded means silence, not SAPI: the
-                    // player already read the choice they tapped.
-                    VoiceoverPlayer.Play("VO_" + node.nodeId + "_C" + (offeredIndex + 1));
+                    // Choices are NOT voiced: the recording spec voices node
+                    // lines only. The generated VO_<nodeId>_C<n> clips ship in
+                    // Resources but stay unwired (optional inner-voice layer,
+                    // re-enable here if that decision changes).
 
                     // Effects first (flag-gated routing can read the new flags),
                     // then the events, then routing.
