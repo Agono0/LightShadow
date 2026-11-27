@@ -1,0 +1,21 @@
+# Dependency bump bot (user brief 2026-11-27: keep the CI actions fresh).
+# Weekly, low volume: minor/patch bumps arrive as ONE grouped PR; major bumps
+# arrive individually so a build-system jump (e.g. game-ci) gets its own
+# review and CI run. Bot PRs ride the normal required checks; never enable
+# auto-merge on them.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "06:00"
+      timezone: "Africa/Cairo"
+    open-pull-requests-limit: 3
+    labels: ["ci", "dependencies"]
+    groups:
+      actions-minor-patch:
+        applies-to: "version-updates"
+        update-types: ["minor", "patch"]
+        patterns: ["*"]
