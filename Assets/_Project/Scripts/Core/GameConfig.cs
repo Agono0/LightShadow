@@ -23,6 +23,10 @@ namespace LightShadow.Core
         public float questionTimer = 20f;
         public float feedbackSeconds = 3f;
 
+        [Header("Puzzles (finish-the-game plan)")]
+        [Tooltip("Bright Idea Meter penalty for a wrong puzzle move. 0 = no penalty.")]
+        public float puzzleWrongMeterPenalty = 0f;
+
         [Header("Flashlight And Battery (Doc 4.2, 4.5)")]
         public float batterySeconds = 300f;
         public float batteryPickupFraction = 0.5f;

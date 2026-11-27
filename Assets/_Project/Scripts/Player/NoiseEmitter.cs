@@ -35,11 +35,13 @@ namespace LightShadow.Player
         void OnEnable()
         {
             GameEvents.QuestionAnswered += OnQuestionAnswered;
+            GameEvents.PuzzleFailed += OnPuzzleFailed;
         }
 
         void OnDisable()
         {
             GameEvents.QuestionAnswered -= OnQuestionAnswered;
+            GameEvents.PuzzleFailed -= OnPuzzleFailed;
         }
 
         void Update()
@@ -82,6 +84,14 @@ namespace LightShadow.Player
             if (player != null && player.IsSprinting) return config.sprintNoiseRadius;
             if (player != null && player.IsCrouching) return config.crouchNoiseRange;
             return config.walkNoiseRange;
+        }
+
+        // A wrong puzzle move (bad locker code, wrong catalogue order, ...)
+        // rings the same buzzer the quiz does: PuzzleBase raises PuzzleFailed
+        // with the puzzle id, and the noise is what the Shadow hears.
+        void OnPuzzleFailed(string puzzleId)
+        {
+            Emit(config != null ? config.wrongAnswerNoiseRange : 6f);
         }
 
         void OnQuestionAnswered(bool correct)

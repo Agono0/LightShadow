@@ -43,6 +43,15 @@ namespace LightShadow.Core
         // Search 6). Raised from EnemyBehaviour.EnterState.
         public static event Action<int> EnemyStateChanged;
 
+        // A wing puzzle was solved. Payload: puzzle id (PuzzleBase.puzzleId).
+        public static event Action<string> PuzzleSolved;
+
+        // A wing puzzle registered a wrong move. Payload: puzzle id. The noise
+        // bus hooks here so mistakes can be heard.
+        public static event Action<string> PuzzleFailed;
+
+        // The player asked for a puzzle hint. Payload: puzzle id.
+        public static event Action<string> PuzzleHintUsed;
         // The player made a noise the Shadow may hear (P3 noise bus). Payload:
         // the hearing radius in metres (GameConfig noise fields). The listener
         // decides what to do; NoiseEmitter is the usual raiser.
@@ -104,6 +113,21 @@ namespace LightShadow.Core
         public static void RaiseEnemyStateChanged(int state)
         {
             EnemyStateChanged?.Invoke(state);
+        }
+
+        public static void RaisePuzzleSolved(string puzzleId)
+        {
+            PuzzleSolved?.Invoke(puzzleId);
+        }
+
+        public static void RaisePuzzleFailed(string puzzleId)
+        {
+            PuzzleFailed?.Invoke(puzzleId);
+        }
+
+        public static void RaisePuzzleHintUsed(string puzzleId)
+        {
+            PuzzleHintUsed?.Invoke(puzzleId);
         }
 
         public static void RaiseNoiseEmitted(float radius)

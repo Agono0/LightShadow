@@ -15,7 +15,7 @@ LICENSES = {"CC0-1.0", "CC-BY-3.0", "CC-BY-4.0", "OFL-1.1", "Apache-2.0",
             "Pixabay-Content", "Sonniss-GDC", "Fab-Standard", "other"}
 STATUSES = {"candidate", "downloaded", "imported", "wired", "replaced"}
 ATTRIBUTION = {"CC-BY-3.0", "CC-BY-4.0"}
-COLS = ["id", "path", "type", "origin", "source_url", "license", "author",
+COLS = ["id", "family", "path", "type", "origin", "source_url", "license", "author",
         "credit_line", "imported_at", "status", "replacement", "wired_to",
         "platform_overrides", "spec", "human_check", "notes"]
 ID_RE = re.compile(r"^(SFX|MUS|AMB|VO|Mat|SM|T|FONT)_[A-Za-z0-9_]+$")
@@ -76,6 +76,13 @@ def main():
                 errors.append("row %d (%s): empty cell %s" % (ln, d["id"], k))
         if not ID_RE.match(d["id"]):
             errors.append("row %d: bad id %r" % (ln, d["id"]))
+        if not ID_RE.match(d["family"]):
+            errors.append("row %d (%s): bad family %r" % (ln, d["id"], d["family"]))
+        else:
+            m = re.match(r"^(.*)_\d+$", d["id"])
+            want = m.group(1) if m else d["id"]
+            if d["family"] != want:
+                errors.append("row %d (%s): family %r should be %r" % (ln, d["id"], d["family"], want))
         if d["id"] in seen:
             errors.append("row %d: duplicate id %s" % (ln, d["id"]))
         seen.add(d["id"])
