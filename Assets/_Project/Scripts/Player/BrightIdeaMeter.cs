@@ -65,6 +65,9 @@ namespace LightShadow.Player
             if (correctClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(correctClip);
             if (flashlight != null) flashlight.Flash(0.3f);
 
+            // P3 haptics: a light buzz on every correct answer (Android only).
+            LightShadow.Platform.HapticsService.Light();
+
             // Pooled sparkle flare next to the beam (ObjectPool example wiring).
             // No-op unless PooledFx.Enabled is true; the pool self-creates.
             if (spotLight != null) Systems.PooledFx.SpawnFlash(spotLight.transform.position, spotLight.color);

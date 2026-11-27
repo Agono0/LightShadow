@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: Paris is the capital and largest city of France, on the River Seine.
   factSource: NEEDS-FACT-CHECK
+  questionAr: ما عاصمة فرنسا؟
+  optionsAr:
+  - ليون
+  - مارسيليا
+  - باريس
+  - نيس
+  explanationAr: باريس عاصمة فرنسا وأكبر مدنها، وتقوم على نهر السين.

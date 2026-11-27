@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: The Great Pyramid stands on the Giza plateau in Egypt and was built
     for Pharaoh Khufu.
   factSource: NEEDS-FACT-CHECK
+  questionAr: بُني الهرم الأكبر بالجيزة في أي بلد؟
+  optionsAr:
+  - العراق
+  - مصر
+  - اليونان
+  - تركيا
+  explanationAr: يقوم الهرم الأكبر على هضبة الجيزة في مصر، وقد بُني للملك خوفو.

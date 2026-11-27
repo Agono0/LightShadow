@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: 'Courageous means the same as brave: showing no fear in a hard situation.'
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي كلمة هي مرادف لكلمة «brave»؟
+  optionsAr:
+  - خائف
+  - متردد
+  - شجاع
+  - مهمل
+  explanationAr: '«courageous» تعني ما تعنيه «brave» تمامًا: ألّا يهاب المرء موقفًا صعبًا.'

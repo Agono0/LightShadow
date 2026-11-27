@@ -24,3 +24,10 @@ MonoBehaviour:
   difficulty: 1
   explanation: The Equator is at 0 degrees latitude, exactly between the two poles.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي خط عرض هو الذي يقسم الأرض إلى نصف الكرة الشمالي ونصف الكرة الجنوبي؟
+  optionsAr:
+  - خط الاستواء
+  - خط جرينتش
+  - مدار السرطان
+  - الدائرة القطبية الشمالية
+  explanationAr: خط الاستواء يقع عند خط عرض 0 درجة، تمامًا بين القطبين.
