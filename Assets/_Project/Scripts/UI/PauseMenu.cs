@@ -95,6 +95,17 @@ namespace LightShadow.UI
             return !mobile && !overlayWantsFreeCursor;
         }
 
+        // The ONE dispatch for the non-Esc pause inputs (gamepad Start, touch
+        // pause button). The newest dismissable overlay eats the press and
+        // closes first, exactly like Esc in Update; pause toggles only when
+        // there was nothing to close, so it never stacks on an open overlay.
+        public static void RequestToggle()
+        {
+            if (Instance == null) return;
+            if (!IsOpen && OverlayStack.TryCloseTop()) return;
+            Instance.Toggle();
+        }
+
         void OpenSettings()
         {
             if (settings != null) settings.Show();
