@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace LightShadow.Tools
 {
-    public static partial class SceneBuilder
+    public static partial class SceneBuilderUI
     {
         // In-game credits (Docs/TASKS.md): a scrolling panel on the main menu
         // rendered from Docs/CREDITS.md at scene-build time (the file is
