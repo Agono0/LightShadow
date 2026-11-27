@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using LightShadow.Core;
 using LightShadow.UI;
 using UnityEngine;
@@ -16,7 +17,14 @@ namespace LightShadow.Player
         // (keyboard, mouse, touch, gamepad) checks this before reading, so one
         // flag freezes Nour without touching gravity, the camera pivot or the
         // crouch/eye-height smoothing. Pause stays available by design.
-        public static bool ExternalInputLocked;
+        // Now a view of OverlayStack: locked while any overlay holds a token.
+        // The setter is kept for unmigrated writers; it maps to one shared
+        // legacy token and "false" frees only that token.
+        public static bool ExternalInputLocked
+        {
+            get { return OverlayStack.AnyLocked; }
+            set { OverlayStack.SetLegacyLock(value); }
+        }
 
         [Header("Wiring")]
         public GameConfig config;
@@ -92,7 +100,7 @@ namespace LightShadow.Player
         {
             // Overlays that legitimately free the cursor (pause, quiz, dialogue,
             // ending) re-lock on their own close paths; do not fight them.
-            if (PauseMenu.IsOpen || ExternalInputLocked || GameManager.Instance != null && GameManager.Instance.quizUI != null && GameManager.Instance.quizUI.IsOpen)
+            if (PauseMenu.IsOpen || OverlayStack.WantsFreeCursor || GameManager.Instance != null && GameManager.Instance.quizUI != null && GameManager.Instance.quizUI.IsOpen)
             {
                 return;
             }
@@ -114,7 +122,8 @@ namespace LightShadow.Player
             keyboardMove = Vector2.zero;
             touchMove = Vector2.zero;
             verticalVelocity = 0f;
-            ExternalInputLocked = false;
+            // Respawn clears every overlay: visible ones close themselves first.
+            OverlayStack.ResetAll(true);
 
             // A hide interrupted by the catch must not survive the respawn:
             // stale IsHidden leaves the Shadow blind and E hops Nour back into
