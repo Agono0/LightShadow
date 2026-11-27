@@ -565,17 +565,40 @@ namespace LightShadow.Tools
             CreatePointLight(lights.transform, "GateGlow", new Vector3(0f, 2.6f, -33.5f),
                 new Color(1f, 0.72f, 0.42f), 1.6f, 8f);
 
-            // A pair of weak blue emergency lights keep the corridor navigable.
-            AddLamp(lights.transform, new Vector3(0f, 2.9f, -20f), new Color(0.38f, 0.48f, 0.70f), 0.65f, 8f);
-            AddLamp(lights.transform, new Vector3(0f, 2.9f, 20f), new Color(0.38f, 0.48f, 0.70f), 0.65f, 8f);
+            // Map lights off (user brief 2026-11-27): the corridor is dark but
+            // for decorations. One faulty emergency lamp stutters mid-corridor;
+            // it blinks out for a beat now and then.
+            GameObject faulty = AddLamp(lights.transform, new Vector3(0f, 2.9f, -20f),
+                new Color(0.38f, 0.48f, 0.70f), 0.7f, 8f);
+            Light faultyLight = faulty != null ? faulty.GetComponentInChildren<Light>() : null;
+            if (faultyLight != null)
+            {
+                LightFlicker flicker = faultyLight.GetComponent<LightFlicker>();
+                if (flicker != null)
+                {
+                    flicker.amplitude = 0.5f;
+                    flicker.speed = 13f;
+                    flicker.blinks = true;
+                    flicker.blinkChancePerSecond = 0.10f;
+                }
+            }
 
             // Garden moonlight.
             CreatePointLight(lights.transform, "GardenMoon", new Vector3(12f, 5f, 11f),
                 new Color(0.52f, 0.64f, 0.90f), 1.0f, 26f);
 
-            // A soft fill on every wing doorway so the signs read from the hall.
-            CreatePointLight(lights.transform, "DoorwayFill", new Vector3(0f, 2.9f, -15f),
-                new Color(0.42f, 0.5f, 0.68f), 0.55f, 7f);
+            // Moonlit windows (same brief): two cool patches spill into the
+            // corridor where the windows face the night.
+            CreatePointLight(lights.transform, "MoonWindowNorth", new Vector3(-1.9f, 2.6f, 6f),
+                new Color(0.50f, 0.62f, 0.88f), 0.5f, 5.5f);
+            CreatePointLight(lights.transform, "MoonWindowSouth", new Vector3(1.9f, 2.6f, -10f),
+                new Color(0.50f, 0.62f, 0.88f), 0.5f, 5.5f);
+
+            // Candles (same brief): small warm flames that breathe, in the
+            // library, the classroom and the staff room.
+            AddCandle(lights.transform, new Vector3(-19.5f, 1.15f, -18.5f));
+            AddCandle(lights.transform, new Vector3(-19.8f, 1.05f, 7.5f));
+            AddCandle(lights.transform, new Vector3(-20.5f, 1.05f, 24.8f));
 
             // ---- fuse-controlled light groups ---------------------------------
             set.libraryLights = Group("LibraryLights", parent);
@@ -1177,6 +1200,18 @@ namespace LightShadow.Tools
             }
 
             return route;
+        }
+
+        // A candle: a tiny warm point light with a breathing flame (no
+        // fixture mesh until the art pass - the glow is what reads).
+        static void AddCandle(Transform parent, Vector3 localPosition)
+        {
+            Light flame = CreatePointLight(parent, "Candle", localPosition,
+                new Color(1f, 0.72f, 0.38f), 0.6f, 3.5f);
+            if (flame == null) return;
+            LightFlicker flicker = flame.gameObject.AddComponent<LightFlicker>();
+            flicker.amplitude = 0.35f;
+            flicker.speed = 5f;
         }
 
         static void BakeNavMesh(NavMeshSurface surface)

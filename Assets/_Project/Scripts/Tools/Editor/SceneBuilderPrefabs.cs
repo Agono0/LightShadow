@@ -98,13 +98,18 @@ namespace LightShadow.Tools
             var flashlightGo = new GameObject("Flashlight");
             flashlightGo.transform.SetParent(cameraGo.transform, false);
             flashlightGo.transform.localPosition = new Vector3(0.12f, -0.08f, 0.18f);
+            // Realistic sway with walking (user brief 2026-11-27).
+            flashlightGo.AddComponent<TorchSway>();
             Light spot = flashlightGo.AddComponent<Light>();
             spot.type = LightType.Spot;
             spot.color = new Color(1f, 0.94f, 0.82f);
             spot.intensity = 2.6f;
-            spot.range = 11f;
+            spot.range = 11f;   // moderate, per the user's tuning brief
             spot.spotAngle = 62f;
-            spot.innerSpotAngle = 32f;
+            // Smooth-edged cone (user brief 2026-11-27): the inner hotspot
+            // nearly meets the outer rim, so the falloff is a gradient, not
+            // a hard ring.
+            spot.innerSpotAngle = 48f;
             spot.shadows = LightShadows.Soft;
             spot.shadowStrength = 0.8f;
             spot.shadowBias = 0.04f;
@@ -134,6 +139,11 @@ namespace LightShadow.Tools
                 coneRenderer.receiveShadows = false;
                 coneRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
             }
+
+            // Dust motes in the beam (user brief 2026-11-27): subtle, tiny,
+            // drifting slowly up the cone, on mobile and PC alike. BeamDust
+            // gates emission on the light so a dead torch shows no dust.
+            BuildBeamDust(flashlightGo.transform, spot, beamMaterial);
 
             PlayerController player = root.AddComponent<PlayerController>();
             FlashlightBattery battery = root.AddComponent<FlashlightBattery>();
@@ -572,6 +582,54 @@ namespace LightShadow.Tools
         // Tapered beam cone in front of the flashlight: narrow at the lens,
         // wide at the far end, vertex alpha fading to zero so the haze
         // dissolves instead of ending. Forward is -Z (camera forward).
+        // Subtle dust inside the beam cone. Local-space cone emitter, alpha
+        // low on purpose - atmosphere, not snow.
+        static void BuildBeamDust(Transform parent, Light spot, Material beamMaterial)
+        {
+            var dust = new GameObject("BeamDust");
+            dust.transform.SetParent(parent, false);
+            dust.transform.localPosition = new Vector3(0f, 0f, 0.4f);
+
+            ParticleSystem ps = dust.AddComponent<ParticleSystem>();
+            ParticleSystem.MainModule main = ps.main;
+            main.loop = true;
+            main.playOnAwake = true;
+            main.startLifetime = 2.4f;
+            main.startSpeed = 0.02f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.008f, 0.025f);
+            main.startColor = new Color(1f, 0.93f, 0.78f, 0.10f);
+            main.maxParticles = 40;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+
+            ParticleSystem.EmissionModule emission = ps.emission;
+            emission.rateOverTime = 10f;
+
+            ParticleSystem.ShapeModule shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 12f;
+            shape.radius = 0.05f;
+            shape.length = 4.5f;
+
+            // A slow drift forward through the cone.
+            ParticleSystem.VelocityOverLifetimeModule velocity = ps.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.space = ParticleSystemSimulationSpace.Local;
+            velocity.z = new ParticleSystem.MinMaxCurve(1.2f);
+
+            ParticleSystemRenderer renderer = dust.GetComponent<ParticleSystemRenderer>();
+            // The builtin default-particle material is alpha-blended; fall
+            // back to the beam material if a pipeline lacks it.
+            Material dustMaterial = AssetDatabase.GetBuiltinExtraResource<Material>("Default-ParticleSystem.mat");
+            if (dustMaterial == null) dustMaterial = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Particle.mat");
+            renderer.sharedMaterial = dustMaterial != null ? dustMaterial : beamMaterial;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            BeamDust motes = dust.AddComponent<BeamDust>();
+            motes.beam = spot;
+            motes.motes = ps;
+        }
+
         static Mesh BuildBeamConeMesh()
         {
             const int segments = 18;
