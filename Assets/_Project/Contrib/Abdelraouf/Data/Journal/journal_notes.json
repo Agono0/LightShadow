@@ -1,0 +1,89 @@
+{
+  "draft": true,
+  "notes": [
+    {
+      "id": "note_01",
+      "titleEn": "Attendance sheet, last page",
+      "bodyEn": "The last roll call is dated three weeks ago. Every name is ticked in red pen except one, and that one has been rubbed out with a thumb. The thumbprint is smaller than a teacher's.",
+      "titleAr": "ورقة الحضور، الصفحة الأخيرة",
+      "bodyAr": "آخر نداء للأسماء مؤرخ قبل ثلاثة أسابيع. كل اسم عليه علامة بالقلم الأحمر إلا اسما واحدا، وقد مُسح بإبهام. بصمة الإبهام أصغر من بصمة معلم."
+    },
+    {
+      "id": "note_02",
+      "titleEn": "A margin note",
+      "bodyEn": "Beside a lesson plan on light, in her handwriting: \"Do not tell them light is fast. Show them it is patient.\"",
+      "titleAr": "ملاحظة على الهامش",
+      "bodyAr": "بجانب خطة درس عن الضوء، بخطها: \"لا تقولوا لهم إن الضوء سريع. أروهم أنه صبور.\""
+    },
+    {
+      "id": "note_03",
+      "titleEn": "Caretaker's log",
+      "bodyEn": "Fuse boxes checked, all three. The east one hums at night even when it is dead. I stopped writing down the hours it hums. The numbers frightened me more than the sound.",
+      "titleAr": "دفتر الحارس",
+      "bodyAr": "فحصت صناديق المصاهر الثلاثة. الصندوق الشرقي يطن في الليل حتى وهو مفصول. توقفت عن تدوين ساعات الطنين. الأرقام أخافتني أكثر من الصوت."
+    },
+    {
+      "id": "note_04",
+      "titleEn": "Lost property tag",
+      "bodyEn": "Tag 14: one left glove, one blue hair clip, one mug with cold tea inside. Unclaimed. Nobody asked for the mug. Nobody asks for the small things.",
+      "titleAr": "بطاقة المفقودات",
+      "bodyAr": "بطاقة 14: قفاز أيسر، ومشبك شعر أزرق، وكوب فيه شاي بارد. لم يطالب به أحد. لم يسأل أحد عن الكوب. لا أحد يسأل عن الأشياء الصغيرة."
+    },
+    {
+      "id": "note_05",
+      "titleEn": "Chalkboard rubbing",
+      "bodyEn": "Someone copied the board onto paper with a pencil. The lesson is gone, but the paper kept the dents. If you tilt it to the light, you can read the last word: \"remember\".",
+      "titleAr": "نسخة من السبورة",
+      "bodyAr": "نسخ أحدهم السبورة على ورقة بقلم رصاص. اختفى الدرس لكن الورقة حفظت الأثر. إذا مِلتَ بها نحو الضوء تقرأ الكلمة الأخيرة: \"تذكّر\"."
+    },
+    {
+      "id": "note_06",
+      "titleEn": "Science wing sign-out sheet",
+      "bodyEn": "The lamp in Lab 2 was borrowed on the last night of term and never returned. The borrower signed with a single line instead of a name.",
+      "titleAr": "كشف استعارة معمل العلوم",
+      "bodyAr": "استُعيرت لمبة المعمل الثاني في آخر ليلة من الفصل ولم تُرجَع. وقّع المستعير بخط مستقيم واحد بدل الاسم."
+    },
+    {
+      "id": "note_07",
+      "titleEn": "Garden bench plaque",
+      "bodyEn": "In memory of the ones who sat here and did not hurry. The plaque is old. The scratches under it are new, as if someone tried to write a name and stopped halfway.",
+      "titleAr": "لوحة مقعد الحديقة",
+      "bodyAr": "إلى ذكرى من جلسوا هنا ولم يستعجلوا. اللوحة قديمة. أما الخدوش تحتها فجديدة، كأن أحدهم بدأ يكتب اسما ثم توقف في منتصفه."
+    },
+    {
+      "id": "note_08",
+      "titleEn": "Notice from the head teacher",
+      "bodyEn": "The building will close at the end of the month. Please take your belongings. Anything left behind will be kept for thirty days, and after that the school will keep it the way it keeps everything.",
+      "titleAr": "إعلان من ناظر المدرسة",
+      "bodyAr": "سيُغلق المبنى في نهاية الشهر. يرجى أخذ متعلقاتكم. ما يُترك سيُحفظ ثلاثين يوما، وبعد ذلك ستحفظه المدرسة كما تحفظ كل شيء."
+    },
+    {
+      "id": "note_09",
+      "titleEn": "Exam paper, marked",
+      "bodyEn": "Two out of ten, and under it in red: \"Your answer is wrong, but your question was good. Keep the question.\" The date has been smudged by a thumb.",
+      "titleAr": "ورقة امتحان مصححة",
+      "bodyAr": "درجتان من عشر، وتحتها بالأحمر: \"إجابتك خاطئة، لكن سؤالك كان جيدا. احتفظ بالسؤال.\" التاريخ ممسوح بإبهام."
+    },
+    {
+      "id": "note_10",
+      "titleEn": "Staff room note",
+      "bodyEn": "Please stop leaving the light on in the corridor. It is not a waste. It is for whoever is still walking home inside the building. Leave it on.",
+      "titleAr": "ورقة غرفة المعلمين",
+      "bodyAr": "من فضلكم لا تُطفئوا ضوء الممر. ليس هذا إسرافا. إنه لمن لا يزال يمشي نحو بيته داخل المبنى. اتركوه مضاءً."
+    },
+    {
+      "id": "note_11",
+      "titleEn": "Library card",
+      "bodyEn": "Borrowed: one atlas, one book of poems. Due: never. The librarian has written \"returned\" in pencil, then crossed it out, then written it again.",
+      "titleAr": "بطاقة مكتبة",
+      "bodyAr": "المستعار: أطلس وديوان شعر. موعد الإرجاع: لا موعد. كتبت أمينة المكتبة \"أُرجع\" بقلم رصاص، ثم شطبتها، ثم كتبتها من جديد."
+    },
+    {
+      "id": "note_12",
+      "titleEn": "Folded paper, last desk",
+      "bodyEn": "Four lines in careful handwriting. \"The dark is not an enemy. It is what is left when nobody looks. So look. Name what you see. Say it out loud. That is all of the lesson.\"",
+      "titleAr": "ورقة مطوية على آخر مقعد",
+      "bodyAr": "أربعة أسطر بخط متأنٍ. \"الظلام ليس عدوا. إنه ما يبقى حين لا ينظر أحد. فانظروا. سمّوا ما ترون. قولوه بصوت عال. هذا هو الدرس كله.\""
+    }
+  ]
+}
