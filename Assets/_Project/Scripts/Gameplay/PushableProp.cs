@@ -24,7 +24,7 @@ namespace LightShadow.Gameplay
             Enemy.EnemyBehaviour enemy = GameManager.Instance != null ? GameManager.Instance.enemy : null;
             if (enemy != null) enemy.HearNoiseAt(transform.position, noiseRadius);
 
-            if (AudioManager.Instance != null) AudioManager.Instance.PlaySfx(ProceduralSfx.Click); // placeholder scrape
+            LightShadow.Audio.Sfx.PlayAt("SFX_CrateScrape", transform.position, ProceduralSfx.Click);
         }
     }
 }
