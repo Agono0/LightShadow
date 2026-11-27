@@ -46,7 +46,7 @@ namespace LightShadow.Player
             Vector3 velocity = controller != null ? controller.velocity : Vector3.zero;
             Vector3 planar = new Vector3(velocity.x, 0f, velocity.z);
             float speed01 = Mathf.Clamp01(planar.magnitude / 3f);
-            bobPhase += dt * bobFrequency * Mathf.PIf * 2f * Mathf.Clamp(planar.magnitude, 0f, 3f) / 3f;
+            bobPhase += dt * bobFrequency * Mathf.PI * 2f * Mathf.Clamp(planar.magnitude, 0f, 3f) / 3f;
             float bob = Mathf.Sin(bobPhase) * bobAmplitude * speed01;
             float sideSway = Mathf.Cos(bobPhase * 0.5f) * bobAmplitude * 0.6f * speed01;
 
