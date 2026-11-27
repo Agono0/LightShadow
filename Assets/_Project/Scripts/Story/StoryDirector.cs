@@ -345,15 +345,26 @@ namespace LightShadow.Story
                 if (choice.isTimed) timedIndex = offered.Count - 1;
             }
 
-            dialogueUI.ShowNode(node, offered.ToArray(), timedIndex, OnUiChoice, OnUiAdvance);
+            offeredChoices = offered.ToArray();
+            dialogueUI.ShowNode(node, offeredChoices, timedIndex, OnUiChoice, OnUiAdvance);
         }
 
         // UI callbacks: index refers to the offered list; timedOut routes the
         // choice through its timeout branch (with the calm penalty).
+        // Offered slot -> index into node.choices (audit F24: hidden choices
+        // shifted slots, so the wrong branch ran). -1 when out of range.
+        int[] offeredChoices = new int[0];
+
+        public static int MapOfferedToChoice(int[] offered, int slot)
+        {
+            if (offered == null || slot < 0 || slot >= offered.Length) return -1;
+            return offered[slot];
+        }
+
         void OnUiChoice(int offeredIndex, bool timedOut)
         {
             if (current == null) return;
-            AdvanceFrom(current, offeredIndex, timedOut);
+            AdvanceFrom(current, MapOfferedToChoice(offeredChoices, offeredIndex), timedOut);
         }
 
         void OnUiAdvance()
