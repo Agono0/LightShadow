@@ -30,11 +30,17 @@ namespace LightShadow.Core
         {
             { "master_key", "Master key" },
             { "fuse", "Fuse" },
+            { "classroom_key", "Classroom key" },
+            { "staff_key", "Staff room key" },
+            { "medkit", "Medkit" },
         };
         static readonly Dictionary<string, string> nameAr = new Dictionary<string, string>
         {
             { "master_key", "المفتاح الرئيسي" },
             { "fuse", "مصهر" },
+            { "classroom_key", "مفتاح الفصل" },
+            { "staff_key", "مفتاح غرفة المعلمين" },
+            { "medkit", "حقيبة إسعاف" },
         };
 
         public static string DisplayName(string id)

@@ -476,16 +476,12 @@ namespace LightShadow.Tools
             WallX(parent, 2.65f, -14f, 10f, 3.2f, palette.wall);
             WallX(parent, 2.65f, 12f, 27f, 3.2f, palette.wall);
 
-            // ---- locked wing doors (decor) -----------------------------------
-            // Grille-door hosts in the classroom and staff-room doorways. No
-            // colliders, so the walk gaps and the NavMesh stay exactly as
-            // built; the art pass swaps in the SM_Arch_DoorGrille hero mesh,
-            // and the wood-material box is its fallback while the FBX has
-            // not shipped.
-            Box(parent, "Door_Classroom", new Vector3(-2.65f, 1.025f, 10.5f),
-                new Vector3(0.06f, 2.05f, 0.95f), palette.wood, false);
-            Box(parent, "Door_Staff", new Vector3(-2.65f, 1.025f, 22.5f),
-                new Vector3(0.06f, 2.05f, 0.95f), palette.wood, false);
+            // ---- wing doors (interactive) ------------------------------------
+            // Real open/close/lock doors in every wing doorway (user brief
+            // 2026-11-27), replacing the old collider-free decor boxes. The
+            // art pass can still swap the panel for the SM_Arch_DoorGrille
+            // hero mesh; the DoorController lives on the root.
+            BuildSchoolDoors(parent, palette);
 
             // ---- entrance hall ------------------------------------------------
             WallX(parent, -7f, -33f, -27f, 3.2f, palette.wall);

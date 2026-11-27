@@ -14,6 +14,12 @@ namespace LightShadow.Gameplay
         public string Prompt => "Take the medkit";
         public bool CanInteract => true;
 
+        void Start()
+        {
+            // ItemPickup's rule: a loaded game never offers the same kit twice.
+            if (Inventory.Has("medkit")) gameObject.SetActive(false);
+        }
+
         public void Interact(GameObject interactor)
         {
             Inventory.Add("medkit");
