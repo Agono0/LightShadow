@@ -82,6 +82,13 @@ namespace LightShadow.Tools
                 }
 
                 report.AppendLine("Question bank: " + valid + " valid / " + database.all.Count + " linked");
+                int pendingFactCheck = 0;
+                foreach (QuestionData q in database.all)
+                {
+                    if (q != null && q.factSource == "NEEDS-FACT-CHECK") pendingFactCheck++;
+                }
+                report.AppendLine("Questions awaiting teacher fact-check: " + pendingFactCheck + "/" + database.all.Count
+                    + (pendingFactCheck > 0 ? " (RELEASE GATE OPEN: do not ship as verified)" : ""));
                 report.AppendLine("Question categories: " + categories.Count + "/6");
                 report.AppendLine("Question Arabic fields: " + arabic + "/" + valid);
                 if (valid < 60) problems.Add("Question bank has " + valid + " valid questions; the project document asks for 60+.");
