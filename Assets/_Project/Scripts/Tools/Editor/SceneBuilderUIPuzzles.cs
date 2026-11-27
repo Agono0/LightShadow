@@ -374,5 +374,66 @@ namespace LightShadow.Tools
             ctrl.hintButton = hintButton;
             ctrl.closeButton = close;
         }
+
+        // Step-ordering overlay (workstream 5), first used by the infirmary's
+        // first-aid board: five scrambled step buttons, tap in the right order.
+        static void BuildOrderPanel(Transform root)
+        {
+            RectTransform dim = MakeFullScreen(root, "OrderPanel", new Color(0f, 0f, 0f, 0.82f), true);
+            OrderUIController ctrl = dim.gameObject.AddComponent<OrderUIController>();
+
+            RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(780f, 700f), PanelDark, false).rectTransform;
+
+            Text title = MakeText(card, "Title", "", 30, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 274f), new Vector2(660f, 48f), FontStyle.Bold, true);
+
+            Text progress = MakeText(card, "Progress", "", 19, Dim, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, 230f), new Vector2(660f, 28f));
+
+            Button[] steps = new Button[5];
+            Text[] stepLabels = new Text[5];
+            for (int i = 0; i < 5; i++)
+            {
+                float y = 170f - i * 78f;
+                steps[i] = MakeButton(card, "Step" + (i + 1), "", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    new Vector2(0.5f, 0.5f), new Vector2(0f, y), new Vector2(600f, 62f), ButtonDark, 21, out stepLabels[i]);
+            }
+
+            Text feedback = MakeText(card, "Feedback", "", 23, Warm, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -152f), new Vector2(660f, 36f));
+
+            Text hint = MakeText(card, "Hint", "", 20, Dim, TextAnchor.MiddleCenter,
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0f, -202f), new Vector2(660f, 52f));
+
+            Text hintLabel;
+            Button hintButton = MakeButton(card, "Hint", "HINT", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(-196f, -286f), new Vector2(220f, 50f), ButtonDark, 20, out hintLabel);
+            Localize(hintLabel, "تلميح");
+
+            Text closeLabel;
+            Button close = MakeButton(card, "Close", "STEP AWAY", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(196f, -286f), new Vector2(220f, 50f), ButtonDark, 20, out closeLabel);
+            Localize(closeLabel, "ابتعد");
+
+            Text footer = MakeText(card, "Footer", "1-5 or tap a step   ·   the world does not pause", 15, Dim,
+                TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(0f, 20f), new Vector2(660f, 24f));
+            Localize(footer, "1-5 أو المس خطوة   ·   العالم لا يتوقف");
+
+            ctrl.panel = dim.gameObject;
+            ctrl.titleText = title;
+            ctrl.progressText = progress;
+            ctrl.stepButtons = steps;
+            ctrl.stepLabels = stepLabels;
+            ctrl.feedbackText = feedback;
+            ctrl.hintText = hint;
+            ctrl.hintButton = hintButton;
+            ctrl.closeButton = close;
+        }
     }
 }

@@ -311,6 +311,7 @@ namespace LightShadow.Tools
             BuildOpticsPanel(root);
             BuildSequencePanel(root);
             BuildCircuitPanel(root);
+            BuildOrderPanel(root);
 
             // ---- pause overlay ----------------------------------------------
             BuildPause(root, pause);
