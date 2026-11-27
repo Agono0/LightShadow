@@ -181,11 +181,18 @@ namespace LightShadow.Core
 
         public static string QuestionOption(QuestionData question, int index)
         {
+            return Present(QuestionOptionLogical(question, index));
+        }
+
+        // Logical (unshaped) option text, for callers that build a longer line
+        // and shape it once (shaping fragments separately mis-orders the line).
+        public static string QuestionOptionLogical(QuestionData question, int index)
+        {
             if (question == null || question.options == null || index < 0 || index >= question.options.Length)
                 return "";
             if (Current == GameLanguage.Arabic && question.optionsAr != null
                 && index < question.optionsAr.Length && !string.IsNullOrEmpty(question.optionsAr[index]))
-                return Present(question.optionsAr[index]);
+                return question.optionsAr[index];
             return question.options[index];
         }
 

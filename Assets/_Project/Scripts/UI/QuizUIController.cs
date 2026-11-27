@@ -178,7 +178,7 @@ namespace LightShadow.UI
                     : (correct ? Localization.TrPresent("Correct.") : Localization.TrPresent("Not quite."));
 
                 feedbackText.text = head + "\n"
-                    + Localization.TrPresent("The answer is: ") + " " + Localization.QuestionOption(current, current.correctIndex)
+                    + Localization.Present(Localization.Tr("The answer is: ") + " " + Localization.QuestionOptionLogical(current, current.correctIndex))
                     + "\n" + Localization.QuestionExplanation(current);
                 feedbackText.font = Localization.CurrentFont;
             }

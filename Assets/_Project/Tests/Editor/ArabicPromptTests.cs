@@ -15,7 +15,10 @@ namespace LightShadow.Tests.Editor
         public void PromptsThatWereMissingNowTranslate()
         {
             Localization.SetLanguage(GameLanguage.Arabic);
-            foreach (string key in new[] { "Pick it up", "Put it down", "Take the medkit", "Locked - {0} needed" })
+            foreach (string key in new[] { "Pick it up", "Put it down", "Take the medkit", "Locked - {0} needed",
+                "Read the chalkboard question", "Take the battery", "Restore the fuse box", "The gate is open.",
+                "Examine the gate", "The fuse hums quietly.", "Collect {0}", "Out of time.", "Correct.",
+                "Not quite.", "The answer is: " })
             {
                 Assert.AreNotEqual(key, Localization.Get(key), key + " is missing from the Arabic table");
             }
