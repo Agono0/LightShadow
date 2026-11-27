@@ -1,4 +1,4 @@
-# LIGHT SHADOW - VO clip map (generated placeholders, docs only)
+# LIGHT SHADOW - VO clip map (generated voice, docs only)
 
 Status: DOCUMENTATION ONLY. No script, scene, prefab or AudioLibrary changes by
 this PR; playback wiring is the lead's work. This doc maps the voice line ids
@@ -6,32 +6,35 @@ from `Docs/VO_LINE_SHEET.md` (PR #16) to the generated clip files in PR #28
 (head 07781623f33437aff11639c9cba37ea13ba678db), and records the agreed usage
 policy.
 
+Update (2026-11-27): the generated voice is ACCEPTED for this batch. Ahmed
+(bro's owner) confirmed via the lead that human recording is no longer a gate
+for shipping these lines. The policy below is updated accordingly.
+
 ## Policy
 
-- All 154 clips (77 EN + 77 AR) are GENERATED synthetic placeholders. They are
-  never human-recorded and never final. Any UI, doc or credit that mentions
-  them must say "generated".
-- The final voices are human-recorded per `Docs/VO_RECORDING_SPECS.md`
-  (44 story-node lines x 2 languages; choice lines are not part of the final
-  session). The final-human-voice requirement is unchanged.
-- Choice-variant clips (`_C1`/`_C2`/`_C3` suffixes) stay in the repo as
-  synthetic placeholders but are NOT played: marked UNWIRED and optional. They
-  exist so the folder layout already matches the line sheet; the lead decides
-  if they are ever referenced.
-- Story-node clips are placeholders too: unwired until the lead's playback
-  mapping exists, and replaced by human recordings when the session happens.
-- Fallback stays the existing SAPI narrator for any line without a (final)
-  clip; the mapping data and fallback logic are the lead's scripts
-  (`StoryTeller.cs`), not this doc's PR.
+- All 154 clips (77 EN + 77 AR) are GENERATED synthetic voice. They are
+  accepted as the shipped voice for this batch (Ahmed, 2026-11-27, via the
+  lead). Any UI, doc or credit that mentions them must say "generated" or
+  "synthetic voice".
+- Human recordings are a possible FUTURE replacement only: not scheduled, not
+  promised, and no longer a release gate. `Docs/VO_RECORDING_SPECS.md` stays
+  in the repo as the ready-made briefing IF such a session ever happens.
+- Choice-variant clips (`_C1`/`_C2`/`_C3` suffixes) stay in the repo UNWIRED
+  and optional, per the recording spec. They exist so the folder layout
+  already matches the line sheet; the lead decides if they are ever
+  referenced.
+- Story-node clips are live per the lead's playback mapping (#29 and its
+  follow-ups); they are the shipped voice unless/until an optional future
+  human session replaces them.
+- Fallback stays the existing SAPI narrator for any line without a clip; the
+  mapping data and fallback logic are the lead's scripts (`StoryTeller.cs`),
+  not this doc's PR.
 
-## Path status (pending dependency)
+## Path status (settled)
 
-The paths in the map below are the PLANNED locations from PR #29 (head
-59ebb343f82f785aaed2b0f7f195cd99b2124b1d, open), which moves the clips to
-`Assets/_Project/Resources/VO/{EN,AR}/` for Resources loading. Until #29
-actually lands, the clips live at `Assets/_Project/Audio/VO/{EN,AR}/` (PR #28,
-head 07781623f33437aff11639c9cba37ea13ba678db). This doc will be updated if
-#29 changes paths again before merging.
+PR #29 merged: the clips live at `Assets/_Project/Resources/VO/{EN,AR}/` for
+Resources loading (moved from `Assets/_Project/Audio/VO/{EN,AR}/` in PR #28,
+head 07781623f33437aff11639c9cba37ea13ba678db).
 
 ## Verification (2026-11-27, against PR #28 tree)
 
