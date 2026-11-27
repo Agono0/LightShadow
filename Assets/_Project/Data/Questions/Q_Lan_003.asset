@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: '"They are reading" agrees with its subject. The others break subject-verb
     agreement.'
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي جملة صحيحة نحويًا؟
+  optionsAr:
+  - She don't like tea.
+  - He go to school every day.
+  - They are reading a book.
+  - I has a pencil.
+  explanationAr: الجملة الصحيحة مطابقة لفاعلها، أما الجمل الأخرى فتخل بمطابقة الفعل لفاعله.

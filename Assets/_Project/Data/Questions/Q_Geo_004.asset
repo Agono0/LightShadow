@@ -25,3 +25,10 @@ MonoBehaviour:
   explanation: Earth's tilt changes the Sun's angle a lot near the poles but only
     a little near the Equator, so the tropics stay warm all year.
   factSource: NEEDS-FACT-CHECK
+  questionAr: لماذا تبقى الأماكن القريبة من خط الاستواء شبه ثابتة الحرارة طوال العام، بينما تعرف الأماكن القريبة من القطبين تغيرات فصلية كبيرة؟
+  optionsAr:
+  - لأن خط الاستواء يحتوي محيطات أكثر
+  - لأن زاوية أشعة الشمس فوق الرؤوس تتغير خلال العام تغيرًا أقل بكثير قرب خط الاستواء
+  - لأن القطبين أبعد عن الشمس في الشتاء
+  - لأن الرياح لا تصل إلى القطبين أبدًا
+  explanationAr: ميل محور الأرض يغيّر زاوية الشمس كثيرًا قرب القطبين وقليلًا جدًا قرب خط الاستواء، فتبقى المناطق المدارية دافئة طوال العام.

@@ -25,3 +25,10 @@ MonoBehaviour:
   explanation: Roots absorb water and dissolved minerals from the soil; leaves mostly
     make food through photosynthesis.
   factSource: NEEDS-FACT-CHECK
+  questionAr: من أي جزء تمتص النباتات الماء والأملاح المعدنية من التربة في الغالب؟
+  optionsAr:
+  - الأوراق
+  - الجذور
+  - الأزهار
+  - الساق
+  explanationAr: الجذور تمتص الماء والأملاح المذابة من التربة، أما الأوراق فتتولى في الغالب صنع الغذاء بالتمثيل الضوئي.
