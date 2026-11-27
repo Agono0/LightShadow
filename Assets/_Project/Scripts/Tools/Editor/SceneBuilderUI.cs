@@ -971,7 +971,7 @@ namespace LightShadow.Tools
                 new Color(1f, 1f, 1f, color.a), raycast);
         }
 
-        static Text MakeText(Transform parent, string name, string content, int fontSize, Color color,
+        internal static Text MakeText(Transform parent, string name, string content, int fontSize, Color color,
             TextAnchor alignment, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 position,
             Vector2 size, FontStyle style = FontStyle.Normal, bool shadow = false)
         {
