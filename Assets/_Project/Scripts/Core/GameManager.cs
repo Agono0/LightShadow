@@ -140,6 +140,30 @@ namespace LightShadow.Core
 
         // ---- Story beats -------------------------------------------------------
 
+        // P3 dev console: jump the run to the start of an act by restoring the
+        // right number of fuse boxes (their lights come back on) and, for act
+        // III, powering the gate. No UI, no save - a testing shortcut only.
+        public void DevSkipToAct(int act)
+        {
+            act = Mathf.Clamp(act, 1, 3);
+            int fuses = act == 1 ? 0 : act == 2 ? 1 : FuseTarget;
+
+            FuseBox[] boxes = FindObjectsByType<FuseBox>(FindObjectsSortMode.None);
+            for (int i = 0; i < boxes.Length && i < fuses; i++) boxes[i].RestoreFromSave();
+            FusesRestored = Mathf.Max(FusesRestored, Mathf.Min(fuses, FuseTarget));
+
+            if (act == 3 && !GatePowered)
+            {
+                ExitGate gate = FindFirstObjectByType<ExitGate>();
+                if (gate != null) gate.PowerFromSave();
+                GatePowered = true;
+                if (enemy != null) enemy.SetAggressive(true);
+            }
+
+            if (hud != null) hud.RefreshObjectives();
+            ShowMessage("DEV: skipped to act " + act, 3f);
+        }
+
         // One line after every fuse box so the night always knows what is next.
         static readonly string[] FuseBeats =
         {
@@ -232,6 +256,9 @@ namespace LightShadow.Core
             respawning = true;
             GameEvents.RaisePlayerCaught();
 
+            // P3 haptics: the catch lands with a heavy buzz (Android only).
+            LightShadow.Platform.HapticsService.Heavy();
+
             if (caughtClip == null) caughtClip = ProceduralSfx.Wrong;
             if (caughtClip != null && AudioManager.Instance != null)
             {
@@ -247,6 +274,12 @@ namespace LightShadow.Core
 
         void WakeAtCheckpoint()
         {
+            // Recovery: clear any hiding state the catch interrupted. A stale
+            // IsHidden would blind the Shadow (EnemySight) and make the next E
+            // hop teleport Nour back into the spot; idempotent with the
+            // RespawnReset call below.
+            HidingSystem.ResetState();
+
             Transform spawn = CheckpointManager.Instance != null ? CheckpointManager.Instance.SpawnPoint : null;
             if (spawn != null && player != null)
             {

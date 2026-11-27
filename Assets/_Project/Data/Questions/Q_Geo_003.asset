@@ -25,3 +25,10 @@ MonoBehaviour:
   explanation: Air cools by about 6.5 degrees Celsius for every kilometer you climb
     in the lower atmosphere.
   factSource: NEEDS-FACT-CHECK
+  questionAr: مدينتان على خط العرض نفسه، لكن المدينة (أ) تستقر عاليًا في الجبال والمدينة (ب) عند مستوى سطح البحر؛ أيهما يكون الجو فيها أبرد في الأحوال العادية؟
+  optionsAr:
+  - المدينة (أ)، لأن الحرارة تنخفض بالارتفاع
+  - المدينة (ب)، لأن هواء البحر بارد
+  - حرارتها متساوية دائمًا
+  - المدينة (ب)، لأنها أقرب إلى الماء
+  explanationAr: يبرد الهواء بنحو 6.5 درجة مئوية عن كل كيلومتر ارتفاع في طبقات الجو السفلى.

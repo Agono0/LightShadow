@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: Jupiter is the largest planet; more than 1,300 Earths could fit inside
     it.
   factSource: NEEDS-FACT-CHECK
+  questionAr: أي كوكب هو الأكبر في المجموعة الشمسية؟
+  optionsAr:
+  - الأرض
+  - المشتري
+  - زحل
+  - نبتون
+  explanationAr: المشتري هو أكبر الكواكب؛ يتسع في داخله أكثر من 1,300 أرض.

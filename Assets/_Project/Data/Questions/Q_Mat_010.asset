@@ -23,3 +23,10 @@ MonoBehaviour:
   difficulty: 2
   explanation: 8, 9 and 10 are composite; 11 has no divisors other than 1 and itself.
   factSource: NEEDS-FACT-CHECK
+  questionAr: ما العدد الأولي التالي بعد 7؟
+  optionsAr:
+  - 8
+  - 9
+  - 10
+  - 11
+  explanationAr: الأعداد 8 و9 و10 مركبة، أما 11 فلا يقبل القسمة إلا على 1 وعلى نفسه.
