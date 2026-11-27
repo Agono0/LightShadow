@@ -53,11 +53,21 @@ namespace LightShadow.UI
             // P3 inspect view consumes Esc first (close the item close-up).
             if (InspectViewController.IsOpen) return;
 
-            // A dismissable overlay (puzzle, journal) owns this Esc: it closes
-            // itself, either before this runs (ClosedThisFrame) or in its own
-            // Update later (AnyDismissable). Either order, pause stays shut.
+            // A dismissable overlay (puzzle, journal, inventory, hint log)
+            // owns this Esc. If one already closed itself earlier this frame
+            // (ClosedThisFrame) the press is spent. Otherwise close the top
+            // one through OverlayStack.TryCloseTop: the screens that never
+            // read Esc themselves (inventory, hint log) depend on this call,
+            // and the ones that do (puzzles, journal, inspect) guard their
+            // own Esc handlers on IsOpen, so their second close in the same
+            // frame is a no-op. Either way pause stays shut: opening it on
+            // the same press would stack it on the closing overlay.
             // Story dialogue is not dismissable and does not block pause.
-            if (!IsOpen && ShouldYieldEscape(OverlayStack.AnyDismissable, OverlayStack.ClosedThisFrame)) return;
+            if (!IsOpen && ShouldYieldEscape(OverlayStack.AnyDismissable, OverlayStack.ClosedThisFrame))
+            {
+                if (!OverlayStack.ClosedThisFrame) OverlayStack.TryCloseTop();
+                return;
+            }
 
             // Settings sits above the pause card and consumes Esc first.
             if (settings != null && settings.IsOpen)
