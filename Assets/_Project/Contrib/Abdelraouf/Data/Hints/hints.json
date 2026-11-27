@@ -1,0 +1,68 @@
+{
+  "draft": true,
+  "hints": [
+    {
+      "puzzleId": "Puzzle_ChalkboardCipher",
+      "nudgeEn": "Each chalk line hides exactly one digit.",
+      "clueEn": "Do each sum, then find the digit that was rubbed away.",
+      "answerEn": "Read the four missing digits from top to bottom.",
+      "nudgeAr": "كل سطر على السبورة يخفي رقمًا واحدًا.",
+      "clueAr": "احسب كل عملية، ثم اعثر على الرقم الممحو.",
+      "answerAr": "اقرأ الأرقام الأربعة الناقصة من فوق إلى تحت."
+    },
+    {
+      "puzzleId": "Puzzle_CatalogueSort",
+      "nudgeEn": "Every card names a book; every drawer names a kind of book.",
+      "clueEn": "The Mu'allaqa is a poem, and the Canon will not cure your shelving.",
+      "answerEn": "Taha Hussein wrote about his own life; al-Tabari wrote about everyone's.",
+      "nudgeAr": "كل بطاقة تذكر كتابًا، وكل درج يذكر نوعًا من الكتب.",
+      "clueAr": "المعلقة قصيدة، والقانون لن يعالج رفوفك.",
+      "answerAr": "طه حسين كتب عن حياته، والطبري كتب عن حياة الجميع."
+    },
+    {
+      "puzzleId": "Puzzle_OpticsBench",
+      "nudgeEn": "Light bounces off a mirror at the same angle it arrives.",
+      "clueEn": "The prism bends the beam; it needs the steepest turn of the three.",
+      "answerEn": "Mirror A turns the beam once, the prism twice, Mirror B three quarter-turns.",
+      "nudgeAr": "يرتد الضوء عن المرآة بنفس الزاوية التي يصل بها.",
+      "clueAr": "المنشور يكسر الشعاع؛ يحتاج أكبر انعطافة بين العناصر الثلاثة.",
+      "answerAr": "المرآة أ تدور ربع دورة، والمنشور ربعين، والمرآة ب ثلاثة أرباع."
+    },
+    {
+      "puzzleId": "Puzzle_MapLocker",
+      "nudgeEn": "The map pins carry numbers.",
+      "clueEn": "The note gives an order of cities; the map turns cities into countries.",
+      "answerEn": "Cairo, Beirut, Baghdad, Rabat - read the digits in that order.",
+      "nudgeAr": "دبابيس الخريطة تحمل أرقامًا.",
+      "clueAr": "الملاحظة ترتّب المدن؛ والخريطة تحوّل المدن إلى دول.",
+      "answerAr": "القاهرة، بيروت، بغداد، الرباط - اقرأ الأرقام بهذا الترتيب."
+    },
+    {
+      "puzzleId": "Puzzle_StageLights",
+      "nudgeEn": "Watch the lamps; they flash one color at a time.",
+      "clueEn": "Repeat the flashes in the same order on the switches.",
+      "answerEn": "Six flashes: red, green, amber, blue, green, red.",
+      "nudgeAr": "راقب المصابيح؛ تومض لونًا واحدًا في كل مرة.",
+      "clueAr": "كرّر الومضات بالترتيب نفسه على المفاتيح.",
+      "answerAr": "ست ومضات: أحمر، أخضر، كهرمان، أزرق، أخضر، أحمر."
+    },
+    {
+      "puzzleId": "Puzzle_GateCircuit",
+      "nudgeEn": "Every feed wants the terminal that matches its strength.",
+      "clueEn": "The gate motor is the hungriest - give it the main hall feed.",
+      "answerEn": "The dawn lights sip; the library feed is enough. What is left turns the crank.",
+      "nudgeAr": "كل تغذية تريد الطرف الذي يناسب قوتها.",
+      "clueAr": "محرك البوابة الأكثر جوعًا - أعطه تغذية القاعة.",
+      "answerAr": "أضواء الفجر تكتفي بالقليل؛ تغذية المكتبة تكفي. وما تبقى يدير الذراع."
+    },
+    {
+      "puzzleId": "Puzzle_FirstAidOrder",
+      "nudgeEn": "Clean hands come before everything.",
+      "clueEn": "Stop the bleeding before you wash the wound.",
+      "answerEn": "Dress last, then raise the arm and check your work.",
+      "nudgeAr": "اليدان النظيفتان قبل كل شيء.",
+      "clueAr": "أوقف النزيف قبل غسل الجرح.",
+      "answerAr": "التضميد أخيرًا، ثم ارفع الذراع وتفقّد عملك."
+    }
+  ]
+}

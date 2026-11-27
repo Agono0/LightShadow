@@ -1,0 +1,35 @@
+{
+  "draft": true,
+  "cues": [
+    {
+      "keyEn": "Footsteps nearby",
+      "textEn": "Footsteps nearby",
+      "textAr": "خطوات قريبة",
+      "seconds": 2.5
+    },
+    {
+      "keyEn": "Whisper",
+      "textEn": "Whisper",
+      "textAr": "همس",
+      "seconds": 3.0
+    },
+    {
+      "keyEn": "Door slam",
+      "textEn": "Door slam",
+      "textAr": "باب يُغلق بقوة",
+      "seconds": 2.5
+    },
+    {
+      "keyEn": "Power hum",
+      "textEn": "Power hum",
+      "textAr": "طنين الكهرباء",
+      "seconds": 3.0
+    },
+    {
+      "keyEn": "Shadow growl",
+      "textEn": "Shadow growl",
+      "textAr": "زئير الظل",
+      "seconds": 3.0
+    }
+  ]
+}
