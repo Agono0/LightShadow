@@ -4,7 +4,7 @@ Generated 2026-11-27 from the repo's actual story-node inventory,
 `Assets/_Project/Data/Story/SN_*.asset` (44 nodes - NOT from Docs/Story/SCRIPT.md,
 which is the human-readable twin and has drifted in places). Arabic resolved from
 `StoryStrings.cs` then `Localization.cs` (runtime lookup order; whitespace-normalized
-matching, then exact). Speakers per `StoryNode.StorySpeaker` enum.
+matching). Speakers per `StoryNode.StorySpeaker` enum.
 
 Inventory reconciliation: `Assets/_Project/Data/Story/` holds 45 `.asset` files =
 44 story nodes (SN_*) + `SO_StoryConfig.asset`. The 44 vs 45 count difference is the
@@ -16,7 +16,13 @@ EN words / 2.6 wps, min 2s, rounded to 0.5s - a recording budget, not a runtime 
 Timed choices also carry their in-game cap. Documentation only: nothing is wired and
 VO_RECORDING_SPECS.md (PR #7 scope) is untouched.
 
-Coverage: 77 lines from 44 nodes; Arabic present for 73, MISSING for 4 (marked).
+Coverage: 77 lines from 44 nodes; Arabic present for 73, MISSING for 4.
+The 4 missing are exactly the ending nodes (SN_End_Dawnless, SN_End_FullRecovery,
+SN_End_HollowEscape, SN_End_PartialMemory): their asset text has drifted from the
+StoryStrings.cs keys (e.g. "The sky over the school..." vs the key's "The sky
+above the school..."), so no matching Arabic entry exists in the codebase for them.
+Either the assets or the StoryStrings keys need reconciling before those lines can
+be localized.
 
 ## Act I
 
