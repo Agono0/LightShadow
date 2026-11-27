@@ -48,7 +48,9 @@ namespace LightShadow.Player
 
             // Interact key: skipped while the story system holds the input lock
             // (the gamepad A button is gated the same way in GamepadInput).
-            if (!PlayerController.ExternalInputLocked && Input.GetKeyDown(KeyCode.E)) PressInteract();
+            // While a prop is carried, E means "put it down" (ThrowableProp
+            // handles it), never a fresh interaction through the held prop.
+            if (ThrowableProp.Carried == null && !PlayerController.ExternalInputLocked && Input.GetKeyDown(KeyCode.E)) PressInteract();
 
             // Show or hide the on-screen interaction hint.
             if (hud != null)
