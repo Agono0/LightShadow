@@ -75,18 +75,38 @@ namespace LightShadow.Player
 
         void PlayStep()
         {
-            // Corridors and classrooms mix concrete and wood; the concrete set
-            // is the base with an occasional wood plank step. Variant counts
+            // Surface-dependent (user brief 2026-11-27): raycast the floor
+            // material. Grass (the garden) reads soft - the wood set at low
+            // volume approximates it until a grass pack ships; concrete is the
+            // base with an occasional wood plank step indoors. Variant counts
             // come from the registry, so growing a pack needs no script edit.
+            bool softGround = false;
+            if (Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 0.5f))
+            {
+                Renderer floor = hit.collider.GetComponent<Renderer>();
+                string materialName = floor != null && floor.sharedMaterial != null ? floor.sharedMaterial.name : "";
+                softGround = materialName.Contains("Grass");
+            }
+
             int concreteCount = SfxRegistry.VariantCount("SFX_FootstepConcrete");
             int woodCount = SfxRegistry.VariantCount("SFX_FootstepWood");
-            AudioClip clip = Random.value < 0.75f || woodCount == 0
-                ? SfxRegistry.ClipVariant("SFX_FootstepConcrete", concreteCount)
-                : SfxRegistry.ClipVariant("SFX_FootstepWood", woodCount);
+            AudioClip clip;
+            float volumeScale = 1f;
+            if (softGround && woodCount > 0)
+            {
+                clip = SfxRegistry.ClipVariant("SFX_FootstepWood", woodCount);
+                volumeScale = 0.55f; // soft ground swallows the step
+            }
+            else
+            {
+                clip = Random.value < 0.75f || woodCount == 0
+                    ? SfxRegistry.ClipVariant("SFX_FootstepConcrete", concreteCount)
+                    : SfxRegistry.ClipVariant("SFX_FootstepWood", woodCount);
+            }
             if (clip == null) return;
 
             source.pitch = 1f + Random.Range(-pitchJitter, pitchJitter);
-            source.PlayOneShot(clip, CurrentVolume());
+            source.PlayOneShot(clip, CurrentVolume() * volumeScale);
         }
     }
 }
