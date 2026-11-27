@@ -298,8 +298,6 @@ history and stay untouched (append-only).
   limited` — Unity 6000.4 deprecates that target, so the x86_64 matrix entry and batch method
   were removed and the pipeline corrected on this branch.
 
-
-
 ### 2026-11-19 — Docs/SOURCING_FONTS_MUSIC.md (premium-pass font + music sourcing) — Abdelrhman Mohamed
 - Tool used: ZCode (AI coding agent, GLM) with WebSearch/WebFetch license-and-URL verification.
 - What AI provided: verified sourcing doc — 5 font families (Noto Naskh Arabic, Cairo, Reem Kufi,
@@ -690,24 +688,6 @@ history and stay untouched (append-only).
   phones, and why the safe-area child only insets on notched devices).
 - Test result: pending — CI `build` workflow (Windows player + arm64/armv7 APKs) is the gate;
   no local Unity editor available.
-### 2026-11-27 — Per-wing LIT color grading (plan §10 two lighting states) — Abdelrhman Mohamed
-- Tool used: Instinct (AI coding agent)
-- What AI provided: `SceneBuilderPostWing` partial with `BuildWingLitProfile` (a shared warm
-  ColorAdjustments-only volume profile, rebuilt every run like the night/dawn profiles) and
-  `AddWingLitGrade` (a local Volume + trigger BoxCollider, Default layer, priority 2 above the
-  global night grade, 3 m blend), the committed `Post_WingLit.asset` shell matching how
-  Post_Night/Post_Dawn are committed (editor code repopulates it at build time), and four
-  volume placements bounded to the LitZone extents of Library, Physics, Main Hall and Staff
-  (the staff room shares the hall's fuse group, so it gets its own child volume). Volumes ride
-  the fuse-controlled group active state: no runtime code, no save handling.
-- What I changed myself: pending review — changes land through the PR workflow (AGENTS.md rule 9).
-- Teach-back check: pending — PR body explains why only ColorAdjustments overrides (URP blends
-  per-property, so global bloom/vignette/grain carry through) and why the volumes need no
-  FuseBox changes (they activate with the lights group).
-- Test result: pending — CI compile + builds are the gate; no local Unity editor. Verified on
-  paper: volume bounds copied from the wing LitZone position+center+size; priority 2 sits above
-  the global night volume's 1; Default layer is inside every camera volume mask.
-
 ### 2026-11-27 — SaveSystem deferred-restore fix (audit A3) — Abdelrhman Mohamed
 - Tool used: Instinct (AI coding agent)
 - What AI provided: `SaveSystem.ClearPendingRestore` and the new-game hook in
