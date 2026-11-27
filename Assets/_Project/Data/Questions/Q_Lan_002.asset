@@ -24,3 +24,10 @@ MonoBehaviour:
   explanation: 'Adverbs describe how an action happens: quietly tells how the cat
     slept.'
   factSource: NEEDS-FACT-CHECK
+  questionAr: في جملة «نام القط بهدوء»، أي كلمة تعمل ظرفًا؟
+  optionsAr:
+  - في
+  - القط
+  - نام
+  - بهدوء
+  explanationAr: الظرف يصف كيفية حدوث الفعل؛ فكلمة «بهدوء» تخبرنا كيف نام القط.

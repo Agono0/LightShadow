@@ -187,7 +187,7 @@ namespace LightShadow.Tools
         public static Canvas BuildBootstrapUI()
         {
             Canvas canvas = CreateCanvas("UI_Bootstrap");
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
 
             MakeFullScreen(root, "Background", new Color(0.01f, 0.01f, 0.014f, 1f), false);
             MakeImage(root, "Glow", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
@@ -213,7 +213,7 @@ namespace LightShadow.Tools
         public static SchoolUI BuildSchoolUI(Transform player)
         {
             Canvas canvas = CreateCanvas("UI_School");
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
 
             HUDController hud = canvas.gameObject.AddComponent<HUDController>();
             PauseMenu pause = canvas.gameObject.AddComponent<PauseMenu>();
@@ -292,6 +292,13 @@ namespace LightShadow.Tools
                 new Vector2(-190f, 105f), new Vector2(150f, 56f));
             AddMobileButton(mobileRoot.transform, "PauseButton", "II", TouchButton.Kind.Pause,
                 new Vector2(-350f, 105f), new Vector2(140f, 56f));
+
+            // P3 horror buttons: hold to crank (twirl a second finger in
+            // circles off the UI) and hold-breath while hidden.
+            AddMobileButton(mobileRoot.transform, "CrankButton", "CRANK", TouchButton.Kind.CrankHold,
+                new Vector2(-190f, 38f), new Vector2(150f, 56f));
+            AddMobileButton(mobileRoot.transform, "BreathButton", "BREATH", TouchButton.Kind.BreathHold,
+                new Vector2(-350f, 38f), new Vector2(140f, 56f));
 
             mobileRoot.SetActive(false);
 
@@ -474,7 +481,7 @@ namespace LightShadow.Tools
 
         public static SettingsPanelController BuildSettingsPanel(Canvas canvas)
         {
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
             RectTransform dim = MakeFullScreen(root, "SettingsPanel", new Color(0f, 0f, 0f, 0.88f), true);
 
             SettingsPanelController controller = canvas.gameObject.AddComponent<SettingsPanelController>();
@@ -542,7 +549,7 @@ namespace LightShadow.Tools
         public static MainMenuController BuildMainMenuUI()
         {
             Canvas canvas = CreateCanvas("UI_MainMenu");
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
             MainMenuController controller = canvas.gameObject.AddComponent<MainMenuController>();
 
             // Painted night backdrop for the 2D fallback menu; the live 3D
@@ -685,7 +692,7 @@ namespace LightShadow.Tools
         public static EndingController BuildEndingUI()
         {
             Canvas canvas = CreateCanvas("UI_Ending");
-            Transform root = canvas.transform;
+            Transform root = canvas.transform.Find("SafeArea");
             EndingController ending = canvas.gameObject.AddComponent<EndingController>();
 
             // The dawn is a real 3D set now, so the UI only supplies a soft glow
@@ -750,12 +757,20 @@ namespace LightShadow.Tools
                 new Vector2(0f, 130f), new Vector2(1300f, 30f), FontStyle.Italic);
             Localize(footer);
 
+            // P3: export the study recap as a shareable PNG.
+            Text saveLabel;
+            Button savePng = MakeButton(recapPanel, "SavePngButton", "SAVE PNG",
+                new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(-700f, 48f), new Vector2(380f, 62f), ButtonDark, 19, out saveLabel);
+            Localize(saveLabel);
+
             recap.panel = recapPanel.gameObject;
             recap.titleText = title;
             recap.statsText = stats;
             recap.recapText = bodyText;
             recap.menuButton = menu;
             recap.quitButton = quit;
+            recap.savePngButton = savePng;
             recapPanel.gameObject.SetActive(false);
 
             ending.dawnTitle = dawnTitle;
@@ -783,6 +798,13 @@ namespace LightShadow.Tools
 
             RectTransform rect = go.GetComponent<RectTransform>();
             Stretch(rect);
+
+            // All content parents under this child so notched phones keep HUD
+            // text and touch controls inside the safe area. Full-screen
+            // devices leave the anchors at 0..1, so nothing else changes.
+            RectTransform safe = MakeRect(canvas.transform, "SafeArea", Vector2.zero, Vector2.one,
+                new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            safe.gameObject.AddComponent<SafeAreaFitter>();
 
             // Wire the bundled font set onto every canvas binder (idempotent
             // per canvas). The serialized references ride inside the built

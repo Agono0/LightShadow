@@ -42,13 +42,21 @@ namespace LightShadow.Gameplay
             if (pickupClip == null) pickupClip = Core.ProceduralSfx.Pickup;
             if (pickupClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(pickupClip);
 
+            // P3 haptics: a light buzz when a memory is recovered (Android only).
+            LightShadow.Platform.HapticsService.Light();
+
             GameManager gm = GameManager.Instance;
             if (gm != null) gm.ShowMessage(fragmentText, memorySeconds);
 
             // The narrator reads the memory aloud when a voice is available.
             StoryTeller.Speak(Localization.Tr(fragmentText));
 
+            // P3 inspect view: a 360 close-up of the fragment while the memory
+            // plays; the quiz waits until the player closes it.
+            UI.InspectViewController.ShowFrom(this);
+
             yield return new WaitForSeconds(memorySeconds);
+            while (UI.InspectViewController.IsOpen) yield return null;
 
             // The themed question. Answering or not, the fragment is recovered.
             if (gm != null && gm.quizUI != null && gm.database != null)
