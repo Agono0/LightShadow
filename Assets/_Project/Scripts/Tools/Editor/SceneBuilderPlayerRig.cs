@@ -32,6 +32,20 @@ namespace LightShadow.Tools
             return false;
         }
 
+        // Marker position in the model root's space. Read from the marker mesh's
+        // bounds, not its transform: how the OBJ importer places child pivots
+        // (identity at the origin, or at the mesh centre) must not matter. A
+        // missing marker returns false and the caller keeps the spec default.
+        static bool MarkerInModel(Transform model, Transform marker, out Vector3 point)
+        {
+            point = Vector3.zero;
+            if (marker == null) return false;
+            Renderer r = marker.GetComponent<Renderer>();
+            Vector3 world = r != null ? r.bounds.center : marker.position;
+            point = model.InverseTransformPoint(world);
+            return PlayerRigFit.IsUsable(point);
+        }
+
         static Transform FindMarker(Transform root, string markerName)
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
@@ -68,7 +82,6 @@ namespace LightShadow.Tools
             GameObject flashlightGo, GameObject torchPrimitive, Palette palette)
         {
             Vector3 handGripPoint = new Vector3(0.01f, 0.035f, 0.05f);
-            bool handAdded = false;
 
             if (HeroModelExists(PlayerHandRModel))
             {
@@ -76,13 +89,13 @@ namespace LightShadow.Tools
                     Vector3.zero, "ArtModel_" + PlayerHandRModel);
                 if (hand != null)
                 {
-                    handAdded = true;
                     RestyleRigModel(hand, palette.paper);
                     Transform handGrip = FindMarker(hand.transform, PlayerRigFit.GripName);
-                    if (handGrip != null && PlayerRigFit.IsUsable(handGrip.localPosition))
+                    Vector3 handGripInModel;
+                    if (MarkerInModel(hand.transform, handGrip, out handGripInModel))
                     {
                         // Grip marker position expressed in the hand root's space.
-                        handGripPoint = handRoot.transform.InverseTransformPoint(handGrip.position);
+                        handGripPoint = handRoot.transform.InverseTransformPoint(hand.transform.TransformPoint(handGripInModel));
                     }
                     HideMarker(handGrip);
                     foreach (string part in new[] { "Palm", "Thumb", "Forearm" })
@@ -104,22 +117,22 @@ namespace LightShadow.Tools
                     Transform grip = FindMarker(torch.transform, PlayerRigFit.GripName);
                     Transform muzzle = FindMarker(torch.transform, PlayerRigFit.MuzzleName);
                     Vector3 offset = handGripPoint;
-                    if (grip != null && PlayerRigFit.IsUsable(grip.localPosition))
-                    {
-                        offset = PlayerRigFit.RootOffsetForGrip(handGripPoint, grip.localPosition,
-                            torch.transform.localRotation, torch.transform.localScale.x);
-                    }
+                    // Spec: the torch origin is the grip point and the muzzle is at
+                    // z 0.200, so a marker the importer did not surface falls back to those.
+                    Vector3 gripInModel = Vector3.zero;
+                    MarkerInModel(torch.transform, grip, out gripInModel);
+                    Vector3 muzzleInModel = new Vector3(0f, 0f, 0.2f);
+                    MarkerInModel(torch.transform, muzzle, out muzzleInModel);
+                    offset = PlayerRigFit.RootOffsetForGrip(handGripPoint, gripInModel,
+                        torch.transform.localRotation, torch.transform.localScale.x);
                     // Seat the torch 20 mm forward of the grip alignment: its tail
                     // would otherwise overlap the hand's cuff and forearm
                     // (Ziad's fit note, second-pass models). The muzzle follows.
                     offset += new Vector3(0f, 0f, TorchSeatForward);
                     torch.transform.parent.localPosition = offset;
-                    if (muzzle != null && PlayerRigFit.IsUsable(muzzle.localPosition))
-                    {
-                        flashlightGo.transform.localPosition = PlayerRigFit.MuzzleInHandSpace(
-                            offset, muzzle.localPosition, torch.transform.localRotation,
-                            torch.transform.localScale.x);
-                    }
+                    flashlightGo.transform.localPosition = PlayerRigFit.MuzzleInHandSpace(
+                        offset, muzzleInModel, torch.transform.localRotation,
+                        torch.transform.localScale.x);
                     HideMarker(grip);
                     HideMarker(muzzle);
                     if (torchPrimitive != null)
@@ -149,7 +162,6 @@ namespace LightShadow.Tools
                     Count("player body model");
                 }
             }
-            if (!handAdded) return;
         }
     }
 }

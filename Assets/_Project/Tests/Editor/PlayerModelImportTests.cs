@@ -16,6 +16,18 @@ namespace LightShadow.Tests.Editor
             return AssetDatabase.LoadAssetAtPath<GameObject>(Folder + name + ".obj");
         }
 
+        // Marker centre in the root's space from the mesh bounds, independent of
+        // where the importer puts the child pivot.
+        static bool MarkerPoint(GameObject root, string name, out Vector3 point)
+        {
+            point = Vector3.zero;
+            Transform t = Find(root, name);
+            if (t == null) return false;
+            Renderer r = t.GetComponent<Renderer>();
+            point = root.transform.InverseTransformPoint(r != null ? r.bounds.center : t.position);
+            return true;
+        }
+
         static Transform Find(GameObject root, string name)
         {
             foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
@@ -44,10 +56,10 @@ namespace LightShadow.Tests.Editor
         {
             GameObject torch = Load("SM_Torch");
             if (torch == null) return;
-            Transform grip = Find(torch, "Grip");
-            Transform muzzle = Find(torch, "Muzzle");
-            if (grip == null || muzzle == null) return;
-            Assert.Greater(muzzle.localPosition.z, grip.localPosition.z + 0.1f);
+            Vector3 grip, muzzle;
+            if (!MarkerPoint(torch, "Muzzle", out muzzle)) return;
+            if (!MarkerPoint(torch, "Grip", out grip)) grip = Vector3.zero; // spec: grip is the origin
+            Assert.Greater(muzzle.z, grip.z + 0.1f);
         }
 
         [Test]
@@ -56,16 +68,15 @@ namespace LightShadow.Tests.Editor
             GameObject handL = Load("SM_Player_Hand_L");
             GameObject handR = Load("SM_Player_Hand_R");
             if (handL == null || handR == null) return;
-            Transform gl = Find(handL, "Grip");
-            Transform gr = Find(handR, "Grip");
-            if (gl == null || gr == null) return;
+            Vector3 gl, gr;
+            if (!MarkerPoint(handL, "Grip", out gl) || !MarkerPoint(handR, "Grip", out gr)) return;
             // Each hand's handle axis sits toward the body midline, so the two
             // grips have opposite X. The sign depends on Unity's OBJ X mirror,
             // which the loader does not rely on (it aligns on the marker).
-            Assert.AreEqual(0.034f, Mathf.Abs(gl.localPosition.x), 0.004f);
-            Assert.AreEqual(0.034f, Mathf.Abs(gr.localPosition.x), 0.004f);
-            Assert.Less(gl.localPosition.x * gr.localPosition.x, 0f, "hand grips must be on opposite sides");
-            Assert.AreEqual(0.05f, gl.localPosition.z, 0.01f);
+            Assert.AreEqual(0.034f, Mathf.Abs(gl.x), 0.004f);
+            Assert.AreEqual(0.034f, Mathf.Abs(gr.x), 0.004f);
+            Assert.Less(gl.x * gr.x, 0f, "hand grips must be on opposite sides");
+            Assert.AreEqual(0.05f, gl.z, 0.01f);
         }
 
         [Test]

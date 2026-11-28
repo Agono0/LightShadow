@@ -85,7 +85,7 @@ namespace LightShadow.Tools
             // door and the doorway looked unfinished): two leaves meet in the
             // middle of the 2 m gap, each hinged on its own jamb, and swing
             // the same way into the room.
-            const float leafWidth = 0.98f;
+            const float leafWidth = 1.0f; // two leaves fill the 2 m opening; 0.98 left a 4 cm slit
             Box(hinge.transform, "Panel", new Vector3(0f, 1.025f, leafWidth * 0.5f),
                 new Vector3(0.08f, 2.05f, leafWidth), palette.wood, true, 0);
             float handleSide = x < 0f ? 0.07f : -0.07f;

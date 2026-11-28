@@ -97,7 +97,12 @@ namespace LightShadow.Core
         {
             EnemySaveState.Blob blob;
             if (enemy == null || player == null) return;
-            if (!EnemySaveState.TryParse(SaveSystem.GetContrib(data, EnemySaveState.Key), out blob)) return;
+            if (!EnemySaveState.TryParse(SaveSystem.GetContrib(data, EnemySaveState.Key), out blob))
+            {
+                // Old save with no enemy blob: the scene spawn must still not sit on her.
+                enemy.EnsureAwayFrom(player.position, EnemySaveState.MinPlayerDistance);
+                return;
+            }
             if (EnemySaveState.ShouldPlace(blob.Position, player.position)) enemy.PlaceFromSave(blob.Position);
             else enemy.EnsureAwayFrom(player.position, EnemySaveState.MinPlayerDistance); // refused spot: do not keep a spawn inside 10 m
             MenaceDirector menace = MenaceDirector.Instance;
@@ -120,7 +125,7 @@ namespace LightShadow.Core
             Debug.Log("[LightShadow] The night begins: Nour entered the school.");
 
             // Opening story beat: the stakes on the HUD while the narrator sets
-            // the tone over the speakers. Only on a new night (F6): loading a
+            // the tone over the speakers. Only on a new night: loading a
             // save must not replay the intro.
             bool restoring = SaveSystem.RestorePending | SaveSystem.ConsumeRestoredFlag();
             if (!restoring)

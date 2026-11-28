@@ -106,7 +106,7 @@ namespace LightShadow.Core
         // Pending restore waiting for the right scene to finish loading.
         static SaveData pendingRestore;
 
-        // F6: the opening line and narration belong to a new night only. A
+        // The opening line and narration belong to a new night only. A
         // restore is either still pending when the school starts, or has
         // already been applied; both mean "do not replay the intro".
         static bool restoredThisRun;

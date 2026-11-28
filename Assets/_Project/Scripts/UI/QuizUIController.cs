@@ -190,11 +190,7 @@ namespace LightShadow.UI
             answered = true;
             if (panel != null) panel.SetActive(false);
             if (feedbackPanel != null) feedbackPanel.SetActive(false);
-            if (cursorWasLocked && !Application.isMobilePlatform)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
+            RelockIfAllowed();
             current = null;
             ReleaseCallback();
         }
@@ -230,11 +226,7 @@ namespace LightShadow.UI
             if (panel != null) panel.SetActive(false);
             if (feedbackPanel != null) feedbackPanel.SetActive(false);
 
-            if (cursorWasLocked && !Application.isMobilePlatform)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
+            RelockIfAllowed();
 
             Action<bool, int> callback = onAnswered;
             onAnswered = null;
@@ -242,16 +234,23 @@ namespace LightShadow.UI
             if (callback != null) callback(correct, chosen);
         }
 
+        // Relock only when nothing else needs the free cursor: pause, an inspect
+        // view or another overlay may have opened while the question was up.
+        void RelockIfAllowed()
+        {
+            if (!cursorWasLocked || Application.isMobilePlatform) return;
+            if (PauseMenu.IsOpen || InspectViewController.IsOpen
+                || LightShadow.Contrib.Abdelraouf.Overlay.OverlayStack.WantsFreeCursor) return;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
         void OnDestroy()
         {
             Localization.LanguageChanged -= OnLanguageChanged;
 
             if (answered) return;
-            if (cursorWasLocked && !Application.isMobilePlatform)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
+            RelockIfAllowed();
         }
     }
 }

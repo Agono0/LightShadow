@@ -48,7 +48,11 @@ namespace LightShadow.Tools
                         points++;
                         // Torch-first darkness (playtest 2026-11-28): no fixed lamp may
                         // out-shine the flashlight. Wing lamps and the entrance stay soft.
-                        if (light.intensity > 1.0f) problems.Add("School lamp too bright for a torch-first game: " + light.name + " intensity " + light.intensity.ToString("0.0") + " (max 1.0).");
+                        // Dawn exception: the DawnChase corridor lamps are the story's dawn.
+                        // They start inactive and only come up (DawnRiser) after the gate is
+                        // powered, so they are not part of the dark night the cap protects.
+                        bool dawnLamp = light.transform.parent != null && light.transform.parent.name == "DawnChase";
+                        if (!dawnLamp && light.intensity > 1.0f) problems.Add("School lamp too bright for a torch-first game: " + light.name + " intensity " + light.intensity.ToString("0.0") + " (max 1.0).");
                     }
                     if (light.name.Contains("Moon")) problems.Add("School scene still has a moon fill light: " + light.name);
                 }
