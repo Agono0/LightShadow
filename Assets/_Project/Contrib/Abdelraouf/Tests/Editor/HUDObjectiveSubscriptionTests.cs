@@ -54,6 +54,14 @@ namespace LightShadow.Contrib.Abdelraouf.Tests.Editor
             return d == null ? 0 : d.GetInvocationList().Count(h => ReferenceEquals(h.Target, target));
         }
 
+        // Whether AddComponent already ran Awake depends on the harness; call
+        // it by hand only when it has not subscribed, so it never doubles up.
+        void EnsureAwake()
+        {
+            if (CountFor(EventField(typeof(Inventory), "ItemAdded"), hud) == 0)
+                AwakeMethod.Invoke(hud, null);
+        }
+
         [SetUp]
         public void SetUp()
         {
@@ -82,7 +90,7 @@ namespace LightShadow.Contrib.Abdelraouf.Tests.Editor
         [Test]
         public void Awake_SubscribesObjectiveRefreshToKeyAndPuzzleEvents()
         {
-            AwakeMethod.Invoke(hud, null);
+            EnsureAwake();
 
             Assert.AreEqual(1, CountFor(EventField(typeof(Inventory), "ItemAdded"), hud));
             Assert.AreEqual(1, CountFor(EventField(typeof(Inventory), "ItemRemoved"), hud));
@@ -92,7 +100,7 @@ namespace LightShadow.Contrib.Abdelraouf.Tests.Editor
         [Test]
         public void OnDestroy_RemovesEveryObjectiveSubscription()
         {
-            AwakeMethod.Invoke(hud, null);
+            EnsureAwake();
             UnityEngine.Object.DestroyImmediate(host);
             host = null;
 
