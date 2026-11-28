@@ -248,8 +248,8 @@ namespace LightShadow.Core
             // ---- how to play ----------------------------------------------
             { "You are Nour. The school is dark, the demolition crew comes at dawn, and the Shadow hunts in the dark.",
               "أنت نور. المدرسة مظلمة، وفريق الهدم يأتي عند الفجر، والظل يطارد في العتمة." },
-            { "Answer chalkboard questions to charge the Bright Idea Meter. A brighter beam reaches further and keeps the dark away. Hold the focused beam on the Shadow for two seconds with the meter at 25 or more and it recoils and backs off. Wrong answers and timeouts dim the beam.",
-              "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد ويبقي العتمة بعيدة. وجّه الشعاع المركّز نحو الظل لمدة ثانيتين والمؤشر 25 أو أكثر فيرتدّ ويبتعد. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع." },
+            { "Answer chalkboard questions to charge the Bright Idea Meter. A brighter beam reaches further and keeps the dark away. Hold the focused beam on the Shadow long enough and it recoils and backs off: hold right mouse, hold Y on a gamepad, or long-press the flashlight button on touch. Focus only works while the beam is on, and it drains the battery faster. Wrong answers and timeouts dim the beam.",
+              "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد ويبقي العتمة بعيدة. أبقِ الشعاع المركّز على الظل مدة كافية فيرتدّ ويبتعد: اضغط مطولًا على زر الفأرة الأيمن، أو Y في يد التحكم، أو اضغط مطولًا على زر المصباح في اللمس. التركيز يعمل فقط والشعاع مضاء، ويستهلك البطارية أسرع. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع." },
             { "Lit rooms are safe until the gate is powered: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is fuel and runs out; batteries are scattered through the school.",
               "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة." },
             { "Restore three fuse boxes, collect six Knowledge Fragments, power the gate, and walk out. You cannot die - being caught only costs light and sends you back to the last checkpoint.",

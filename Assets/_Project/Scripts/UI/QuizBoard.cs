@@ -39,14 +39,10 @@ namespace LightShadow.UI
             gm.quizUI.ShowQuestion(question, (correct, chosenIndex) =>
             {
                 if (QuizUIController.IsCancel(chosenIndex)) { asking = false; return; } // displaced or cancelled: neutral
-                // Doc 4.1: the meter responds immediately; the recap remembers everything.
-                BrightIdeaMeter target = meter != null ? meter : gm.GetMeter();
-                if (target != null)
-                {
-                    if (correct) target.AddCorrect();
-                    else target.AddWrong();
-                }
-                gm.RecordAnswer(question, chosenIndex, correct);
+                // S1: the same path as the fragments (meter, recap, and the
+                // QuestionAnswered event the story, the ending accuracy and the
+                // wrong-answer buzzer listen to), exactly once.
+                gm.ApplyQuizResult(question, chosenIndex, correct);
                 asking = false;
             });
         }
