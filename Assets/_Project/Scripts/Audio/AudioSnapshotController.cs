@@ -82,7 +82,12 @@ namespace LightShadow.Audio
             }
 
             instance = this;
-            DontDestroyOnLoad(gameObject);
+            // Audit 6.6: the school Systems object hosts GameManager and other
+            // per-run managers. If the school scene is entered first (editor
+            // Play in 02_School) it must not become persistent, or the next
+            // school load duplicates every manager. The bootstrap instance is
+            // the one that persists in shipped builds.
+            if (gameObject.scene.name != SceneNames.School) DontDestroyOnLoad(gameObject);
 
             if (config == null && GameManager.Instance != null) config = GameManager.Instance.config;
 
