@@ -32,7 +32,8 @@ namespace LightShadow.Gameplay
         Transform homeParent;
         bool landedSinceRelease = true;
 
-        public string Prompt => Carried == this ? "Put it down" : "Pick it up";
+        // F3: no verb while another prop owns the hands.
+        public string Prompt => !CanInteract ? "" : Carried == this ? "Put it down" : "Pick it up";
         public bool CanInteract => Carried == null || Carried == this;
 
         void Awake()
