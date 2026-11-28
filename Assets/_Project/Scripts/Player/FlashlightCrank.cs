@@ -108,7 +108,7 @@ namespace LightShadow.Player
             }
 
             Gamepad pad = Gamepad.current;
-            if (pad != null) FeedMotion(pad.leftStick.ReadValue());
+            if (pad != null) FeedMotion(StickToPixels(pad.leftStick.ReadValue()));
 
             for (int i = 0; i < Input.touchCount; i++)
             {
@@ -146,9 +146,19 @@ namespace LightShadow.Player
         // angle between the previous motion vector and this one, accumulated
         // while the crank is held; idle time resets the gesture if the player
         // stops moving.
+        // P1: the dead zone is in pixel-ish units (mouse/touch deltas), but the
+        // stick is normalized to length 1, so it could never pass. Scale it to
+        // pixel-equivalent units first.
+        public const float StickPixelScale = 20f;
+        public static Vector2 StickToPixels(Vector2 stick) => stick * StickPixelScale;
+        public static bool RegistersMotion(Vector2 motion, float deadZone)
+        {
+            return motion.sqrMagnitude >= deadZone * deadZone;
+        }
+
         void FeedMotion(Vector2 motion)
         {
-            if (motion.sqrMagnitude < GestureDeadZone * GestureDeadZone) return;
+            if (!RegistersMotion(motion, GestureDeadZone)) return;
 
             hasMotion = true;
             idleTime = 0f;

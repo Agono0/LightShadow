@@ -52,10 +52,13 @@ namespace LightShadow.Gameplay
 
         void PickUp()
         {
+            // P3: with no camera hold point, SetParent(null) plus a zero local
+            // position would teleport the prop to the world origin.
+            Transform hold = HoldPoint();
+            if (hold == null) return;
             Carried = this;
             if (body != null) body.isKinematic = true;
             SetCollidersEnabled(false); // a carried prop must not shove the player or the camera
-            Transform hold = HoldPoint();
             transform.SetParent(hold, false);
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
@@ -152,6 +155,14 @@ namespace LightShadow.Gameplay
                 shardBody.velocity = Random.insideUnitSphere * 1.6f + Vector3.up * 1.2f;
                 Destroy(shard, 3f);
             }
+        }
+
+        // P2: death while carrying. The checkpoint wake puts a carried prop
+        // back home and frees the F key (it also frees the thrown-frame latch).
+        public static void ResetCarried()
+        {
+            lastThrowFrame = -10;
+            if (Carried != null) Carried.ResetHome();
         }
 
         // Back in place on a checkpoint wake: a carried or shattered prop

@@ -338,6 +338,7 @@ namespace LightShadow.Core
             // hop teleport Nour back into the spot; idempotent with the
             // RespawnReset call below.
             HidingSystem.ResetState();
+            ThrowableProp.ResetCarried();
 
             Transform spawn = CheckpointManager.Instance != null ? CheckpointManager.Instance.SpawnPoint : null;
             if (spawn != null && player != null)
