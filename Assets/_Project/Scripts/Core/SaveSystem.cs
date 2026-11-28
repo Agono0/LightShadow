@@ -299,6 +299,15 @@ namespace LightShadow.Core
                 savedAtUtc = DateTime.UtcNow.ToString(TimeFormat, CultureInfo.InvariantCulture),
             };
 
+            // Hidden: store the spot she steps back out to, not the hide point.
+            Vector3 hiddenPosition;
+            float hiddenYaw;
+            if (LightShadow.Player.HidingSystem.TryGetSavePose(out hiddenPosition, out hiddenYaw))
+            {
+                data.position = hiddenPosition;
+                data.yaw = hiddenYaw;
+            }
+
             BrightIdeaMeter meter = game.GetMeter();
             if (meter != null) data.meterValue = meter.Meter;
 

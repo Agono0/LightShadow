@@ -129,6 +129,18 @@ namespace LightShadow.Player
             ResetState();
         }
 
+        // While hidden the player stands at the hide point; a save must store where
+        // she goes back to (the entry spot), since hiding itself is not saved.
+        public static bool TryGetSavePose(out Vector3 position, out float yaw)
+        {
+            position = Vector3.zero;
+            yaw = 0f;
+            if (!IsHidden || instance == null) return false;
+            position = instance.entryPosition;
+            yaw = instance.entryRotation.eulerAngles.y;
+            return true;
+        }
+
         public static void ResetState()
         {
             IsHidden = false;
