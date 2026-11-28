@@ -123,7 +123,7 @@ namespace LightShadow.Gameplay
             if (body != null)
             {
                 body.isKinematic = false;
-                body.velocity = impulse;
+                body.linearVelocity = impulse;
                 body.angularVelocity = Random.insideUnitSphere * 3f;
             }
             landedSinceRelease = false;
@@ -194,7 +194,7 @@ namespace LightShadow.Gameplay
                 if (renderer != null && source != null) renderer.sharedMaterial = source.sharedMaterial;
                 Rigidbody shardBody = shard.AddComponent<Rigidbody>();
                 shardBody.mass = 0.05f;
-                shardBody.velocity = Random.insideUnitSphere * 1.6f + Vector3.up * 1.2f;
+                shardBody.linearVelocity = Random.insideUnitSphere * 1.6f + Vector3.up * 1.2f;
                 Destroy(shard, 3f);
             }
         }
@@ -221,7 +221,7 @@ namespace LightShadow.Gameplay
             if (body != null)
             {
                 body.isKinematic = false;
-                body.velocity = Vector3.zero;
+                body.linearVelocity = Vector3.zero;
                 body.angularVelocity = Vector3.zero;
             }
             landedSinceRelease = true;

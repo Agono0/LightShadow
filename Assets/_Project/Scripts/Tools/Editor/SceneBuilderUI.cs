@@ -37,12 +37,15 @@ namespace LightShadow.Tools
         // older generated UI_* theme; the old file is the fallback.
         static Sprite LoadUiSprite(string nightName, string legacyName)
         {
-            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Textures/UI/" + nightName + ".png");
+            // The horror glass kit (UiThemeTool) wins over the night art when present.
+            string glassName = nightName.Replace("_Night", "").Replace("T_UI_", "T_UI_Glass_");
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Textures/UI/" + glassName + ".png");
+            if (sprite == null) sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Textures/UI/" + nightName + ".png");
             if (sprite == null) sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Textures/UI/" + legacyName + ".png");
             return sprite;
         }
 
-        static Sprite PanelSprite
+        internal static Sprite PanelSprite
         {
             get
             {
@@ -51,7 +54,7 @@ namespace LightShadow.Tools
             }
         }
 
-        static Sprite ButtonSprite
+        internal static Sprite ButtonSprite
         {
             get
             {
@@ -147,7 +150,7 @@ namespace LightShadow.Tools
             }
         }
 
-        static Sprite BackgroundSprite
+        internal static Sprite BackgroundSprite
         {
             get
             {
@@ -405,9 +408,18 @@ namespace LightShadow.Tools
         {
             RectTransform rect = MakeRect(parent, name, anchorMin, anchorMax, pivot, position, size);
             Image image = rect.gameObject.AddComponent<Image>();
+            image.raycastTarget = false;
+            if (PanelSprite != BackgroundSprite)
+            {
+                // Glass card: the sprite carries body, rim and glow; the caller's
+                // colour only sets how opaque the card is.
+                image.sprite = PanelSprite;
+                image.type = Image.Type.Sliced;
+                image.color = new Color(1f, 1f, 1f, color.a);
+                return image;
+            }
             image.sprite = null;
             image.color = color;
-            image.raycastTarget = false;
             Outline outline = rect.gameObject.AddComponent<Outline>();
             outline.effectColor = new Color(0.55f, 0.62f, 0.78f, 0.35f);
             outline.effectDistance = new Vector2(2f, -2f);

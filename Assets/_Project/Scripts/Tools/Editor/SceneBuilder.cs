@@ -282,6 +282,13 @@ namespace LightShadow.Tools
             // school scene (see SceneBuilderContrib.cs).
             RunLevelContributions();
 
+            // Story pass (director, dialogue UI, save-slot and ending hooks). It
+            // only ran from its own menu item, so every BuildAll shipped a school
+            // with no StoryDirector: no story node, no chapter-1 voice-over (seen
+            // in the editor 2026-11-28; CI never ran it either).
+            string storySummary = BuildStoryAll();
+            Debug.Log("[LightShadow] " + storySummary);
+
             // Premium pass: quality-tier URP asset variants (idempotent each run).
             ConfigureQualityForBuild();
 
@@ -505,6 +512,7 @@ namespace LightShadow.Tools
             public Material eye;
             public Material sun;
             public Material sky;
+            public Material torchLens;
         }
 
         static Palette BuildPalette()
@@ -534,7 +542,9 @@ namespace LightShadow.Tools
                 water = MakeLit("Mat_Water", new Color(0.08f, 0.18f, 0.25f), 0.85f, 0.1f),
                 eye = MakeUnlit("Mat_Eye", new Color(2.2f, 0.30f, 0.10f)),
                 sun = MakeUnlit("Mat_Sun", new Color(1f, 0.80f, 0.48f) * 3.4f),
-                sky = MakeUnlit("Mat_Sky", new Color(0.15f, 0.13f, 0.18f))
+                sky = MakeUnlit("Mat_Sky", new Color(0.15f, 0.13f, 0.18f)),
+                // HDR so bloom turns the lit torch head into a hot point of light.
+                torchLens = MakeUnlit("Mat_TorchLens", new Color(1f, 0.88f, 0.70f) * 6f)
             };
         }
 
@@ -687,8 +697,17 @@ namespace LightShadow.Tools
             EditorSceneManager.SaveScene(scene, path);
         }
 
-        static void ApplyAtmosphere(Color ambient, Color fogColor, float fogDensity)
+        // environmentReflections false: no sky/default cubemap reflections at
+        // all. Seen in the editor 2026-11-28: with the default reflection
+        // source left on "Skybox" (no skybox, probes never baked) every Lit
+        // surface in the school picked up a grey environment reflection and
+        // the "dark" map read as evenly lit (mean frame luma 63 -> 36 when
+        // removed). The school must be lit only by the torch and decorations.
+        static void ApplyAtmosphere(Color ambient, Color fogColor, float fogDensity, bool environmentReflections = true)
         {
+            RenderSettings.defaultReflectionMode = environmentReflections ? DefaultReflectionMode.Skybox : DefaultReflectionMode.Custom;
+            RenderSettings.customReflectionTexture = null;
+            RenderSettings.reflectionIntensity = environmentReflections ? 1f : 0f;
             RenderSettings.ambientMode = AmbientMode.Flat;
             RenderSettings.ambientLight = ambient;
             RenderSettings.fog = true;

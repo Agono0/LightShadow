@@ -1540,7 +1540,11 @@ namespace LightShadow.Tools
         static void ConfigureAdditiveParticleMaterial(Material material)
         {
             material.SetFloat("_Surface", 1f); // transparent
-            material.SetFloat("_Blend", 1f); // additive
+            // URP 17 particle blend enum: 0 Alpha, 1 Premultiply, 2 Additive,
+            // 3 Multiply. The old value 1 made URP re-derive premultiplied
+            // blending (One / OneMinusSrcAlpha), so the white sprite drew as a
+            // solid square (seen in the editor 2026-11-28).
+            material.SetFloat("_Blend", 2f); // additive
             material.SetFloat("_ZWrite", 0f);
             material.SetOverrideTag("RenderType", "Transparent");
             material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);

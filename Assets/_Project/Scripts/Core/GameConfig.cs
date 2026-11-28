@@ -14,10 +14,13 @@ namespace LightShadow.Core
         public float meterGainCorrect = 25f;
         public float meterPenaltyWrong = 10f;
         public float meterDrainPerSecond = 0.5f;
-        public float lightRadiusMin = 4f;
-        public float lightRadiusMax = 12f;
-        public float lightIntensityMin = 1.5f;
-        public float lightIntensityMax = 3.5f;
+        public float lightRadiusMin = 8f;
+        public float lightRadiusMax = 22f;
+        // Torch across the meter, tuned in the editor 2026-11-28 to the owner's
+        // brief (wide, warm, large radius): range 8..22 m, intensity 8..20. The
+        // old 1.5..3.5 lit barely 2 m once the grey reflections were removed.
+        public float lightIntensityMin = 8f;
+        public float lightIntensityMax = 20f;
 
         [Header("Questions (Doc 4.1)")]
         public float questionTimer = 20f;
@@ -104,6 +107,12 @@ namespace LightShadow.Core
         public float inspectSpinSpeed = 20f;
         public float inspectDragDegreesPerPixel = 0.4f;
         public float inspectAutoSeconds = 12f;
+
+        [Tooltip("Longest wait for a voice clip's audio data before the line is skipped (VO imports with preload off).")]
+        public float voiceLoadTimeoutSeconds = 3f;
+
+        [Tooltip("Seconds the question card takes to fade in.")]
+        public float questionFadeSeconds = 0.35f;
 
         [Header("Noise And Hearing (Plan 4.12, P3)")]
         // Hearing radii in metres: how far each player noise carries to the

@@ -100,10 +100,10 @@ namespace LightShadow.Player
         {
             if (spotLight == null) return;
             float n = Normalized;
-            float rangeMin = config != null ? config.lightRadiusMin : 4f;
-            float rangeMax = config != null ? config.lightRadiusMax : 12f;
-            float intensityMin = config != null ? config.lightIntensityMin : 1.5f;
-            float intensityMax = config != null ? config.lightIntensityMax : 3.5f;
+            float rangeMin = config != null ? config.lightRadiusMin : 8f;
+            float rangeMax = config != null ? config.lightRadiusMax : 22f;
+            float intensityMin = config != null ? config.lightIntensityMin : 8f;
+            float intensityMax = config != null ? config.lightIntensityMax : 20f;
 
             spotLight.range = Mathf.Lerp(rangeMin, rangeMax, n);
             float boost = flashlight != null ? flashlight.FlashMultiplier : 1f;

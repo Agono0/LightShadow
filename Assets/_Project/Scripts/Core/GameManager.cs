@@ -272,8 +272,11 @@ namespace LightShadow.Core
 
         public void OnFragmentCollected()
         {
+            // The school holds one spare fragment (7 placed, 6 needed), so the
+            // "all found" line plays only on the pickup that reaches the target.
+            int before = FragmentsCollected;
             FragmentsCollected = Mathf.Min(FragmentsCollected + 1, FragmentTarget);
-            if (FragmentsCollected == FragmentTarget)
+            if (before < FragmentTarget && FragmentsCollected == FragmentTarget)
             {
                 ShowMessage("Every fragment is found. The memory box is full of her voice.", 5f);
             }

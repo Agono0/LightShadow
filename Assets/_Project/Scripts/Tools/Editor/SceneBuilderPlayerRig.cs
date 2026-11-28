@@ -8,7 +8,7 @@ namespace LightShadow.Tools
     // SM_Torch; OBJ or FBX, any name-matched file under Models/Hero). Each
     // piece is optional: anything missing leaves the primitive hand and torch
     // exactly as built, so the game never depends on the delivery.
-    // Written without an editor; the first CI build is the first compile.
+    // First seen in the editor 2026-11-28 (Unity pass): see UNITY_PASS_REPORT.md.
     public static partial class SceneBuilder
     {
         const string PlayerBodyModel = "SM_Player_Body";
@@ -16,6 +16,11 @@ namespace LightShadow.Tools
         const string PlayerHandRModel = "SM_Player_Hand_R";
         const string PlayerTorchModel = "SM_Torch";
         const float TorchSeatForward = 0.02f;
+
+        // Modeller spec for the right hand's Grip marker as Unity imports it
+        // (the OBJ importer mirrors X: file +0.034 becomes -0.034). Verified in
+        // the editor 2026-11-28; used only when the marker is missing.
+        static readonly Vector3 HandRGripSpec = new Vector3(-0.034f, 0f, 0.05f);
 
         static bool HeroModelExists(string modelName)
         {
@@ -74,6 +79,28 @@ namespace LightShadow.Tools
             }
         }
 
+        // Emissive twin of the torch's Lens part, a hair in front of it. The
+        // battery shows it only while the light is on, so a lit torch has the
+        // bright lens of the owner's reference and a dead one does not.
+        static void AddLensGlow(GameObject player, Transform torch, Material material)
+        {
+            Transform lens = FindMarker(torch, "Lens");
+            MeshFilter source = lens != null ? lens.GetComponent<MeshFilter>() : null;
+            FlashlightBattery battery = player.GetComponent<FlashlightBattery>();
+            if (source == null || material == null || battery == null) return;
+            var glow = new GameObject("LensGlow");
+            glow.layer = lens.gameObject.layer;
+            glow.transform.SetParent(lens, false);
+            glow.transform.localPosition = new Vector3(0f, 0f, 0.0015f);
+            glow.AddComponent<MeshFilter>().sharedMesh = source.sharedMesh;
+            MeshRenderer r = glow.AddComponent<MeshRenderer>();
+            r.sharedMaterial = material;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            r.enabled = false;
+            battery.lensGlow = r;
+        }
+
         // handRoot: the first-person hand; flashlightGo: the light object that
         // should start at the lens; torchPrimitive: the fallback cylinder.
         // Only the right hand is shown in first person (it holds the torch);
@@ -91,12 +118,14 @@ namespace LightShadow.Tools
                 {
                     RestyleRigModel(hand, palette.paper);
                     Transform handGrip = FindMarker(hand.transform, PlayerRigFit.GripName);
+                    // Unity's OBJ importer only splits a file into children on
+                    // "g" group lines ("o" names are merged into one "default"
+                    // mesh), so a re-export without groups loses the marker; the
+                    // spec point keeps the torch in the fist in that case.
                     Vector3 handGripInModel;
-                    if (MarkerInModel(hand.transform, handGrip, out handGripInModel))
-                    {
-                        // Grip marker position expressed in the hand root's space.
-                        handGripPoint = handRoot.transform.InverseTransformPoint(hand.transform.TransformPoint(handGripInModel));
-                    }
+                    if (!MarkerInModel(hand.transform, handGrip, out handGripInModel)) handGripInModel = HandRGripSpec;
+                    // Grip marker position expressed in the hand root's space.
+                    handGripPoint = handRoot.transform.InverseTransformPoint(hand.transform.TransformPoint(handGripInModel));
                     HideMarker(handGrip);
                     foreach (string part in new[] { "Palm", "Thumb", "Forearm" })
                     {
@@ -119,10 +148,12 @@ namespace LightShadow.Tools
                     Vector3 offset = handGripPoint;
                     // Spec: the torch origin is the grip point and the muzzle is at
                     // z 0.200, so a marker the importer did not surface falls back to those.
-                    Vector3 gripInModel = Vector3.zero;
-                    MarkerInModel(torch.transform, grip, out gripInModel);
-                    Vector3 muzzleInModel = new Vector3(0f, 0f, 0.2f);
-                    MarkerInModel(torch.transform, muzzle, out muzzleInModel);
+                    // MarkerInModel zeroes its out value on failure, so the spec
+                    // defaults are applied after the call, not before it.
+                    Vector3 gripInModel;
+                    if (!MarkerInModel(torch.transform, grip, out gripInModel)) gripInModel = Vector3.zero;
+                    Vector3 muzzleInModel;
+                    if (!MarkerInModel(torch.transform, muzzle, out muzzleInModel)) muzzleInModel = new Vector3(0f, 0f, 0.2f);
                     offset = PlayerRigFit.RootOffsetForGrip(handGripPoint, gripInModel,
                         torch.transform.localRotation, torch.transform.localScale.x);
                     // Seat the torch 20 mm forward of the grip alignment: its tail
@@ -135,6 +166,7 @@ namespace LightShadow.Tools
                         torch.transform.localScale.x);
                     HideMarker(grip);
                     HideMarker(muzzle);
+                    AddLensGlow(player, torch.transform, palette.torchLens);
                     if (torchPrimitive != null)
                     {
                         Renderer r = torchPrimitive.GetComponent<Renderer>();

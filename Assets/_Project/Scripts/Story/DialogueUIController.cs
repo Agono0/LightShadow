@@ -188,6 +188,15 @@ namespace LightShadow.Story
             }
         }
 
+        // Characters per second that spread the line over most of the voice
+        // clip (punctuation pauses take the rest). Pure, tested.
+        public static float VoiceSyncedCharsPerSecond(string text, float fallbackCps, float voiceSeconds)
+        {
+            if (string.IsNullOrEmpty(text) || voiceSeconds < 0.5f) return fallbackCps;
+            float synced = text.Length / (voiceSeconds * 0.8f);
+            return Mathf.Clamp(synced, 8f, Mathf.Max(8f, fallbackCps * 3f));
+        }
+
         IEnumerator Typewriter(string text)
         {
             if (bodyText == null) yield break;
@@ -200,6 +209,12 @@ namespace LightShadow.Story
                 OnRevealDone();
                 yield break;
             }
+
+            // Voice sync (owner brief 2026-11-28): when a voice clip plays for this
+            // line, type at the pace that finishes with the voice, so the words
+            // appear as Nour says them. Never slower than the clip, never faster
+            // than the player's chosen speed allows a read.
+            cps = VoiceSyncedCharsPerSecond(text, cps, LightShadow.Core.VoiceoverPlayer.LastPlayedSeconds);
 
             var builder = new System.Text.StringBuilder(text.Length);
             int i = 0;
