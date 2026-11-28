@@ -17,10 +17,10 @@ MonoBehaviour:
   meterGainCorrect: 25
   meterPenaltyWrong: 10
   meterDrainPerSecond: 0.5
-  lightRadiusMin: 4
-  lightRadiusMax: 16
-  lightIntensityMin: 4
-  lightIntensityMax: 14
+  lightRadiusMin: 8
+  lightRadiusMax: 22
+  lightIntensityMin: 8
+  lightIntensityMax: 20
   questionTimer: 20
   feedbackSeconds: 3
   batterySeconds: 300

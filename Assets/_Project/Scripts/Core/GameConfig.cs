@@ -14,13 +14,13 @@ namespace LightShadow.Core
         public float meterGainCorrect = 25f;
         public float meterPenaltyWrong = 10f;
         public float meterDrainPerSecond = 0.5f;
-        public float lightRadiusMin = 4f;
-        public float lightRadiusMax = 16f;
-        // Torch intensity across the meter. Raised from 1.5/3.5 in the Unity pass
-        // (2026-11-28): with the grey environment reflections removed the torch
-        // is the only real light, and 3.5 lit barely 2 m of corridor.
-        public float lightIntensityMin = 4f;
-        public float lightIntensityMax = 14f;
+        public float lightRadiusMin = 8f;
+        public float lightRadiusMax = 22f;
+        // Torch across the meter, tuned in the editor 2026-11-28 to the owner's
+        // brief (wide, warm, large radius): range 8..22 m, intensity 8..20. The
+        // old 1.5..3.5 lit barely 2 m once the grey reflections were removed.
+        public float lightIntensityMin = 8f;
+        public float lightIntensityMax = 20f;
 
         [Header("Questions (Doc 4.1)")]
         public float questionTimer = 20f;
