@@ -123,6 +123,17 @@ namespace LightShadow.Tools
             SaveScene(scene, SchoolPath);
         }
 
+        // Gate evidence (checked against Unity docs, not the installed package
+        // source, which is not available offline):
+        //  - verified: Collect Objects = All uses only ACTIVE objects, and
+        //    Include Layers filters them (AI Navigation 2.0 NavMeshSurface manual);
+        //  - verified: trigger colliders are not baked (Unity issue UUM-54608,
+        //    "As Designed");
+        //  - NOT verified: that a DISABLED collider on an active object is
+        //    skipped. The gate treats it as skipped; a wrong guess only means
+        //    one missed rebake for content that has no effect today;
+        //  - NavMeshModifier "Remove Object" is not modelled: the gate may
+        //    request a rebake that collects nothing, which is harmless.
         // True when any descendant of root is an enabled, non-trigger Collider
         // on an active object whose layer is in layerMask. Mirrors what the
         // school surface collects (PhysicsColliders, layerMask, All objects):
