@@ -219,20 +219,36 @@ namespace LightShadow.UI
                 Vector2.zero, Vector2.zero, new Color(0.01f, 0.01f, 0.02f, 0.94f));
             backdrop.raycastTarget = true;   // the drag surface
 
+            // Point anchors (anchorMin == anchorMax): the MakeText/MakeButton
+            // offset arguments are CORNER offsets from the anchor, not a
+            // position/size pair. CenteredOffsets turns the intended
+            // centre-shift and size into those corner offsets; the pure math
+            // is covered by Contrib/Ziad/Tests/Editor/InspectViewLayoutTests.
             titleText = MakeText(backdrop.transform, "Title", "", 44,
                 new Color(0.95f, 0.89f, 0.77f), TextAnchor.MiddleCenter,
-                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -70f), new Vector2(1400f, 90f),
+                new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
+                CenteredOffsets(new Vector2(0f, -115f), new Vector2(1400f, 90f), out Vector2 titleMax), titleMax,
                 FontStyle.Bold);
 
             inspectText = MakeText(backdrop.transform, "Body", "", 26,
                 new Color(0.90f, 0.88f, 0.80f), TextAnchor.MiddleCenter,
-                new Vector2(0.5f, 0.18f), new Vector2(0.5f, 0.18f), Vector2.zero, new Vector2(1100f, 260f),
+                new Vector2(0.5f, 0.18f), new Vector2(0.5f, 0.18f),
+                CenteredOffsets(Vector2.zero, new Vector2(1100f, 260f), out Vector2 bodyMax), bodyMax,
                 FontStyle.Italic);
 
             closeButton = MakeButton(backdrop.transform, "CloseButton",
                 Localization.TrPresent("CLOSE"), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0f, -320f), new Vector2(260f, 64f));
+                CenteredOffsets(new Vector2(0f, -320f), new Vector2(260f, 64f), out Vector2 closeMax), closeMax);
             closeButton.onClick.AddListener(Hide);
+        }
+
+        // Corner offsets that centre a rect of `size` on its (equal min/max)
+        // anchor, shifted by `shift`: min = shift - size/2, max = shift + size/2.
+        // Pure; used only by EnsureBuilt above.
+        public static Vector2 CenteredOffsets(Vector2 shift, Vector2 size, out Vector2 offsetMax)
+        {
+            offsetMax = shift + size * 0.5f;
+            return shift - size * 0.5f;
         }
 
         Image MakeImage(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax,
