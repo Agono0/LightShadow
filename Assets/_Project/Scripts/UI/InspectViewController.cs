@@ -40,14 +40,38 @@ namespace LightShadow.UI
         {
             if (fragment == null) return;
 
-            Mesh mesh = null;
-            Material material = null;
-            MeshFilter filter = fragment.GetComponentInChildren<MeshFilter>();
-            if (filter != null) mesh = filter.sharedMesh;
-            MeshRenderer renderer = fragment.GetComponentInChildren<MeshRenderer>();
-            if (renderer != null) material = renderer.sharedMaterial;
-
+            Mesh mesh;
+            Material material;
+            PickVisibleMesh(fragment.gameObject, out mesh, out material);
             Show(fragment.fragmentName, fragment.fragmentText, mesh, material);
+        }
+
+        // The fragment prefab can carry a hidden greybox next to the visible model,
+        // so take the visible renderer with the biggest bounds, not just the first one.
+        public static void PickVisibleMesh(GameObject owner, out Mesh mesh, out Material material)
+        {
+            mesh = null;
+            material = null;
+            MeshFilter best = null;
+            float bestSize = -1f;
+            foreach (MeshFilter filter in owner.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (filter.sharedMesh == null) continue;
+                MeshRenderer candidate = filter.GetComponent<MeshRenderer>();
+                if (candidate == null || !candidate.enabled || !filter.gameObject.activeInHierarchy) continue;
+                float size = filter.sharedMesh.bounds.size.sqrMagnitude;
+                if (size > bestSize) { bestSize = size; best = filter; }
+            }
+            if (best != null)
+            {
+                mesh = best.sharedMesh;
+                material = best.GetComponent<MeshRenderer>().sharedMaterial;
+                return;
+            }
+            MeshFilter any = owner.GetComponentInChildren<MeshFilter>(true);
+            if (any != null) mesh = any.sharedMesh;
+            MeshRenderer anyRenderer = owner.GetComponentInChildren<MeshRenderer>(true);
+            if (anyRenderer != null) material = anyRenderer.sharedMaterial;
         }
 
         public static void Show(string title, string text, Mesh mesh, Material material)
