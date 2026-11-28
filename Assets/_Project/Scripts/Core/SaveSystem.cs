@@ -36,6 +36,7 @@ namespace LightShadow.Core
         public class SaveData
         {
             public int version = 1;
+            public int layoutVersion;          // 0 = saved before layout versioning (treated as compatible)
             public string sceneName;
             public Vector3 position;
             public float yaw;
@@ -106,9 +107,20 @@ namespace LightShadow.Core
 
         // ---------------------------------------------------------------- io --
 
+        // Test seam: tests point saves at a temp folder so they never touch real
+        // slots. null (the default) keeps Application.persistentDataPath.
+        public static string RootDirectoryOverride { get; set; }
+
+        public static void ResetRootDirectoryOverride() { RootDirectoryOverride = null; }
+
+        static string RootDirectory()
+        {
+            return string.IsNullOrEmpty(RootDirectoryOverride) ? Application.persistentDataPath : RootDirectoryOverride;
+        }
+
         static string SlotPath(int slot)
         {
-            return Path.Combine(Application.persistentDataPath,
+            return Path.Combine(RootDirectory(),
                 FolderName, FilePrefix + slot + FileExtension);
         }
 
@@ -120,7 +132,7 @@ namespace LightShadow.Core
             {
                 string directory = Path.GetDirectoryName(SlotPath(slot));
                 if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
-                File.WriteAllText(SlotPath(slot), JsonUtility.ToJson(data, true));
+                AtomicFile.WriteAllText(SlotPath(slot), JsonUtility.ToJson(data, true));
                 return true;
             }
             catch (Exception exception)
@@ -130,13 +142,53 @@ namespace LightShadow.Core
             }
         }
 
+        static bool LooksLikeJsonObject(string text)
+        {
+            string trimmed = text.Trim();
+            return trimmed.StartsWith("{") && trimmed.EndsWith("}");
+        }
+
+        static bool Finite(float v) { return !float.IsNaN(v) && !float.IsInfinity(v); }
+
+        // S7: a damaged or hand-edited file must not teleport the player to NaN
+        // or the far side of the world. The old scene-layout check (NavMesh) is
+        // not done: it needs a device to judge.
+        // Bump LayoutVersion whenever the school's walls or rooms move, so an
+        // old save's position is not restored inside new geometry.
+        public const int LayoutVersion = 1;
+
+        public static bool HasUsablePosition(SaveData data)
+        {
+            if (data == null) return false;
+            if (data.layoutVersion > 0 && data.layoutVersion != LayoutVersion) return false;
+            Vector3 p = data.position;
+            const float Limit = 100000f;
+            return Finite(p.x) && Finite(p.y) && Finite(p.z)
+                && Mathf.Abs(p.x) < Limit && Mathf.Abs(p.y) < Limit && Mathf.Abs(p.z) < Limit;
+        }
+
+        // S9: non-finite scalars fall back to safe defaults; finite ones are
+        // clamped to their legal range.
+        public static void Sanitize(SaveData data)
+        {
+            if (data == null) return;
+            if (!Finite(data.yaw)) data.yaw = 0f;
+            data.meterValue = Finite(data.meterValue) ? data.meterValue : 60f;
+            data.batteryFraction = Finite(data.batteryFraction) ? Mathf.Clamp01(data.batteryFraction) : 1f;
+            if (!Finite(data.playSeconds) || data.playSeconds < 0f) data.playSeconds = 0f;
+        }
+
         public static SaveData LoadFromSlot(int slot)
         {
             if (slot < 0 || slot >= SlotCount || !HasSave(slot)) return null;
 
             try
             {
-                return JsonUtility.FromJson<SaveData>(File.ReadAllText(SlotPath(slot)));
+                string json = AtomicFile.ReadAllText(SlotPath(slot), LooksLikeJsonObject);
+                if (json == null) return null;
+                SaveData loaded = JsonUtility.FromJson<SaveData>(json);
+                Sanitize(loaded);
+                return loaded;
             }
             catch (Exception exception)
             {
@@ -156,7 +208,7 @@ namespace LightShadow.Core
             if (slot < 0 || slot >= SlotCount) return;
             try
             {
-                if (File.Exists(SlotPath(slot))) File.Delete(SlotPath(slot));
+                AtomicFile.Delete(SlotPath(slot));
             }
             catch (Exception exception)
             {
@@ -168,19 +220,25 @@ namespace LightShadow.Core
         public static int NewestSlot()
         {
             int newest = -1;
-            string newestStamp = null;
+            string newestStamp = "";
+            int unstamped = -1; // a readable slot with no stamp: only used when nothing is stamped
             for (int slot = 0; slot < SlotCount; slot++)
             {
                 if (!HasSave(slot)) continue;
                 SaveData data = LoadFromSlot(slot);
                 if (data == null) continue;
-                if (newestStamp == null || string.CompareOrdinal(data.savedAtUtc, newestStamp) > 0)
+                if (string.IsNullOrEmpty(data.savedAtUtc))
+                {
+                    if (unstamped < 0) unstamped = slot;
+                    continue;
+                }
+                if (newest < 0 || string.CompareOrdinal(data.savedAtUtc, newestStamp) > 0)
                 {
                     newestStamp = data.savedAtUtc;
                     newest = slot;
                 }
             }
-            return newest;
+            return newest >= 0 ? newest : unstamped;
         }
 
         // -------------------------------------------------------- capture --
@@ -198,6 +256,7 @@ namespace LightShadow.Core
             SaveData data = new SaveData
             {
                 version = 1,
+                layoutVersion = LayoutVersion,
                 sceneName = SceneManager.GetActiveScene().name,
                 position = game.player.position,
                 yaw = game.player.eulerAngles.y,
@@ -223,7 +282,7 @@ namespace LightShadow.Core
             }
 
             // Narrative fills storyJson here, before the blob is written.
-            SaveCaptured?.Invoke(data);
+            InvokeEach(SaveCaptured, data, "SaveCaptured");
             return data;
         }
 
@@ -259,7 +318,7 @@ namespace LightShadow.Core
             if (sceneMatches && hasReceiver)
             {
                 game.ApplyLoadedState(data);
-                SaveApplied?.Invoke(data);
+                InvokeEach(SaveApplied, data, "SaveApplied");
                 return;
             }
 
@@ -267,6 +326,74 @@ namespace LightShadow.Core
             pendingRestore = data;
             SceneManager.sceneLoaded -= OnSceneLoadedForRestore;
             SceneManager.sceneLoaded += OnSceneLoadedForRestore;
+
+            // S6: when the scene is already the right one, sceneLoaded has
+            // already fired, so also poll for the receiver for a few seconds.
+            if (sceneMatches) StartRestoreRetry();
+        }
+
+        const float RestoreRetrySeconds = 10f;
+
+        sealed class RestoreRetry : MonoBehaviour
+        {
+            float started;
+
+            void Awake() { started = Time.unscaledTime; }
+
+            void Update()
+            {
+                if (pendingRestore == null) { Destroy(gameObject); return; }
+                GameManager game = GameManager.Instance;
+                if (game != null && game.player != null)
+                {
+                    ApplyPending();
+                    Destroy(gameObject);
+                    return;
+                }
+                if (Time.unscaledTime - started > RestoreRetrySeconds)
+                {
+                    Debug.LogWarning("[LightShadow] Save restore gave up: no GameManager/player after " + RestoreRetrySeconds + "s.");
+                    ClearPendingRestore();
+                    Destroy(gameObject);
+                }
+            }
+        }
+
+        static void StartRestoreRetry()
+        {
+            if (!Application.isPlaying) return;
+            if (UnityEngine.Object.FindFirstObjectByType<RestoreRetry>() != null) return;
+            new GameObject("SaveRestoreRetry").AddComponent<RestoreRetry>();
+        }
+
+        static void ApplyPending()
+        {
+            SaveData data = pendingRestore;
+            pendingRestore = null;
+            SceneManager.sceneLoaded -= OnSceneLoadedForRestore;
+            GameManager game = GameManager.Instance;
+            if (data == null || game == null || game.player == null) return;
+            game.ApplyLoadedState(data);
+            InvokeEach(SaveApplied, data, "SaveApplied");
+        }
+
+        // S2: Android can kill a backgrounded app, so save when it is paused or
+        // quit. Mobile only (a desktop or editor run must not overwrite a slot
+        // on focus loss); Capture() returns null outside a school run.
+        sealed class LifecycleSaver : MonoBehaviour
+        {
+            void OnApplicationPause(bool paused) { if (paused) Autosave(); }
+            void OnApplicationQuit() { Autosave(); }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void HookLifecycle()
+        {
+            if (!Application.isMobilePlatform) return;
+            var host = new GameObject("SaveLifecycleSaver");
+            host.hideFlags = HideFlags.HideAndDontSave;
+            UnityEngine.Object.DontDestroyOnLoad(host);
+            host.AddComponent<LifecycleSaver>();
         }
 
         // Drops a deferred restore that never matched its scene. Called when
@@ -289,18 +416,32 @@ namespace LightShadow.Core
             if (scene.name != pendingRestore.sceneName) return;
 
             SceneManager.sceneLoaded -= OnSceneLoadedForRestore;
-            SaveData data = pendingRestore;
-            pendingRestore = null;
 
             GameManager game = GameManager.Instance;
             if (game == null || game.player == null)
             {
-                Debug.LogWarning("[LightShadow] Save restored late: no GameManager/player in " + scene.name);
+                // The receiver spawns after sceneLoaded: keep the save and poll.
+                Debug.LogWarning("[LightShadow] Save restore waiting for GameManager/player in " + scene.name);
+                StartRestoreRetry();
                 return;
             }
 
-            game.ApplyLoadedState(data);
-            SaveApplied?.Invoke(data);
+            ApplyPending();
+        }
+
+        // S3: one throwing subscriber must not skip the others or lose the save.
+        static void InvokeEach(Action<SaveData> handlers, SaveData data, string label)
+        {
+            if (handlers == null) return;
+            Delegate[] list = handlers.GetInvocationList();
+            for (int i = 0; i < list.Length; i++)
+            {
+                try { ((Action<SaveData>)list[i])(data); }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning("[LightShadow] " + label + " handler failed: " + exception.Message);
+                }
+            }
         }
 
         static void EnsureSession()

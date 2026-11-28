@@ -88,6 +88,12 @@ namespace LightShadow.Systems
         static void Park(PoolEntry entry, Component instance)
         {
             if (entry.Available == null) entry.Available = new Component[InitialCapacity];
+            // Double release must not park the same instance twice (audit 6.2):
+            // it would be handed out to two callers.
+            for (int i = 0; i < entry.AvailableCount; i++)
+            {
+                if (ReferenceEquals(entry.Available[i], instance)) return;
+            }
             if (entry.AvailableCount == entry.Available.Length)
             {
                 Component[] grown = new Component[entry.Available.Length * 2];

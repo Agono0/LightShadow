@@ -54,7 +54,7 @@ namespace LightShadow.Gameplay
                 {
                     gm.ShowMessage(
                         Localization.Current == GameLanguage.Arabic
-                            ? Localization.Present("لوحة القواطع ميتة. ثلاثة صناديق مصاهر أولًا.")
+                            ? "لوحة القواطع ميتة. ثلاثة صناديق مصاهر أولًا."
                             : "The breaker panel is dead. Three fuse boxes first.",
                         4f);
                 }
@@ -69,7 +69,7 @@ namespace LightShadow.Gameplay
             {
                 gm.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("غطاء اللوحة مقفل. مفتاح غرفة المعلمين الرئيسي سيفتحه.")
+                        ? "غطاء اللوحة مقفل. مفتاح غرفة المعلمين الرئيسي سيفتحه."
                         : "The panel cover is locked. The staff room master key would open it.",
                     4f);
                 return;

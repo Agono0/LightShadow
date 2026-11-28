@@ -82,7 +82,12 @@ namespace LightShadow.Audio
             }
 
             instance = this;
-            DontDestroyOnLoad(gameObject);
+            // Audit 6.6: the school Systems object hosts GameManager and other
+            // per-run managers. If the school scene is entered first (editor
+            // Play in 02_School) it must not become persistent, or the next
+            // school load duplicates every manager. The bootstrap instance is
+            // the one that persists in shipped builds.
+            if (gameObject.scene.name != SceneNames.School) DontDestroyOnLoad(gameObject);
 
             if (config == null && GameManager.Instance != null) config = GameManager.Instance.config;
 
@@ -95,8 +100,19 @@ namespace LightShadow.Audio
             if (instance == this) instance = null;
         }
 
+        // This object persists across scenes, so run 1's dawn flag would arm the
+        // Dawn snapshot from the first second of run 2 (audit 4.1). Every school
+        // load starts a run: clear it there.
+        void OnSchoolSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            if (scene.name != SceneNames.School) return;
+            dawnActive = false;
+            overlayExpiresAt = -1f;
+        }
+
         void OnEnable()
         {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSchoolSceneLoaded;
             GameEvents.EnemyStateChanged += OnEnemyStateChanged;
             GameEvents.FragmentCollected += OnMemoryFlash;
             GameEvents.FuseRestored += OnMemoryFlash;
@@ -106,6 +122,7 @@ namespace LightShadow.Audio
 
         void OnDisable()
         {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSchoolSceneLoaded;
             GameEvents.EnemyStateChanged -= OnEnemyStateChanged;
             GameEvents.FragmentCollected -= OnMemoryFlash;
             GameEvents.FuseRestored -= OnMemoryFlash;
@@ -132,11 +149,8 @@ namespace LightShadow.Audio
         void OnMemoryFlash(int a, int b)
         {
             BeginMemoryFlash();
-            // The memory-flash piano (Docs/AUDIO_CUES.md MUS_MemoryTheme): a
-            // one-shot under the overlay that ducks everything but Voice/Music.
-            // Null-safe: no clip in the library, no sound.
-            if (AudioManager.Instance != null)
-                AudioManager.Instance.PlayMusicOnce(SfxRegistry.Clip("MUS_MemoryTheme"));
+            // No music: the memory flash used to start a MUS_MemoryTheme piano
+            // one-shot here. The game is silent except for diegetic sound.
         }
 
         void OnDawnStarted()

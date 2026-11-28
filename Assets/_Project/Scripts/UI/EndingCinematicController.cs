@@ -163,7 +163,7 @@ namespace LightShadow.UI
 
                         if (subtitle != null)
                         {
-                            subtitle.text = Localization.Current == GameLanguage.Arabic ? line.ar : line.en;
+                            subtitle.text = Localization.Current == GameLanguage.Arabic ? Localization.Present(line.ar) : line.en;
                             subtitle.font = Localization.CurrentFont;
                             subtitle.alignment = Localization.Current == GameLanguage.Arabic
                                 ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft;

@@ -31,6 +31,11 @@ namespace LightShadow.UI
         float messageTimer;
         bool objectivesShown;
 
+        // Raw English sources of the on-screen prompt and message, cached so a
+        // language switch can re-render them in place (HUD review, 5.4b family).
+        string lastPromptSource = "";
+        string lastMessageSource = "";
+
         // Story beats queue behind whatever is on screen, so a memory flash and
         // its follow-up line both play without overwriting each other.
         struct QueuedMessage
@@ -128,21 +133,26 @@ namespace LightShadow.UI
             // Tab peeks at the objective list; the touch button calls ToggleObjectives().
             if (Input.GetKeyDown(KeyCode.Tab)) ToggleObjectives();
 
-            if (messageTimer > 0f)
+            AdvanceMessageTimer(Time.deltaTime);
+        }
+
+        // Public so Editor tests can drive the queue without a play-mode clock.
+        public void AdvanceMessageTimer(float deltaSeconds)
+        {
+            if (messageTimer <= 0f) return;
+            messageTimer -= deltaSeconds;
+            if (messageTimer > 0f) return;
+
+            if (messageQueue.Count > 0)
             {
-                messageTimer -= Time.deltaTime;
-                if (messageTimer <= 0f)
-                {
-                    if (messageQueue.Count > 0)
-                    {
-                        QueuedMessage next = messageQueue.Dequeue();
-                        ShowMessage(next.text, next.seconds);
-                    }
-                    else if (messageText != null)
-                    {
-                        messageText.gameObject.SetActive(false);
-                    }
-                }
+                // Lossless FIFO hand-off: show the next beat WITHOUT the
+                // urgent-message clear, so deeper beats survive.
+                QueuedMessage next = messageQueue.Dequeue();
+                DisplayMessage(next.text, next.seconds);
+            }
+            else if (messageText != null)
+            {
+                messageText.gameObject.SetActive(false);
             }
         }
 
@@ -184,7 +194,7 @@ namespace LightShadow.UI
             }
             SetFadeAlpha(0f);
             // Restore black so the next FadeToBlack does not fade in red.
-            if (fadeImage != null) fadeImage.color = new Color(0f, 0f, 0f, fadeImage.color.a);
+            ResetFadeBaseToBlack();
             fadeRoutine = null;
         }
 
@@ -204,12 +214,20 @@ namespace LightShadow.UI
             {
                 promptText.font = font;
                 promptText.alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft;
+                // Re-render the cached source: a mid-game language switch must
+                // not leave the previous language on screen (HUD review).
+                promptText.text = string.IsNullOrEmpty(lastPromptSource)
+                    ? "" : Localization.TrPresent(lastPromptSource);
             }
 
             if (messageText != null)
             {
                 messageText.font = font;
                 messageText.alignment = arabic ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
+                if (!string.IsNullOrEmpty(lastMessageSource))
+                {
+                    messageText.text = Localization.TrPresent(lastMessageSource);
+                }
             }
 
             if (objectivesText != null)
@@ -217,6 +235,10 @@ namespace LightShadow.UI
                 objectivesText.font = font;
                 objectivesText.alignment = arabic ? TextAnchor.UpperRight : TextAnchor.UpperLeft;
             }
+
+            // The objectives lines are built from templates too; rebuild them
+            // for the new language (null-safe without a GameManager).
+            RefreshObjectives();
         }
 
         public void SetPrompt(string text)
@@ -224,7 +246,8 @@ namespace LightShadow.UI
             if (promptText == null) return;
             // Prompts arrive as the English source sentence; TrPresent maps and
             // shapes them for the active language.
-            string shown = string.IsNullOrEmpty(text) ? "" : Localization.TrPresent(text);
+            lastPromptSource = text ?? "";
+            string shown = string.IsNullOrEmpty(lastPromptSource) ? "" : Localization.TrPresent(lastPromptSource);
             if (promptText.text == shown) return;
             promptText.text = shown;
         }
@@ -234,6 +257,12 @@ namespace LightShadow.UI
             if (messageText == null || string.IsNullOrEmpty(text)) return;
             // An urgent message takes over: clear any stale queued beats.
             messageQueue.Clear();
+            DisplayMessage(text, seconds);
+        }
+
+        void DisplayMessage(string text, float seconds)
+        {
+            lastMessageSource = text;
             messageText.text = Localization.TrPresent(text);
             ApplyLanguageUI();
             messageText.gameObject.SetActive(true);
@@ -294,7 +323,16 @@ namespace LightShadow.UI
         public void FadeToBlack(float seconds, Action onBlack)
         {
             if (fadeRoutine != null) StopCoroutine(fadeRoutine);
+            // Reset the base colour: an interrupted hurt flash leaves the image
+            // red, and only that coroutine's normal end restores black - so a
+            // black fade starting mid-flash would fade to red (HUD review).
+            if (fadeImage != null) fadeImage.color = new Color(0f, 0f, 0f, fadeImage.color.a);
             fadeRoutine = StartCoroutine(FadeRoutine(1f, seconds, onBlack));
+        }
+
+        public void ResetFadeBaseToBlack()
+        {
+            if (fadeImage != null) fadeImage.color = new Color(0f, 0f, 0f, fadeImage.color.a);
         }
 
         public void FadeIn(float seconds)

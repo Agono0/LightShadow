@@ -43,8 +43,9 @@ namespace LightShadow.UI
         public bool IsOpen => panel != null && panel.activeSelf;
 
         // What happens after the panel picks a slot.
-        enum Intent { None, Load, NewGame }
+        enum Intent { None, Load, NewGame, Delete, Notice }
         Intent pendingIntent;
+        int pendingSlot = -1; // the slot the open confirmation belongs to
 
         void Awake()
         {
@@ -78,6 +79,11 @@ namespace LightShadow.UI
         {
             if (panel != null) panel.SetActive(true);
             Refresh();
+            SelectFirst();
+        }
+
+        public void SelectFirst()
+        {
             if (EventSystem.current != null && rows.Length > 0 && rows[0] != null
                 && rows[0].loadButton != null)
             {
@@ -163,8 +169,25 @@ namespace LightShadow.UI
             // translated first, then formatted.
             int chapter = data.fusesRestored <= 0 ? 1 : data.fusesRestored < GameManager.FuseTarget ? 2 : 3;
             return string.Format(StoryStrings.Tr("CHAPTER {0}"), chapter) + "\n"
-                + string.Format(StoryStrings.Tr("Fragments: {0}/6"), data.fragmentsCollected) + "\n"
+                + FormatFragments(data.fragmentsCollected) + "\n"
                 + string.Format(StoryStrings.Tr("Saved {0}"), FormatStamp(data.savedAtUtc));
+        }
+
+        // audit v3 5.5: the fragment target lives in GameManager.FragmentTarget.
+        // The translated template carries a baked "/6", so substitute the live
+        // target - the UI can never desync if the target moves.
+        public static string FormatFragments(int collected)
+        {
+            string template = StoryStrings.Tr("Fragments: {0}/6");
+            const string baked = "/6";
+            int slash = template.LastIndexOf(baked, StringComparison.Ordinal);
+            if (slash >= 0)
+            {
+                template = template.Substring(0, slash)
+                    + "/" + GameManager.FragmentTarget
+                    + template.Substring(slash + baked.Length);
+            }
+            return string.Format(template, collected);
         }
 
         static string FormatStamp(string savedAtUtc)
@@ -208,31 +231,65 @@ namespace LightShadow.UI
         void AskDelete(int slot)
         {
             if (!SaveSystem.HasSave(slot)) return;
-            ShowConfirm(slot, StoryStrings.Tr("Delete this save?"), Intent.None);
+            ShowConfirm(slot, StoryStrings.Tr("Delete this save?"), Intent.Delete);
         }
 
+        void CloseAllConfirms()
+        {
+            if (rows != null)
+            {
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    if (rows[i] != null && rows[i].confirmRoot != null) rows[i].confirmRoot.SetActive(false);
+                }
+            }
+            pendingIntent = Intent.None;
+            pendingSlot = -1;
+        }
+
+        // One confirmation at a time: opening one closes the rest, and the
+        // open one remembers its slot and intent (audit: stale dialogs).
         void ShowConfirm(int slot, string message, Intent intent)
         {
             SlotRow row = rows[slot];
             if (row == null || row.confirmRoot == null) return;
+            CloseAllConfirms();
             pendingIntent = intent;
+            pendingSlot = slot;
             if (row.confirmText != null) row.confirmText.text = message;
             row.confirmRoot.SetActive(true);
+        }
+
+        // Close-only message on a slot row; either button just closes it.
+        void ShowNotice(int slot, string message)
+        {
+            if (slot < 0 || rows == null || slot >= rows.Length) return;
+            ShowConfirm(slot, message, Intent.Notice);
         }
 
         void CancelConfirm(int slot)
         {
             SlotRow row = rows[slot];
-            pendingIntent = Intent.None;
+            if (slot == pendingSlot) { pendingIntent = Intent.None; pendingSlot = -1; }
             if (row != null && row.confirmRoot != null) row.confirmRoot.SetActive(false);
         }
 
         void ConfirmYes(int slot)
         {
-            SlotRow row = rows[slot];
-            if (row != null && row.confirmRoot != null) row.confirmRoot.SetActive(false);
+            // Only the dialog that is actually open may act, and None never
+            // means delete.
+            Intent intent = slot == pendingSlot ? pendingIntent : Intent.None;
+            pendingIntent = Intent.None;
+            pendingSlot = -1;
 
-            switch (pendingIntent)
+            // Pending is cleared, so no dialog may stay open: a stale Yes must
+            // not leave another row's dialog on screen with nothing behind it.
+            for (int r = 0; r < rows.Length; r++)
+            {
+                if (rows[r] != null && rows[r].confirmRoot != null) rows[r].confirmRoot.SetActive(false);
+            }
+
+            switch (intent)
             {
                 case Intent.NewGame:
                     SaveSystem.DeleteSlot(slot); // "New Game (choose slot -> clears)"
@@ -242,16 +299,33 @@ namespace LightShadow.UI
                 case Intent.Load:
                     LoadSlot(slot);
                     break;
-                default:
+                case Intent.Delete:
                     SaveSystem.DeleteSlot(slot);
                     Refresh();
                     break;
+                default:
+                    break; // Notice or a stale dialog: nothing happens
             }
-            pendingIntent = Intent.None;
         }
 
         void StartRun(Intent intent)
         {
+            SaveSystem.SaveData loaded = null;
+            if (intent == Intent.Load)
+            {
+                // Read the slot BEFORE leaving the menu: a corrupt or unreadable
+                // slot must not silently become a new game that inherits the
+                // previous run (audit F1).
+                loaded = SaveSystem.LoadFromSlot(SaveSystem.CurrentSlot);
+                if (loaded == null)
+                {
+                    Debug.LogWarning("[LightShadow] Save slot " + SaveSystem.CurrentSlot + " could not be read; staying on the menu.");
+                    Refresh();
+                    ShowNotice(SaveSystem.CurrentSlot, StoryStrings.Tr("That save could not be read. It was left untouched."));
+                    return;
+                }
+            }
+
             Hide();
 
             if (intent == Intent.NewGame)
@@ -260,7 +334,12 @@ namespace LightShadow.UI
                 // survive into the fresh run (audit A3).
                 SaveSystem.ClearPendingRestore();
                 StoryDirector.ResetForNewRun();
+                // Stale hints must not leak into the new run (overlay review).
+                LightShadow.Contrib.Abdelraouf.HintLog.HintLogRecord.Clear();
                 RunResults.Reset();
+                Inventory.ResetForNewRun();
+                LightShadow.Player.HidingSystem.ResetState();
+                LightShadow.Contrib.Abdelraouf.Journal.JournalProgress.ResetForNewRun();
             }
 
             LoadingScreen.Transition(SceneNames.School);
@@ -269,7 +348,7 @@ namespace LightShadow.UI
             {
                 // Restore is deferred by SaveSystem until the school scene is
                 // live (it subscribes to sceneLoaded itself).
-                SaveSystem.Restore(SaveSystem.LoadFromSlot(SaveSystem.CurrentSlot));
+                SaveSystem.Restore(loaded);
             }
         }
     }

@@ -269,10 +269,46 @@ namespace LightShadow.Core
                 ? RenderScales[Mathf.Clamp(RenderScaleIndex, 0, RenderScales.Length - 1)]
                 : TierRenderScale[AppliedTier];
 
+#if UNITY_EDITOR
+            RememberAssetForEditor(graphics);
+#endif
             graphics.shadowDistance = shadows;
             graphics.msaaSampleCount = msaa;
             graphics.renderScale = scale;
         }
+
+#if UNITY_EDITOR
+        // Audit 6.5: in the editor the URP asset is a project file, so writing it
+        // leaves the asset dirty on disk. Remember the authored values and put
+        // them back when Play mode ends.
+        static UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset rememberedAsset;
+        static float rememberedShadows;
+        static int rememberedMsaa;
+        static float rememberedScale;
+
+        static void RememberAssetForEditor(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset asset)
+        {
+            if (rememberedAsset != null) return;
+            rememberedAsset = asset;
+            rememberedShadows = asset.shadowDistance;
+            rememberedMsaa = asset.msaaSampleCount;
+            rememberedScale = asset.renderScale;
+            UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChanged;
+        }
+
+        static void OnPlayModeChanged(UnityEditor.PlayModeStateChange change)
+        {
+            if (change != UnityEditor.PlayModeStateChange.EnteredEditMode) return;
+            UnityEditor.EditorApplication.playModeStateChanged -= OnPlayModeChanged;
+            if (rememberedAsset != null)
+            {
+                rememberedAsset.shadowDistance = rememberedShadows;
+                rememberedAsset.msaaSampleCount = rememberedMsaa;
+                rememberedAsset.renderScale = rememberedScale;
+            }
+            rememberedAsset = null;
+        }
+#endif
 
         // Frame-rate policy (decision D8): vSync on → the driver caps us and
         // the engine target is cleared; vSync off → Windows targets 120 FPS and

@@ -9,7 +9,9 @@ namespace LightShadow.Gameplay
     // her summer route city by city (Cairo, Beirut, Baghdad, Rabat). Reading
     // the matching countries' digits in route order gives the four-digit code
     // on the middle locker's lock. Solving slides the locker door aside and
-    // reveals the master key. A wrong code clanks the lock: WrongAttempt()
+    // reveals the master key. The staff-room key is paid separately by
+    // Gameplay/PuzzleKeyRewards (and a spare lies outside the room: this locker
+    // is INSIDE the staff room). A wrong code clanks the lock: WrongAttempt()
     // costs Bright Idea (GameConfig.puzzleWrongMeterPenalty) and raises
     // GameEvents.PuzzleFailed, the noise hook that can draw the Shadow.
     //
@@ -71,7 +73,7 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("انزلق باب الخزانة جانبًا. بداخلها المفتاح الرئيسي.")
+                        ? "انزلق باب الخزانة جانبًا. بداخلها المفتاح الرئيسي."
                         : "The locker door slides aside. Inside, the master key.",
                     4f);
             }

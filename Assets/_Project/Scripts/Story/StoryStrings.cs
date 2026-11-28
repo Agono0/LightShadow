@@ -69,6 +69,7 @@ namespace LightShadow.Story
             { "Saved {0}", "محفوظ في {0}" },
             { "Overwrite this slot?", "الكتابة فوق هذه الخانة؟" },
             { "Delete this save?", "حذف هذا الحفظ؟" },
+            { "That save could not be read. It was left untouched.", "تعذّرت قراءة هذا الحفظ. تُرك كما هو." }, // AI-drafted, not native-reviewed
             { "No saves yet. The night has not been written.", "لا حفظيات بعد. الليلة لم تُكتب بعد." },
             { "SAVES", "الحفظ" },
 
@@ -94,7 +95,7 @@ namespace LightShadow.Story
             { "Blue-Orange", "أزرق-برتقالي" },
             { "High contrast", "تباين عالٍ" },
             { "Auto-advance", "تقدم تلقائي" },
-            { "Skip hold time", "مدة التخطيط المطول" },
+            { "Skip hold time", "مدة الضغط للتخطي" },
             { "Quality tier", "مستوى الجودة" },
             { "Auto", "تلقائي" },
             { "Low", "منخفضة" },
@@ -108,6 +109,8 @@ namespace LightShadow.Story
             { "Ambience volume", "الصوت المحيط" },
             { "SFX volume", "المؤثرات" },
             { "UI volume", "أصوات الواجهة" },
+            { "Voice volume", "صوت الراوي" },   // AI-drafted, not native-reviewed
+            { "Shadow volume", "صوت الظل" },     // AI-drafted, not native-reviewed
 
             // ---- ending + recap ----------------------------------------------
             { "ENDING", "النهاية" },
@@ -247,7 +250,7 @@ namespace LightShadow.Story
             { "It stands aside the way furniture stands aside in a school you no longer attend. I keep to the light. I do not run. Not yet.",
               "ينزاح جانبًا كما تنزاح الأثاث في مدرسة لم تعودي إليها. ألتزم بالنور. لا أركض. ليس بعد." },
             { "The windows are turning grey. The gate is one lit runway away, and my legs are a student's legs: they remember every corridor of this school.",
-              "تصفرّ النوافذ رمادية. البوابة على بعد مدرج مضيء واحد، وساقاي ساقا طالبة: تتذكران كل ممر في هذه المدرسة." },
+              "تتحول النوافذ إلى الرمادي. البوابة على بعد مدرج مضيء واحد، وساقاي ساقا طالبة: تتذكران كل ممر في هذه المدرسة." },
             { "Run the lit corridor. Straight lines only.", "أركض في الممر المضيء. خطوط مستقيمة فقط." },
             { "The back stairs I never used. Faster, darker. Mine.", "الدرج الخلفي الذي لم أستخدمه قط. أسرع، أظلم. ملكي." },
             { "Decide with your feet.", "قرّري برجليك." },

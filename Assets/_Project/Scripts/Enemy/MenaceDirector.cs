@@ -104,7 +104,7 @@ namespace LightShadow.Enemy
             float rise = ComputeRise();
             Gauge = Mathf.Clamp(Gauge + rise * Time.deltaTime, 0f, MenaceMax);
 
-            if (Gauge >= MenaceMax)
+            if (Gauge >= MenaceMax && EnemyBehaviour.CanForceCooldown(enemy.IsAggressive))
             {
                 float seconds = Random.Range(CooldownMin, CooldownMax);
                 enemy.ForceCooldown(seconds);

@@ -33,6 +33,23 @@ namespace LightShadow.Tools
                 problems.Add("Build settings should contain exactly 4 scenes, found " + EditorBuildSettings.scenes.Length + ".");
             }
 
+            // Light budget (audit S1): the school must stay dark. No directional
+            // fill, no moon/window fills, and a capped point-light count so
+            // mobile stays cheap and the torch stays the main light.
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(SchoolPath) != null)
+            {
+                EditorSceneManager.OpenScene(SchoolPath, OpenSceneMode.Single);
+                int points = 0;
+                foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                {
+                    if (light.type == LightType.Directional) problems.Add("School scene has a directional light (" + light.name + "); it must stay dark.");
+                    if (light.type == LightType.Point) points++;
+                    if (light.name.Contains("Moon")) problems.Add("School scene still has a moon fill light: " + light.name);
+                }
+                report.AppendLine("School point lights: " + points);
+                if (points > 90) problems.Add("School scene has " + points + " point lights; budget is 90.");
+            }
+
             string[] expectedScenes = { BootstrapPath, MainMenuPath, SchoolPath, EndingPath };
             foreach (string path in expectedScenes)
             {
@@ -65,6 +82,13 @@ namespace LightShadow.Tools
                 }
 
                 report.AppendLine("Question bank: " + valid + " valid / " + database.all.Count + " linked");
+                int pendingFactCheck = 0;
+                foreach (QuestionData q in database.all)
+                {
+                    if (q != null && q.factSource == "NEEDS-FACT-CHECK") pendingFactCheck++;
+                }
+                report.AppendLine("Questions awaiting teacher fact-check: " + pendingFactCheck + "/" + database.all.Count
+                    + (pendingFactCheck > 0 ? " (RELEASE GATE OPEN: do not ship as verified)" : ""));
                 report.AppendLine("Question categories: " + categories.Count + "/6");
                 report.AppendLine("Question Arabic fields: " + arabic + "/" + valid);
                 if (valid < 60) problems.Add("Question bank has " + valid + " valid questions; the project document asks for 60+.");

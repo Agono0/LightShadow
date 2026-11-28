@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System;
 using System.Collections;
 using LightShadow.Core;
@@ -47,6 +48,7 @@ namespace LightShadow.UI
         Action onWrongAttempt;
         bool busy;
         bool cursorWasLocked;
+        InputLockToken lockToken;
 
         void Awake()
         {
@@ -71,6 +73,11 @@ namespace LightShadow.UI
         {
             if (elementsEn == null || solution == null) return;
             if (elementsEn.Length != 3 || solution.Length != 3) return;
+            if (!ValidSolution(solution, elementsEn.Length))
+            {
+                Debug.LogWarning("[OpticsUI] Show refused: every solution entry must be a rotation step 0..3.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -110,6 +117,7 @@ namespace LightShadow.UI
             {
                 closeButton.onClick.RemoveAllListeners();
                 closeButton.onClick.AddListener(() => Close(false));
+                closeButton.interactable = true;
             }
 
             RenderStatics();
@@ -117,7 +125,7 @@ namespace LightShadow.UI
 
             if (panel != null) panel.SetActive(true);
 
-            PlayerController.ExternalInputLocked = true;
+            lockToken = OverlayStack.Acquire("OpticsUI", true, true, () => Close(false));
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
             {
@@ -163,6 +171,7 @@ namespace LightShadow.UI
             if (aligned)
             {
                 busy = true;
+                if (closeButton != null) closeButton.interactable = false;
                 SetLocalized(feedbackText,
                     "The beam lands on the sensor with a warm click.",
                     "أصاب الشعاع المستشعر بنقرة دافئة.");
@@ -190,6 +199,20 @@ namespace LightShadow.UI
                 : TextAnchor.MiddleCenter;
         }
 
+        // P1: each rotor's target must be a legal quarter-turn (0..3); an
+        // out-of-range target can never be matched and soft-locks the overlay.
+        public static bool ValidSolution(int[] solution, int elementCount)
+        {
+            if (solution == null || solution.Length != elementCount) return false;
+            for (int i = 0; i < solution.Length; i++)
+                if (solution[i] < 0 || solution[i] > 3) return false;
+            return true;
+        }
+
+        // P2: pure discard policy - a busy overlay (the success beat, the
+        // sequence playback) may only close solved. Static so tests pin it.
+        public static bool CanDiscard(bool busy) => !busy;
+
         IEnumerator CloseAfterFeedback(float seconds)
         {
             yield return new WaitForSeconds(seconds);
@@ -198,6 +221,10 @@ namespace LightShadow.UI
 
         void Close(bool solved)
         {
+            // P2: an unsolved dismiss (close button, Esc, overlay dismiss
+            // callback) must not discard the overlay while it is busy; the
+            // success beat closes itself with Close(true).
+            if (!solved && !CanDiscard(busy)) return;
             if (panel != null) panel.SetActive(false);
             ReleaseLock();
 
@@ -210,7 +237,7 @@ namespace LightShadow.UI
 
         void ReleaseLock()
         {
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (cursorWasLocked && !Application.isMobilePlatform)
             {
                 Cursor.lockState = CursorLockMode.Locked;

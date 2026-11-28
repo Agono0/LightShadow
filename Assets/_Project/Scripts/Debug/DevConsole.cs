@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System.Collections.Generic;
 using LightShadow.Core;
 using LightShadow.Enemy;
@@ -50,7 +51,7 @@ namespace LightShadow.DebugTools
         public Button debugButton;
 
         readonly List<string> lines = new List<string>();
-        bool playerWasLocked;
+        InputLockToken consoleLock;
 
         public static void EnsureCreated()
         {
@@ -89,8 +90,7 @@ namespace LightShadow.DebugTools
 
             if (opening)
             {
-                playerWasLocked = PlayerController.ExternalInputLocked;
-                PlayerController.ExternalInputLocked = true;
+                if (consoleLock == null || !consoleLock.IsActive) consoleLock = OverlayStack.Acquire("DevConsole", true, false);
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
                 if (inputField != null)
@@ -102,7 +102,7 @@ namespace LightShadow.DebugTools
             }
             else
             {
-                if (!playerWasLocked) PlayerController.ExternalInputLocked = false;
+                OverlayStack.Release(ref consoleLock);
                 if (!Application.isMobilePlatform && !PauseMenu.IsOpen)
                 {
                     Cursor.lockState = CursorLockMode.Locked;
@@ -196,6 +196,11 @@ namespace LightShadow.DebugTools
             // Same hop as the checkpoint wake: switch the capsule off for the move.
             CharacterController controller = game.player.GetComponent<CharacterController>();
             if (controller != null) controller.enabled = false;
+            // 6.7: the anchor table is a hand copy and can rot. Snap to the
+            // NavMesh when it is near, and say so when it is not.
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(position, out hit, 3f, NavMesh.AllAreas)) position = hit.position;
+            else Log("warning: anchor '" + roomName + "' is off the navmesh (table out of date?)");
             game.player.SetPositionAndRotation(position, Quaternion.identity);
             if (controller != null) controller.enabled = true;
             Log("teleported: " + roomName);

@@ -20,13 +20,20 @@ namespace LightShadow.Gameplay
 
         public static ThrowableProp Carried { get; private set; }
 
+        // F is shared with the flashlight toggle and the crank. While a prop
+        // is carried, or on the frame it was thrown, F belongs to the prop.
+        static int lastThrowFrame = -10;
+        public static bool OwnsFKey => Carried != null || Time.frameCount - lastThrowFrame <= 1;
+        public static void MarkThrown() { lastThrowFrame = Time.frameCount; }
+
         Rigidbody body;
         Vector3 homePosition;
         Quaternion homeRotation;
         Transform homeParent;
         bool landedSinceRelease = true;
 
-        public string Prompt => Carried == this ? "Put it down" : "Pick it up";
+        // F3: no verb while another prop owns the hands.
+        public string Prompt => !CanInteract ? "" : Carried == this ? "Put it down" : "Pick it up";
         public bool CanInteract => Carried == null || Carried == this;
 
         void Awake()
@@ -45,9 +52,13 @@ namespace LightShadow.Gameplay
 
         void PickUp()
         {
+            // P3: with no camera hold point, SetParent(null) plus a zero local
+            // position would teleport the prop to the world origin.
+            Transform hold = HoldPoint();
+            if (hold == null) return;
             Carried = this;
             if (body != null) body.isKinematic = true;
-            Transform hold = HoldPoint();
+            SetCollidersEnabled(false); // a carried prop must not shove the player or the camera
             transform.SetParent(hold, false);
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
@@ -63,6 +74,7 @@ namespace LightShadow.Gameplay
         public static void ThrowCarried()
         {
             if (Carried == null) return;
+            MarkThrown();
             Camera cam = Camera.main;
             Vector3 impulse = cam != null
                 ? (cam.transform.forward + Vector3.up * 0.15f).normalized * Carried.throwForce
@@ -70,9 +82,16 @@ namespace LightShadow.Gameplay
             Carried.Release(impulse);
         }
 
+        void SetCollidersEnabled(bool enabled)
+        {
+            Collider[] colliders = GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++) colliders[i].enabled = enabled;
+        }
+
         void Release(Vector3 impulse)
         {
             Carried = null;
+            SetCollidersEnabled(true);
             transform.SetParent(homeParent, true);
             if (body != null)
             {
@@ -138,11 +157,20 @@ namespace LightShadow.Gameplay
             }
         }
 
+        // P2: death while carrying. The checkpoint wake puts a carried prop
+        // back home and frees the F key (it also frees the thrown-frame latch).
+        public static void ResetCarried()
+        {
+            lastThrowFrame = -10;
+            if (Carried != null) Carried.ResetHome();
+        }
+
         // Back in place on a checkpoint wake: a carried or shattered prop
         // resets with the chapter.
         public void ResetHome()
         {
             if (Carried == this) Carried = null;
+            SetCollidersEnabled(true);
             gameObject.SetActive(true);
             transform.SetParent(homeParent, false);
             transform.position = homePosition;

@@ -25,6 +25,12 @@ namespace LightShadow.UI
 
         public bool IsOpen => panel != null && panel.activeSelf;
 
+        // Neutral result for a question that was displaced or cancelled (death
+        // with the panel open). It is not a wrong answer: callers must not
+        // touch the meter or the recap for it.
+        public const int CancelIndex = -2;
+        public static bool IsCancel(int chosenIndex) => chosenIndex == CancelIndex;
+
         QuestionData current;
         Action<bool, int> onAnswered;
         float timeLeft;
@@ -130,6 +136,9 @@ namespace LightShadow.UI
                 return;
             }
 
+            // A question still waiting for its answer is released with the
+            // neutral cancel result, so its owner (QuizBoard.asking) unlatches.
+            ReleaseCallback();
             StopAllCoroutines();
 
             current = question;
@@ -163,6 +172,31 @@ namespace LightShadow.UI
             }
         }
 
+        void ReleaseCallback()
+        {
+            Action<bool, int> pending = onAnswered;
+            onAnswered = null;
+            if (pending != null) pending(false, CancelIndex);
+        }
+
+        // Closes the panel without an answer (the death flow calls this before
+        // the wake). No wrong answer, no recap entry, no meter change.
+        public void Cancel()
+        {
+            if (!IsOpen && onAnswered == null) return;
+            StopAllCoroutines();
+            answered = true;
+            if (panel != null) panel.SetActive(false);
+            if (feedbackPanel != null) feedbackPanel.SetActive(false);
+            if (cursorWasLocked && !Application.isMobilePlatform)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+            current = null;
+            ReleaseCallback();
+        }
+
         void Choose(int index)
         {
             if (answered || current == null) return;
@@ -178,7 +212,7 @@ namespace LightShadow.UI
                     : (correct ? Localization.TrPresent("Correct.") : Localization.TrPresent("Not quite."));
 
                 feedbackText.text = head + "\n"
-                    + Localization.TrPresent("The answer is: ") + " " + Localization.QuestionOption(current, current.correctIndex)
+                    + Localization.Present(Localization.Tr("The answer is: ") + " " + Localization.QuestionOptionLogical(current, current.correctIndex))
                     + "\n" + Localization.QuestionExplanation(current);
                 feedbackText.font = Localization.CurrentFont;
             }

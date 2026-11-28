@@ -21,6 +21,10 @@ namespace LightShadow.Gameplay
         public float memorySeconds = 4f;
 
         bool collected;
+
+        // Stable identity for saves (restore the SAME fragment, not the first N).
+        public bool Collected => collected;
+        public string SaveId => fragmentName;
         bool running;
 
         public string Prompt => Localization.Format("Collect {0}", fragmentName);
@@ -64,10 +68,12 @@ namespace LightShadow.Gameplay
                 QuestionData question = gm.database.GetNextQuestion(category);
                 if (question != null)
                 {
+                    // Never stack on another open question (it would displace it).
+                    while (gm.quizUI.IsOpen) yield return null;
                     bool answered = false;
                     gm.quizUI.ShowQuestion(question, (correct, chosenIndex) =>
                     {
-                        gm.ApplyQuizResult(question, chosenIndex, correct);
+                        if (!UI.QuizUIController.IsCancel(chosenIndex)) gm.ApplyQuizResult(question, chosenIndex, correct);
                         answered = true;
                     });
 

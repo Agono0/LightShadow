@@ -181,7 +181,7 @@ namespace LightShadow.Core
 
         public void OnFuseRestored(string memoryFlash)
         {
-            FusesRestored++;
+            FusesRestored = Mathf.Min(FusesRestored + 1, FuseTarget);
             if (!string.IsNullOrEmpty(memoryFlash))
             {
                 ShowMessage(memoryFlash, 4f);
@@ -194,7 +194,7 @@ namespace LightShadow.Core
 
         public void OnFragmentCollected()
         {
-            FragmentsCollected++;
+            FragmentsCollected = Mathf.Min(FragmentsCollected + 1, FragmentTarget);
             if (FragmentsCollected == FragmentTarget)
             {
                 ShowMessage("Every fragment is found. The memory box is full of her voice.", 5f);
@@ -260,18 +260,22 @@ namespace LightShadow.Core
         // Two-hit health (user brief 2026-11-27): a strike costs half; the
         // second ends the run and Nour wakes at the chapter checkpoint at full
         // health. Rigs without PlayerHealth keep the old one-hit flow.
-        public void EnemyHitPlayer()
+        // Returns true when Nour survived the strike, false when it ended the
+        // run (or the strike was ignored because a respawn is already running).
+        public bool EnemyHitPlayer()
         {
-            if (respawning || escaped) return;
+            if (respawning || escaped) return false;
 
             PlayerHealth health = player != null ? player.GetComponentInChildren<PlayerHealth>() : null;
             if (health == null)
             {
                 CaughtPlayer();
-                return;
+                return false;
             }
 
             GameEvents.RaisePlayerCaught();
+            // A PlayerCaught listener (Dawnless rule) may have started the escape.
+            if (escaped) return false;
 
             // P3 haptics: the strike lands with a heavy buzz (Android only).
             LightShadow.Platform.HapticsService.Heavy();
@@ -291,22 +295,24 @@ namespace LightShadow.Core
                 // (EnemyBehaviour enters ForcedCooldown) so the second hit is
                 // never free.
                 if (hud != null) hud.ShowMessage("It struck her - she is barely standing. Find a medkit.", 4f);
+                return true;
             }
-            else
-            {
-                // Lethal: a slower, heavier fade than the old catch, then the
-                // checkpoint wake restores her to full.
-                respawning = true;
-                if (hud != null) hud.FadeToBlack(2f, WakeAtCheckpoint);
-                else WakeAtCheckpoint();
-            }
+
+            // Lethal: a slower, heavier fade than the old catch, then the
+            // checkpoint wake restores her to full.
+            respawning = true;
+            if (hud != null) hud.FadeToBlack(2f, WakeAtCheckpoint);
+            else WakeAtCheckpoint();
+            return false;
         }
 
         public void CaughtPlayer()
         {
             if (respawning || escaped) return;
             respawning = true;
+            if (quizUI != null) quizUI.Cancel(); // no post-mortem wrong answer
             GameEvents.RaisePlayerCaught();
+            if (escaped) { respawning = false; return; }
 
             // P3 haptics: the catch lands with a heavy buzz (Android only).
             LightShadow.Platform.HapticsService.Heavy();
@@ -326,11 +332,13 @@ namespace LightShadow.Core
 
         void WakeAtCheckpoint()
         {
+            if (quizUI != null) quizUI.Cancel();
             // Recovery: clear any hiding state the catch interrupted. A stale
             // IsHidden would blind the Shadow (EnemySight) and make the next E
             // hop teleport Nour back into the spot; idempotent with the
             // RespawnReset call below.
             HidingSystem.ResetState();
+            ThrowableProp.ResetCarried();
 
             Transform spawn = CheckpointManager.Instance != null ? CheckpointManager.Instance.SpawnPoint : null;
             if (spawn != null && player != null)
@@ -369,11 +377,9 @@ namespace LightShadow.Core
         // restores, honestly:
         //   - counts (fuses/fragments/gate), meter, battery, flashlight state
         //   - player position + yaw
-        //   - the first N fuse boxes / N fragments found in the scene are set to
-        //     their restored/collected state - WHICH boxes and WHICH fragments
-        //     may differ from the original run, because scene object order is
-        //     not stored in the save. The counts and the quiz difficulty are
-        //     exact; the specific pickups are not.
+        //   - the exact fuse boxes and fragments (by name, SaveIdentity) for new
+        //     saves; saves made before that fall back to the first N found, where
+        //     WHICH pickups come back may differ from the original run.
         //   - gate powered: the gate and the dawn chase light up again
         //   - NOT restored: quiz answer history for the recap (per-run data),
         //     the Shadow's exact position/state (it restarts from patrol)
@@ -385,17 +391,21 @@ namespace LightShadow.Core
             FragmentsCollected = Mathf.Clamp(data.fragmentsCollected, 0, FragmentTarget);
             GatePowered = data.gatePowered;
 
-            FuseBox[] boxes = FindObjectsByType<FuseBox>(FindObjectsSortMode.None);
-            for (int i = 0; i < boxes.Length; i++)
-            {
-                if (i < FusesRestored) boxes[i].RestoreFromSave();
-            }
+            // Restore by identity when the save carries it (new saves); older
+            // saves fall back to "the first N found".
+            SaveIdentity.Blob identity = SaveIdentity.Read(data);
 
-            KnowledgeFragment[] fragments = FindObjectsByType<KnowledgeFragment>(FindObjectsSortMode.None);
-            for (int i = 0; i < fragments.Length; i++)
-            {
-                if (i < FragmentsCollected) fragments[i].RestoreFromSave();
-            }
+            FuseBox[] boxes = FindObjectsByType<FuseBox>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            string[] boxNames = new string[boxes.Length];
+            for (int i = 0; i < boxes.Length; i++) boxNames[i] = boxes[i].name;
+            bool[] boxPick = SaveIdentity.SelectRestores(boxNames, identity != null ? identity.fuses : null, FusesRestored);
+            for (int i = 0; i < boxes.Length; i++) if (boxPick[i]) boxes[i].RestoreFromSave();
+
+            KnowledgeFragment[] fragments = FindObjectsByType<KnowledgeFragment>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            string[] fragNames = new string[fragments.Length];
+            for (int i = 0; i < fragments.Length; i++) fragNames[i] = fragments[i].SaveId;
+            bool[] fragPick = SaveIdentity.SelectRestores(fragNames, identity != null ? identity.fragments : null, FragmentsCollected);
+            for (int i = 0; i < fragments.Length; i++) if (fragPick[i]) fragments[i].RestoreFromSave();
 
             if (GatePowered)
             {
@@ -414,10 +424,26 @@ namespace LightShadow.Core
 
                 // Same hop as the checkpoint wake: switch the capsule off for
                 // the teleport so it does not fight the direct move.
-                CharacterController controller = player.GetComponent<CharacterController>();
-                if (controller != null) controller.enabled = false;
-                player.SetPositionAndRotation(data.position, Quaternion.Euler(0f, data.yaw, 0f));
-                if (controller != null) controller.enabled = true;
+                if (SaveSystem.HasUsablePosition(data))
+                {
+                    CharacterController controller = player.GetComponent<CharacterController>();
+                    if (controller != null) controller.enabled = false;
+                    player.SetPositionAndRotation(data.position, Quaternion.Euler(0f, data.yaw, 0f));
+                    if (controller != null) controller.enabled = true;
+                }
+                else
+                {
+                    Debug.LogWarning("[LightShadow] Saved position is not usable; the player stays at the spawn.");
+                }
+            }
+
+            // F5: a save made inside the open exit zone must still finish the
+            // run; the trigger will not refire for a player placed inside it.
+            if (GatePowered)
+            {
+                Physics.SyncTransforms();
+                ExitGate exitGate = FindFirstObjectByType<ExitGate>();
+                if (exitGate != null && exitGate.Powered && exitGate.PlayerInsideEscapeZone()) Escape();
             }
 
             if (hud != null) hud.RefreshObjectives();

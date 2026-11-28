@@ -76,6 +76,9 @@ namespace LightShadow.Core
             if (interrupt)
             {
                 while (queue.TryTake(out _)) { }
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+                KillActiveSpeech();
+#endif
             }
 
             queue.Add(text);
@@ -85,6 +88,9 @@ namespace LightShadow.Core
         {
             if (queue == null) return;
             while (queue.TryTake(out _)) { }
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            KillActiveSpeech();
+#endif
         }
 
         static void EnsureInitialized()
@@ -316,7 +322,35 @@ namespace LightShadow.Core
             using (var process = StartPowerShell(script))
             {
                 if (process == null) return;
-                if (!process.WaitForExit(60000)) process.Kill();
+                lock (processLock) { activeSpeech = process; }
+                try
+                {
+                    if (!process.WaitForExit(60000)) process.Kill();
+                }
+                finally
+                {
+                    lock (processLock) { if (ReferenceEquals(activeSpeech, process)) activeSpeech = null; }
+                }
+            }
+        }
+
+        // In-flight synthesis can now be cancelled (audit 2.7): Stop() and an
+        // interrupting Speak() kill the running speech process.
+        static readonly object processLock = new object();
+        static System.Diagnostics.Process activeSpeech;
+
+        static void KillActiveSpeech()
+        {
+            lock (processLock)
+            {
+                try
+                {
+                    if (activeSpeech != null && !activeSpeech.HasExited) activeSpeech.Kill();
+                }
+                catch (Exception)
+                {
+                    // already exited or access denied: nothing to cancel
+                }
             }
         }
 

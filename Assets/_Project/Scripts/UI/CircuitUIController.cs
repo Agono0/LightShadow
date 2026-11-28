@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System;
 using System.Collections;
 using LightShadow.Core;
@@ -52,6 +53,7 @@ namespace LightShadow.UI
         Action onWrongAttempt;
         bool busy;
         bool cursorWasLocked;
+        InputLockToken lockToken;
 
         void Awake()
         {
@@ -76,6 +78,11 @@ namespace LightShadow.UI
         {
             if (feedsEn == null || terminalsEn == null || mapping == null) return;
             if (feedsEn.Length != 3 || terminalsEn.Length != 3 || mapping.Length != 3) return;
+            if (!ValidMapping(mapping, feedsEn.Length, terminalsEn.Length))
+            {
+                Debug.LogWarning("[CircuitUI] Show refused: mapping must pair each feed with a distinct terminal.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -129,6 +136,7 @@ namespace LightShadow.UI
             {
                 closeButton.onClick.RemoveAllListeners();
                 closeButton.onClick.AddListener(() => Close(false));
+                closeButton.interactable = true;
             }
 
             RenderStatics();
@@ -136,7 +144,7 @@ namespace LightShadow.UI
 
             if (panel != null) panel.SetActive(true);
 
-            PlayerController.ExternalInputLocked = true;
+            lockToken = OverlayStack.Acquire("CircuitUI", true, true, () => Close(false));
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
             {
@@ -194,6 +202,7 @@ namespace LightShadow.UI
                 if (lockedCount >= 3)
                 {
                     busy = true;
+                    if (closeButton != null) closeButton.interactable = false;
                     SetLocalized(feedbackText,
                         "Every bus hums. The board is live.",
                         "كل الخطوط تطن. اللوحة حية.");
@@ -229,6 +238,26 @@ namespace LightShadow.UI
                 : TextAnchor.MiddleCenter;
         }
 
+        // P1: every feed must map to a DISTINCT in-range terminal; a shared
+        // terminal locks once, so the last feed can never pair and the
+        // overlay soft-locks.
+        public static bool ValidMapping(int[] mapping, int feedCount, int terminalCount)
+        {
+            if (mapping == null || mapping.Length != feedCount) return false;
+            bool[] used = new bool[terminalCount];
+            for (int i = 0; i < mapping.Length; i++)
+            {
+                int terminal = mapping[i];
+                if (terminal < 0 || terminal >= terminalCount || used[terminal]) return false;
+                used[terminal] = true;
+            }
+            return true;
+        }
+
+        // P2: pure discard policy - a busy overlay (the success beat, the
+        // sequence playback) may only close solved. Static so tests pin it.
+        public static bool CanDiscard(bool busy) => !busy;
+
         IEnumerator CloseAfterFeedback(float seconds)
         {
             yield return new WaitForSeconds(seconds);
@@ -237,6 +266,10 @@ namespace LightShadow.UI
 
         void Close(bool solved)
         {
+            // P2: an unsolved dismiss (close button, Esc, overlay dismiss
+            // callback) must not discard the overlay while it is busy; the
+            // success beat closes itself with Close(true).
+            if (!solved && !CanDiscard(busy)) return;
             if (panel != null) panel.SetActive(false);
             ReleaseLock();
 
@@ -249,7 +282,7 @@ namespace LightShadow.UI
 
         void ReleaseLock()
         {
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (cursorWasLocked && !Application.isMobilePlatform)
             {
                 Cursor.lockState = CursorLockMode.Locked;
@@ -272,7 +305,7 @@ namespace LightShadow.UI
             for (int i = 0; i < feedLabels.Length; i++)
             {
                 SetLocalized(feedLabels[i], (i + 1) + ". " + (i < feedsEn.Length ? feedsEn[i] : ""),
-                    i < feedsAr.Length ? feedsAr[i] : "");
+                    i < feedsAr.Length ? KeyPrefixed((i + 1).ToString(), feedsAr[i]) : "");
                 if (feedLabels[i] != null)
                 {
                     feedLabels[i].alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleCenter;
@@ -282,12 +315,19 @@ namespace LightShadow.UI
             for (int i = 0; i < terminalLabels.Length; i++)
             {
                 SetLocalized(terminalLabels[i], termKeys[i] + ". " + (i < terminalsEn.Length ? terminalsEn[i] : ""),
-                    i < terminalsAr.Length ? terminalsAr[i] : "");
+                    i < terminalsAr.Length ? KeyPrefixed(termKeys[i], terminalsAr[i]) : "");
                 if (terminalLabels[i] != null)
                 {
                     terminalLabels[i].alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleCenter;
                 }
             }
+        }
+
+        // Arabic labels keep the key hint too (audit 3.6): the keys work in
+        // either language, so the player must be told in either language.
+        static string KeyPrefixed(string key, string label)
+        {
+            return string.IsNullOrEmpty(label) ? "" : key + ". " + label;
         }
 
         void RenderProgress()

@@ -8,7 +8,7 @@ namespace LightShadow.Player
     // no code changes needed to re-purpose a button in the mobile HUD.
     public class TouchButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives, CrankHold, BreathHold, Medkit, Throw }
+        public enum Kind { SprintHold, CrouchToggle, Flashlight, Interact, Pause, Objectives, CrankHold, BreathHold, Medkit, Throw, Inventory }
 
         [Header("Wiring")]
         public Kind kind;
@@ -112,7 +112,10 @@ namespace LightShadow.Player
                     if (InteractionRaycaster.Instance != null) InteractionRaycaster.Instance.PressInteract();
                     break;
                 case Kind.Pause:
-                    if (PauseMenu.Instance != null) PauseMenu.Instance.Toggle();
+                    // Shared dispatch with gamepad Start: a dismissable
+                    // overlay (inventory, hint log, puzzle) eats the tap and
+                    // closes first; pause toggles only when nothing was open.
+                    PauseMenu.RequestToggle();
                     break;
                 case Kind.Objectives:
                     if (HUDController.Instance != null) HUDController.Instance.ToggleObjectives();
@@ -127,6 +130,11 @@ namespace LightShadow.Player
                     // Distraction throws (user brief 2026-11-27): hurls the
                     // carried prop; the wraith hears where it LANDS.
                     Gameplay.ThrowableProp.ThrowCarried();
+                    break;
+                case Kind.Inventory:
+                    // Opens or closes the inventory screen (audit 5.3 wiring);
+                    // the screen gates itself against dialogue, pause, quiz.
+                    LightShadow.Contrib.Abdelraouf.InventoryScreen.InventoryScreenUI.Toggle();
                     break;
                 case Kind.Medkit:
                     // Two-hit health (user brief 2026-11-27): medkits are the

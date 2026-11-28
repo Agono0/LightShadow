@@ -227,6 +227,7 @@ namespace LightShadow.UI
             {
                 if (musicSource == null) musicSource = gameObject.AddComponent<AudioSource>();
                 musicSource.spatialBlend = 0f;
+                musicSource.outputAudioMixerGroup = LightShadow.Audio.VolumeCategories.GroupFor(LightShadow.Audio.VolumeCategories.Category.Music); // Music slider applies to the ending (audit 4.5)
                 musicSource.loop = false;
                 musicSource.playOnAwake = false;
                 musicSource.volume = Mathf.Clamp01(endingMusicVolume);
@@ -242,6 +243,7 @@ namespace LightShadow.UI
 
                 if (musicSource == null) musicSource = gameObject.AddComponent<AudioSource>();
                 musicSource.spatialBlend = 0f;
+                musicSource.outputAudioMixerGroup = LightShadow.Audio.VolumeCategories.GroupFor(LightShadow.Audio.VolumeCategories.Category.Music); // Music slider applies to the ending (audit 4.5)
                 musicSource.loop = false;
                 musicSource.playOnAwake = false;
                 musicSource.volume = Mathf.Clamp01(endingMusicVolume);

@@ -24,9 +24,62 @@ namespace LightShadow.Player
         public event Action Hit;            // survived strike (feedback)
         public event Action Died;           // lethal strike
 
+        // Save bridge (audit: health was not saved, so a reload healed). One
+        // contrib key; an old save without it restores full health.
+        public const string SaveKey = "player_health";
+        static int pendingHits = -1; // -1: nothing waiting to be applied
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void HookSaves()
+        {
+            pendingHits = -1;
+            SaveSystem.SaveCaptured -= OnSaveCaptured;
+            SaveSystem.SaveCaptured += OnSaveCaptured;
+            SaveSystem.SaveApplied -= OnSaveApplied;
+            SaveSystem.SaveApplied += OnSaveApplied;
+        }
+
+        public static string EncodeHits(int hits)
+        {
+            return Mathf.Clamp(hits, 1, MaxHits).ToString(); // a saved run is never dead
+        }
+
+        public static int DecodeHits(string json)
+        {
+            int value;
+            if (string.IsNullOrEmpty(json) || !int.TryParse(json, out value)) return MaxHits;
+            return Mathf.Clamp(value, 1, MaxHits);
+        }
+
+        static void OnSaveCaptured(SaveSystem.SaveData data)
+        {
+            if (data == null || Instance == null) return;
+            SaveSystem.SetContrib(data, SaveKey, EncodeHits(Instance.HitsRemaining));
+        }
+
+        static void OnSaveApplied(SaveSystem.SaveData data)
+        {
+            int hits = DecodeHits(SaveSystem.GetContrib(data, SaveKey));
+            if (Instance != null) Instance.SetHits(hits);
+            else pendingHits = hits;
+        }
+
+        void SetHits(int hits)
+        {
+            HitsRemaining = Mathf.Clamp(hits, 1, MaxHits);
+            Action<float> changed = Changed;
+            if (changed != null) changed(Normalized);
+        }
+
         void Awake()
         {
             Instance = this;
+            if (pendingHits >= 0)
+            {
+                int hits = pendingHits;
+                pendingHits = -1;
+                SetHits(hits);
+            }
         }
 
         void OnDestroy()
@@ -73,11 +126,15 @@ namespace LightShadow.Player
             if (changed != null) changed(Normalized);
         }
 
+        // H belongs to hints (HintService and every puzzle UI), so the medkit
+        // moved to M (audit: H/F key conflicts).
+        public const KeyCode MedkitKey = KeyCode.M;
+
         void Update()
         {
             // Desktop hotkey; the mobile MEDKIT button calls TryUseMedkit
             // through TouchButton.Kind.Medkit.
-            if (Input.GetKeyDown(KeyCode.H))
+            if (Input.GetKeyDown(MedkitKey))
             {
                 if (TryUseMedkit())
                 {

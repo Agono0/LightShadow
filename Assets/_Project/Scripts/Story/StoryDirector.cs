@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,6 +24,9 @@ namespace LightShadow.Story
     {
         public static StoryDirector Instance { get; private set; }
 
+        // The story's own input lock. Static so the static reset can free it.
+        static InputLockToken storyLock;
+
         [Header("Wiring (set by SceneBuilderStory)")]
         public StoryConfig config;
         public DialogueUIController dialogueUI;
@@ -44,6 +48,10 @@ namespace LightShadow.Story
         }
 
         readonly HashSet<string> played = new HashSet<string>();
+        // Nodes visited in the CURRENT conversation only: the loop guard for linked
+        // (trigger None) nodes, so a shared linked node can play again in a later
+        // conversation (audit 2.2) without ever looping inside one.
+        readonly HashSet<string> conversationVisited = new HashSet<string>();
         readonly HashSet<string> flags = new HashSet<string>();
         readonly Queue<(StoryTrigger trigger, int ordinal)> pending = new Queue<(StoryTrigger, int)>();
         readonly Dictionary<string, StoryNode> nodesById = new Dictionary<string, StoryNode>();
@@ -82,13 +90,16 @@ namespace LightShadow.Story
             Instance.StopAllCoroutines();      // a stale PlayAfterGap must not fire
             Instance.state = new StoryState();
             Instance.played.Clear();
+            Instance.conversationVisited.Clear();
             Instance.flags.Clear();
             Instance.pending.Clear();
             Instance.chainScheduled = false;
             Instance.endingDecided = false;
             Instance.decidedEndingId = "";
             Instance.current = null;
-            PlayerController.ExternalInputLocked = false;
+            // Frees only the story's own lock; a Journal or puzzle token stays.
+            OverlayStack.Release(ref storyLock);
+            StopNarration();
             if (Instance.dialogueUI != null) Instance.dialogueUI.Hide();
         }
 
@@ -96,7 +107,9 @@ namespace LightShadow.Story
         {
             if (Instance != null && Instance != this)
             {
-                Destroy(gameObject);
+                // Only this component: the host is the shared Systems object
+                // (GameManager, CheckpointManager...), which must not die with it.
+                Destroy(this);
                 return;
             }
 
@@ -156,6 +169,15 @@ namespace LightShadow.Story
 
         void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            // The director outlives scene loads but the dialogue panel belongs
+            // to the school scene: rebind to the live one, or the old
+            // (destroyed) reference makes every node play silently headless.
+            if (scene.name == SceneNames.School)
+            {
+                DialogueUIController live = FindFirstObjectByType<DialogueUIController>();
+                if (live != null) dialogueUI = live;
+            }
+
             // The act-start beat plays once per school visit on a fresh run.
             if (scene.name == SceneNames.School && config != null
                 && !string.IsNullOrEmpty(config.actStartNodeId)
@@ -167,7 +189,7 @@ namespace LightShadow.Story
             if (scene.name != SceneNames.School)
             {
                 // Leaving the school (ending/menu) always releases the player.
-                PlayerController.ExternalInputLocked = false;
+                OverlayStack.Release(ref storyLock);
             }
         }
 
@@ -228,6 +250,7 @@ namespace LightShadow.Story
             if (current != null) return;                       // a conversation is live
             if (QuizOpen()) return;                            // quiz keeps priority (brief #3)
             if (InspectOpen()) return;                         // P3: so does the inspect overlay
+            if (OverlayStack.AnyDismissable) return;           // O4: never open over a puzzle, journal or bag; wait until it closes
             if (Time.unscaledTime - lastConversationEndedAt < (config != null ? config.triggerDelaySeconds : 1.2f)) return;
 
             // Drain until a playable node is found (stale ordinals just drop).
@@ -293,6 +316,7 @@ namespace LightShadow.Story
         {
             current = node;
             played.Add(node.nodeId);
+            conversationVisited.Add(node.nodeId);
 
             if (!string.IsNullOrEmpty(node.onEnterEventHint)
                 && node.onEnterEventHint.IndexOf("Autosave", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -300,7 +324,7 @@ namespace LightShadow.Story
                 SaveSystem.Autosave();
             }
 
-            PlayerController.ExternalInputLocked = true;
+            if (storyLock == null || !storyLock.IsActive) storyLock = OverlayStack.Acquire("Story", true, false, null, InterruptFromStack);
             StoryEvents.RaiseNodeEntered(node);
 
             // Node-enter effects (timeout/route nodes carry their own small
@@ -326,6 +350,7 @@ namespace LightShadow.Story
             }
 
             if (dialogueUI == null) dialogueUI = GetComponentInChildren<DialogueUIController>();
+            if (dialogueUI == null) dialogueUI = FindFirstObjectByType<DialogueUIController>();
             if (dialogueUI == null)
             {
                 // Headless fail-safe: walk the graph silently so nothing locks.
@@ -345,15 +370,26 @@ namespace LightShadow.Story
                 if (choice.isTimed) timedIndex = offered.Count - 1;
             }
 
-            dialogueUI.ShowNode(node, offered.ToArray(), timedIndex, OnUiChoice, OnUiAdvance);
+            offeredChoices = offered.ToArray();
+            dialogueUI.ShowNode(node, offeredChoices, timedIndex, OnUiChoice, OnUiAdvance);
         }
 
         // UI callbacks: index refers to the offered list; timedOut routes the
         // choice through its timeout branch (with the calm penalty).
+        // Offered slot -> index into node.choices (audit F24: hidden choices
+        // shifted slots, so the wrong branch ran). -1 when out of range.
+        int[] offeredChoices = new int[0];
+
+        public static int MapOfferedToChoice(int[] offered, int slot)
+        {
+            if (offered == null || slot < 0 || slot >= offered.Length) return -1;
+            return offered[slot];
+        }
+
         void OnUiChoice(int offeredIndex, bool timedOut)
         {
             if (current == null) return;
-            AdvanceFrom(current, offeredIndex, timedOut);
+            AdvanceFrom(current, MapOfferedToChoice(offeredChoices, offeredIndex), timedOut);
         }
 
         void OnUiAdvance()
@@ -425,9 +461,9 @@ namespace LightShadow.Story
         {
             if (string.IsNullOrEmpty(nodeId)) return null;
             nodesById.TryGetValue(nodeId, out StoryNode node);
-            if (node != null && played.Contains(node.nodeId) && node.trigger == StoryTrigger.None)
+            if (node != null && conversationVisited.Contains(node.nodeId) && node.trigger == StoryTrigger.None)
             {
-                // Loop guard: never replay a linked node in the same conversation.
+                // Loop guard: never replay a linked node within the same conversation.
                 return null;
             }
             return node;
@@ -443,17 +479,41 @@ namespace LightShadow.Story
             PlayNode(next);
         }
 
+        // OverlayStack.ResetAll(true) (respawn, quit to menu) reaches the story
+        // through its token: end the live conversation and hide its panel so
+        // nothing stays blocked or visible while the player moves.
+        void InterruptFromStack()
+        {
+            StopAllCoroutines();      // a pending PlayAfterGap must not reopen it
+            chainScheduled = false;
+            if (current != null) EndConversation(null);
+            else
+            {
+                StopNarration();
+                OverlayStack.Release(ref storyLock);
+                if (dialogueUI != null) dialogueUI.Hide();
+            }
+        }
+
+        // Both narration paths: recorded VO and the speech fallback (SAPI).
+        static void StopNarration()
+        {
+            VoiceoverPlayer.Stop();
+            StoryTeller.Stop();
+        }
+
         void EndConversation(StoryNode node)
         {
             current = null;
+            conversationVisited.Clear();
             lastConversationEndedAt = Time.unscaledTime;
-            PlayerController.ExternalInputLocked = false;
-            VoiceoverPlayer.Stop();
+            OverlayStack.Release(ref storyLock);
+            StopNarration();
             StoryEvents.RaiseConversationEnded();
 
             if (dialogueUI != null) dialogueUI.Hide();
 
-            // Fuse/fragment beats close with an autosave so a conversation never
+            // Fuse beats close with an autosave (fragment beats do not; audit 2.4) so a conversation never
             // half-survives a quit (D12).
             if (node != null && node.trigger == StoryTrigger.FuseRestored)
             {
@@ -593,6 +653,16 @@ namespace LightShadow.Story
         void OnSaveApplied(SaveSystem.SaveData data)
         {
             if (data == null) return;
+            // A restore replaces the story: no stale conversation, queued
+            // trigger or chained node from the previous state may survive.
+            StopAllCoroutines();
+            chainScheduled = false;
+            pending.Clear();
+            conversationVisited.Clear();
+            current = null;
+            OverlayStack.Release(ref storyLock);
+            StopNarration();
+            if (dialogueUI != null) dialogueUI.Hide();
             DeserializeState(data.storyJson);
             // Nothing on screen while a save is applied - the next trigger will
             // resume the graph from wherever the flags/played set stands.

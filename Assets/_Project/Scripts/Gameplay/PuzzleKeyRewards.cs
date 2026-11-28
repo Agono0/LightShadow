@@ -48,7 +48,7 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("أخذت") + ": " + Inventory.DisplayName(itemId)
+                        ? "أخذت" + ": " + Inventory.DisplayName(itemId)
                         : "Taken: " + Inventory.DisplayName(itemId),
                     3f);
             }

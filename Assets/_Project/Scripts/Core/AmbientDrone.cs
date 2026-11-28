@@ -36,7 +36,9 @@ namespace LightShadow.Core
         {
             if (source == null || fadeSeconds <= 0f) return;
             elapsed += Time.unscaledDeltaTime;
-            source.volume = Mathf.Lerp(0f, targetVolume, Mathf.Clamp01(elapsed / fadeSeconds));
+            float fade = Mathf.Clamp01(elapsed / fadeSeconds);
+            // Silent while calm; the bed only breathes in as danger rises.
+            source.volume = Mathf.Lerp(0f, targetVolume, fade) * LightShadow.Audio.AudioDirector.Mix.Ambience;
         }
 
         static AudioClip BuildClip()

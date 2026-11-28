@@ -61,16 +61,16 @@ namespace LightShadow.Audio
             AudioClip clip = Pick(id);
             if (clip == null) clip = fallback;
             if (clip == null || AudioManager.Instance == null) return;
-            AudioManager.Instance.PlaySfx(clip, volume);
+            AudioManager.Instance.PlaySfx(clip, volume * AudioDirector.SfxGain);
             Caption(id, ListenerPosition());
         }
 
-        public static void PlayAt(string id, Vector3 position, AudioClip fallback = null)
+        public static void PlayAt(string id, Vector3 position, AudioClip fallback = null, float volume = 1f)
         {
             AudioClip clip = Pick(id);
             if (clip == null) clip = fallback;
             if (clip == null || AudioManager.Instance == null) return;
-            AudioManager.Instance.PlaySfxAt(clip, position);
+            AudioManager.Instance.PlaySfxAt(clip, position, volume * AudioDirector.SfxGain);
             Caption(id, position);
         }
     }

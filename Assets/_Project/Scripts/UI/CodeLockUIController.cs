@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System;
 using System.Collections;
 using LightShadow.Core;
@@ -51,6 +52,7 @@ namespace LightShadow.UI
         Action onWrongAttempt;
         bool busy;
         bool cursorWasLocked;
+        InputLockToken lockToken;
 
         void Awake()
         {
@@ -75,6 +77,11 @@ namespace LightShadow.UI
             string code, Func<string> hintProvider, Action onSolved, Action onWrongAttempt)
         {
             if (string.IsNullOrEmpty(code) || code.Length != digits.Length) return;
+            if (!ValidCode(code, digits.Length))
+            {
+                Debug.LogWarning("[CodeLockUI] Show refused: code must be exactly " + digits.Length + " digits 0-9.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -122,6 +129,7 @@ namespace LightShadow.UI
             {
                 closeButton.onClick.RemoveAllListeners();
                 closeButton.onClick.AddListener(() => Close(false));
+                closeButton.interactable = true;
             }
 
             RenderTexts();
@@ -129,7 +137,7 @@ namespace LightShadow.UI
 
             if (panel != null) panel.SetActive(true);
 
-            PlayerController.ExternalInputLocked = true;
+            lockToken = OverlayStack.Acquire("CodeLockUI", true, true, () => Close(false));
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
             {
@@ -191,6 +199,7 @@ namespace LightShadow.UI
             if (entered == expectedCode)
             {
                 busy = true;
+                if (closeButton != null) closeButton.interactable = false;
                 SetText(feedbackText, "The lock clicks open.", "فُتح القفل.");
                 StartCoroutine(CloseAfterFeedback(1.2f));
             }
@@ -217,6 +226,20 @@ namespace LightShadow.UI
             }
         }
 
+        // P1: the expected code must be all digits; anything else can never
+        // be entered on the +/- lock and soft-locks the overlay.
+        public static bool ValidCode(string code, int digitCount)
+        {
+            if (string.IsNullOrEmpty(code) || code.Length != digitCount) return false;
+            for (int i = 0; i < code.Length; i++)
+                if (code[i] < '0' || code[i] > '9') return false;
+            return true;
+        }
+
+        // P2: pure discard policy - a busy overlay (the success beat, the
+        // sequence playback) may only close solved. Static so tests pin it.
+        public static bool CanDiscard(bool busy) => !busy;
+
         IEnumerator CloseAfterFeedback(float seconds)
         {
             yield return new WaitForSeconds(seconds);
@@ -225,6 +248,10 @@ namespace LightShadow.UI
 
         void Close(bool solved)
         {
+            // P2: an unsolved dismiss (close button, Esc, overlay dismiss
+            // callback) must not discard the overlay while it is busy; the
+            // success beat closes itself with Close(true).
+            if (!solved && !CanDiscard(busy)) return;
             if (panel != null) panel.SetActive(false);
             ReleaseLock();
 
@@ -237,7 +264,7 @@ namespace LightShadow.UI
 
         void ReleaseLock()
         {
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (cursorWasLocked && !Application.isMobilePlatform)
             {
                 Cursor.lockState = CursorLockMode.Locked;

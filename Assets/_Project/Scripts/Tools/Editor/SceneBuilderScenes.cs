@@ -303,7 +303,8 @@ namespace LightShadow.Tools
             NavMeshBootstrap navBootstrap = level.AddComponent<NavMeshBootstrap>();
             navBootstrap.surface = surface;
 
-            CreateDirectionalMoon(level.transform);
+            // Moonlight directional removed (audit S1: the school read as lit
+            // from outside; the torch and the lamp islands carry the dark).
 
             var environment = Group("Environment", level.transform);
             BuildSchoolShell(environment.transform, palette);
@@ -587,16 +588,8 @@ namespace LightShadow.Tools
                 }
             }
 
-            // Garden moonlight.
-            CreatePointLight(lights.transform, "GardenMoon", new Vector3(12f, 5f, 11f),
-                new Color(0.52f, 0.64f, 0.90f), 1.0f, 26f);
-
-            // Moonlit windows (same brief): two cool patches spill into the
-            // corridor where the windows face the night.
-            CreatePointLight(lights.transform, "MoonWindowNorth", new Vector3(-1.9f, 2.6f, 6f),
-                new Color(0.50f, 0.62f, 0.88f), 0.5f, 5.5f);
-            CreatePointLight(lights.transform, "MoonWindowSouth", new Vector3(1.9f, 2.6f, -10f),
-                new Color(0.50f, 0.62f, 0.88f), 0.5f, 5.5f);
+            // Garden moon and window fills removed (audit S1, calm dark pass):
+            // they washed the corridor so the torch stopped mattering.
 
             // Candles (same brief): small warm flames that breathe, in the
             // library, the classroom and the staff room.

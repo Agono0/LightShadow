@@ -93,7 +93,7 @@ namespace LightShadow.Player
             // during the hold (FlashlightCrank holds F for its gesture).
             if (!PlayerController.ExternalInputLocked)
             {
-                if (Input.GetKeyDown(KeyCode.F))
+                if (Input.GetKeyDown(KeyCode.F) && !LightShadow.Gameplay.ThrowableProp.OwnsFKey)
                 {
                     fTogglePending = true;
                     fPressCranked = false;
@@ -178,10 +178,13 @@ namespace LightShadow.Player
         }
 
         // Doc 4.1: a correct answer briefly flares the light. The meter drives this.
+        Coroutine flashRoutine;
+
         public void Flash(float seconds)
         {
-            StopAllCoroutines();
-            StartCoroutine(FlashRoutine(seconds));
+            // Stop only the flash (not every coroutine on this component).
+            if (flashRoutine != null) StopCoroutine(flashRoutine);
+            flashRoutine = StartCoroutine(FlashRoutine(seconds));
         }
 
         System.Collections.IEnumerator FlashRoutine(float seconds)
@@ -191,6 +194,7 @@ namespace LightShadow.Player
             yield return new WaitForSeconds(seconds);
             flashMultiplier = 1f;
             if (meter != null) meter.ApplyToLight();
+            flashRoutine = null;
         }
 
         void ApplyState()

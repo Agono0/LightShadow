@@ -68,7 +68,7 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? Localization.Present("اهتزت فتحة الكهربائي مفتوحة على حافة المسرح - بداخلها بطارية.")
+                        ? "اهتزت فتحة الكهربائي مفتوحة على حافة المسرح - بداخلها بطارية."
                         : "The electrician's hatch rattles open on the stage lip - a battery inside.",
                     4f);
             }

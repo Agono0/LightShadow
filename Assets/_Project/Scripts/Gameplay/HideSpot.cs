@@ -40,6 +40,9 @@ namespace LightShadow.Gameplay
         {
             get
             {
+                // F3: a spot Nour cannot enter right now shows no verb at all
+                // (e.g. she is hidden in a different spot).
+                if (!CanInteract) return "";
                 return HidingSystem.IsHidden && HidingSystem.CurrentSpot == this
                     ? Localization.Format("Leave {0}", displayName)
                     : Localization.Format("Hide in {0}", displayName);

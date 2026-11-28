@@ -32,6 +32,17 @@ namespace LightShadow.Tools
             // classroom key, the map locker pays the staff room key. No loose
             // keys in corridors.
 
+            // Second, guaranteed source for the staff key (audit F0). The map
+            // locker also pays it, but that locker sits inside the staff room,
+            // so the key must exist outside the door it opens. A spare on the
+            // infirmary shelf breaks the circle. Mirrored in Contrib/Usef/LevelLogic SchoolLevelModel.
+            // Same circle for the classroom: the chalkboard cipher (inside the
+            // classroom) pays classroom_key, so a spare sits on the library shelf.
+            PlaceKey(parent, "Key_Classroom_Spare", "classroom_key", "the classroom key", "مفتاح الفصل",
+                new Vector3(-21.4f, 1.0f, -14.5f), palette);
+            PlaceKey(parent, "Key_Staff_Spare", "staff_key", "the staff room key", "مفتاح غرفة المعلمين",
+                new Vector3(-21.4f, 1.0f, -1.3f), palette);
+
             // Two medkits, rare per the brief: the infirmary shelf and the
             // staff room. More arrive as puzzle rewards in a later batch.
             PlaceMedkit(parent, "Medkit_Infirmary", new Vector3(-21.4f, 1.05f, 0f), palette);

@@ -62,13 +62,31 @@ namespace LightShadow.UI
 
         void Update()
         {
+            // Reselect one frame after a confirm key was consumed, so the
+            // same keypress can never reach the EventSystem's Submit too.
+            if (reselect && Time.frameCount > consumedFrame)
+            {
+                reselect = false;
+                if (saveSlots != null && saveSlots.IsOpen) saveSlots.SelectFirst();
+                else if (!AnyCardOpen() && EventSystem.current != null && playButton != null)
+                {
+                    EventSystem.current.SetSelectedGameObject(playButton.gameObject);
+                }
+            }
+
             // Enter / Space starts the night without hunting for the mouse.
+            // Update is the single owner of the confirm key (U1).
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
             {
-                if (settings != null && settings.IsOpen) return;
-                if (saveSlots != null && saveSlots.IsOpen) return;
-                if (howToPanel != null && howToPanel.activeSelf) howToPanel.SetActive(false);
-                else if (creditsPanel != null && creditsPanel.activeSelf) creditsPanel.SetActive(false);
+                ConfirmAction action = DecideConfirm(
+                    settings != null && settings.IsOpen,
+                    saveSlots != null && saveSlots.IsOpen,
+                    howToPanel != null && howToPanel.activeSelf,
+                    creditsPanel != null && creditsPanel.activeSelf);
+                if (action == ConfirmAction.None) return;
+                ConsumeConfirm();
+                if (action == ConfirmAction.CloseHowTo) howToPanel.SetActive(false);
+                else if (action == ConfirmAction.CloseCredits) creditsPanel.SetActive(false);
                 else Play();
                 return;
             }
@@ -83,11 +101,51 @@ namespace LightShadow.UI
             }
         }
 
+        public enum ConfirmAction { None, CloseHowTo, CloseCredits, Play }
+
+        bool reselect;
+        int consumedFrame = -1;
+        bool starting;
+
+        // Pure decision for the confirm key. Settings and the slot panel own
+        // their own keys; an open card closes first; otherwise PLAY.
+        public static ConfirmAction DecideConfirm(bool settingsOpen, bool savesOpen, bool howToOpen, bool creditsOpen)
+        {
+            if (settingsOpen || savesOpen) return ConfirmAction.None;
+            if (howToOpen) return ConfirmAction.CloseHowTo;
+            if (creditsOpen) return ConfirmAction.CloseCredits;
+            return ConfirmAction.Play;
+        }
+
+        bool AnyCardOpen()
+        {
+            return (howToPanel != null && howToPanel.activeSelf) || (creditsPanel != null && creditsPanel.activeSelf)
+                || (settings != null && settings.IsOpen) || (saveSlots != null && saveSlots.IsOpen);
+        }
+
+        // Drop the selection for the rest of this frame (the EventSystem
+        // would otherwise Submit the same keypress on the selected button) and
+        // put it back next frame.
+        void ConsumeConfirm()
+        {
+            consumedFrame = Time.frameCount;
+            reselect = true;
+            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
+        }
+
+        void ClearSelectionForCard()
+        {
+            reselect = true;
+            consumedFrame = Time.frameCount;
+            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
+        }
+
         public void OpenSettings()
         {
             if (howToPanel != null) howToPanel.SetActive(false);
             if (saveSlots != null) saveSlots.Hide();
             if (settings != null) settings.Show();
+            ClearSelectionForCard();
         }
 
         public void OpenSaves()
@@ -95,6 +153,7 @@ namespace LightShadow.UI
             if (howToPanel != null) howToPanel.SetActive(false);
             if (settings != null) settings.Hide();
             if (saveSlots != null) saveSlots.Show();
+            ClearSelectionForCard();
         }
 
         public void Play()
@@ -113,15 +172,29 @@ namespace LightShadow.UI
         // Shared by PLAY (no saves) and the slot panel's NEW GAME / LOAD.
         public void StartNewNight()
         {
+            if (starting) return; // one keypress or click starts the night once
+            starting = true;
             Time.timeScale = 1f;
+            // New game must not inherit the previous run (audit 2.3): the story
+            // director survives scene loads, and the hint log and a deferred
+            // restore can still be pending after quit-to-menu.
+            SaveSystem.ClearPendingRestore();
+            LightShadow.Story.StoryDirector.ResetForNewRun();
+            LightShadow.Contrib.Abdelraouf.HintLog.HintLogRecord.Clear();
             RunResults.Reset();
+            Inventory.ResetForNewRun();
+            LightShadow.Player.HidingSystem.ResetState();
+            LightShadow.Contrib.Abdelraouf.Journal.JournalProgress.ResetForNewRun();
             LoadingScreen.Transition(SceneNames.School);
         }
 
         public void ToggleHowTo()
         {
             if (howToPanel == null) return;
+            // Symmetric with ToggleCredits: the two cards never stack.
+            if (creditsPanel != null) creditsPanel.SetActive(false);
             howToPanel.SetActive(!howToPanel.activeSelf);
+            ClearSelectionForCard();
         }
 
         public void ToggleCredits()
@@ -129,6 +202,7 @@ namespace LightShadow.UI
             if (creditsPanel == null) return;
             if (howToPanel != null) howToPanel.SetActive(false);
             creditsPanel.SetActive(!creditsPanel.activeSelf);
+            ClearSelectionForCard();
         }
 
         public void QuitGame()

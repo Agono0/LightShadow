@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using LightShadow.Core;
 using LightShadow.Enemy;
 using UnityEngine;
@@ -31,6 +33,90 @@ namespace LightShadow.Gameplay
         // off this and nothing else.
         public bool PlayerFreed { get; private set; }
 
+        public const string SaveKey = "doors";
+
+        [Serializable]
+        public class DoorState
+        {
+            public string id = "";
+            public bool open;
+            public bool locked;
+            public bool freed;
+        }
+
+        [Serializable]
+        public class DoorsSave
+        {
+            public List<DoorState> doors = new List<DoorState>();
+        }
+
+        // Stable per-door identity: name plus rounded position (names repeat).
+        public static string IdFor(string name, Vector3 position)
+        {
+            return name + "@" + Mathf.RoundToInt(position.x * 10f) + "," + Mathf.RoundToInt(position.y * 10f) + "," + Mathf.RoundToInt(position.z * 10f);
+        }
+
+        public string SaveId => IdFor(name, transform.position);
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void Hook()
+        {
+            SaveSystem.SaveCaptured -= OnSaveCaptured;
+            SaveSystem.SaveCaptured += OnSaveCaptured;
+            SaveSystem.SaveApplied -= OnSaveApplied;
+            SaveSystem.SaveApplied += OnSaveApplied;
+        }
+
+        static void OnSaveCaptured(SaveSystem.SaveData data)
+        {
+            if (data == null) return;
+            DoorsSave save = new DoorsSave();
+            DoorController[] all = FindObjectsByType<DoorController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < all.Length; i++)
+            {
+                save.doors.Add(new DoorState { id = all[i].SaveId, open = all[i].IsOpen, locked = all[i].IsLocked, freed = all[i].PlayerFreed });
+            }
+            SaveSystem.SetContrib(data, SaveKey, JsonUtility.ToJson(save));
+        }
+
+        static void OnSaveApplied(SaveSystem.SaveData data)
+        {
+            if (data == null) return;
+            string json = SaveSystem.GetContrib(data, SaveKey);
+            if (string.IsNullOrEmpty(json)) return;
+            DoorsSave save = null;
+            try { save = JsonUtility.FromJson<DoorsSave>(json); }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("[LightShadow] Door save blob unreadable, doors keep their start state: " + exception.Message);
+            }
+            if (save == null || save.doors == null) return;
+
+            DoorController[] all = FindObjectsByType<DoorController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            HashSet<string> done = new HashSet<string>();
+            for (int s = 0; s < save.doors.Count; s++)
+            {
+                DoorState state = save.doors[s];
+                if (state == null || string.IsNullOrEmpty(state.id) || !done.Add(state.id)) continue; // each identity once
+                for (int i = 0; i < all.Length; i++)
+                {
+                    if (all[i].SaveId == state.id) { all[i].RestoreFromSave(state.open, state.locked, state.freed); break; }
+                }
+            }
+        }
+
+        // Instant restore: no swing, no sound. A lock only holds if the door
+        // can lock at all (keyId set).
+        public void RestoreFromSave(bool open, bool locked, bool freed)
+        {
+            if (swing != null) { StopCoroutine(swing); swing = null; }
+            IsLocked = locked && !string.IsNullOrEmpty(keyId);
+            IsOpen = open && !IsLocked;
+            PlayerFreed = freed || IsOpen;
+            if (hinge != null) hinge.localRotation = Quaternion.Euler(0f, IsOpen ? openAngle : 0f, 0f);
+            ApplyPassage();
+        }
+
         NavMeshObstacle obstacle;
         Coroutine swing;
 
@@ -45,8 +131,8 @@ namespace LightShadow.Gameplay
         {
             get
             {
-                if (IsLocked) return "Locked - " + Inventory.DisplayName(keyId) + " needed";
-                return IsOpen ? "Close the door" : "Open the door";
+                if (IsLocked) return string.Format(Localization.Tr("Locked - {0} needed"), Inventory.DisplayName(keyId)); // logical text: the HUD shapes it once
+                return IsOpen ? "Close the door" : "Open the door"; // source sentences: the HUD translates and shapes them once
             }
         }
 
@@ -64,7 +150,7 @@ namespace LightShadow.Gameplay
                     LightShadow.Audio.Sfx.Play("SFX_DoorUnlock", ProceduralSfx.Power); // the lock clicks open
                     if (GameManager.Instance != null)
                     {
-                        GameManager.Instance.ShowMessage("Unlocked with the " + Inventory.DisplayName(keyId) + ".", 3f);
+                        GameManager.Instance.ShowMessage(string.Format(Localization.Tr("Unlocked with the {0}."), Inventory.DisplayName(keyId)), 3f);
                     }
                 }
                 else
@@ -134,11 +220,6 @@ namespace LightShadow.Gameplay
             }
             hinge.localRotation = target;
             swing = null;
-        }
-
-        static void Play(AudioClip clip)
-        {
-            if (clip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(clip);
         }
     }
 }

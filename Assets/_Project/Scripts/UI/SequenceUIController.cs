@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System;
 using System.Collections;
 using LightShadow.Core;
@@ -51,7 +52,9 @@ namespace LightShadow.UI
         Action onSolved;
         Action onWrongAttempt;
         bool busy;
+        bool solving; // the winning beat only: leaving is allowed while the sequence plays
         bool cursorWasLocked;
+        InputLockToken lockToken;
 
         void Awake()
         {
@@ -76,6 +79,11 @@ namespace LightShadow.UI
         {
             if (colorsEn == null || sequence == null) return;
             if (colorsEn.Length == 0 || sequence.Length == 0) return;
+            if (!ValidSequence(sequence, swatches.Length))
+            {
+                Debug.LogWarning("[SequenceUI] Show refused: every sequence entry must index a swatch switch.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -95,6 +103,7 @@ namespace LightShadow.UI
             }
 
             inputIndex = 0;
+            solving = false;
             busy = true; // until the first playback finishes
 
             SetLocalized(feedbackText,
@@ -123,6 +132,7 @@ namespace LightShadow.UI
             {
                 closeButton.onClick.RemoveAllListeners();
                 closeButton.onClick.AddListener(() => Close(false));
+                closeButton.interactable = true;
             }
 
             RenderStatics();
@@ -130,7 +140,7 @@ namespace LightShadow.UI
 
             if (panel != null) panel.SetActive(true);
 
-            PlayerController.ExternalInputLocked = true;
+            lockToken = OverlayStack.Acquire("SequenceUI", true, true, () => Close(false));
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
             {
@@ -204,6 +214,8 @@ namespace LightShadow.UI
                 if (inputIndex >= sequence.Length)
                 {
                     busy = true;
+                    solving = true;
+                    if (closeButton != null) closeButton.interactable = false;
                     SetLocalized(feedbackText,
                         "The whole rig blooms - somewhere a hatch rattles open.",
                         "أضاءت كل الأضواء - وفي مكان ما اهتزت فتحة مفتوحة.");
@@ -234,6 +246,21 @@ namespace LightShadow.UI
                 : TextAnchor.MiddleCenter;
         }
 
+        // P1: every programmed step must name a real switch. PlaySequence
+        // clamps entries for display, but Press compares the raw entry, so an
+        // out-of-range step can never be tapped and the overlay soft-locks.
+        public static bool ValidSequence(int[] sequence, int switchCount)
+        {
+            if (sequence == null || sequence.Length == 0) return false;
+            for (int i = 0; i < sequence.Length; i++)
+                if (sequence[i] < 0 || sequence[i] >= switchCount) return false;
+            return true;
+        }
+
+        // P2: pure discard policy - a busy overlay (the success beat, the
+        // sequence playback) may only close solved. Static so tests pin it.
+        public static bool CanDiscard(bool busy) => !busy;
+
         IEnumerator CloseAfterFeedback(float seconds)
         {
             yield return new WaitForSeconds(seconds);
@@ -242,6 +269,10 @@ namespace LightShadow.UI
 
         void Close(bool solved)
         {
+            // P2: an unsolved dismiss (close button, Esc, overlay dismiss
+            // callback) must not discard the overlay while it is busy; the
+            // success beat closes itself with Close(true).
+            if (!solved && !CanDiscard(solving)) return;
             if (panel != null) panel.SetActive(false);
             ReleaseLock();
 
@@ -254,7 +285,7 @@ namespace LightShadow.UI
 
         void ReleaseLock()
         {
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (cursorWasLocked && !Application.isMobilePlatform)
             {
                 Cursor.lockState = CursorLockMode.Locked;
@@ -278,7 +309,7 @@ namespace LightShadow.UI
             {
                 string en = i < colorsEn.Length ? colorsEn[i] : "";
                 string ar = i < colorsAr.Length ? colorsAr[i] : "";
-                SetLocalized(switchLabels[i], (i + 1) + ". " + en, ar);
+                SetLocalized(switchLabels[i], (i + 1) + ". " + en, string.IsNullOrEmpty(ar) ? "" : (i + 1) + ". " + ar);
                 if (switchLabels[i] != null)
                 {
                     switchLabels[i].alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleCenter;

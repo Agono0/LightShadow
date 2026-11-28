@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System;
 using System.Collections;
 using LightShadow.Core;
@@ -45,6 +46,7 @@ namespace LightShadow.UI
         Action onWrongAttempt;
         bool busy;
         bool cursorWasLocked;
+        InputLockToken lockToken;
 
         void Awake()
         {
@@ -69,6 +71,11 @@ namespace LightShadow.UI
         {
             if (stepsEn == null || displayOrder == null) return;
             if (stepsEn.Length == 0 || stepsEn.Length != displayOrder.Length) return;
+            if (!ValidDisplayOrder(displayOrder, stepsEn.Length))
+            {
+                Debug.LogWarning("[OrderUI] Show refused: displayOrder must be a permutation of the step indices.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -105,6 +112,7 @@ namespace LightShadow.UI
             {
                 closeButton.onClick.RemoveAllListeners();
                 closeButton.onClick.AddListener(() => Close(false));
+                closeButton.interactable = true;
             }
 
             RenderStatics();
@@ -113,7 +121,7 @@ namespace LightShadow.UI
 
             if (panel != null) panel.SetActive(true);
 
-            PlayerController.ExternalInputLocked = true;
+            lockToken = OverlayStack.Acquire("OrderUI", true, true, () => Close(false));
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
             {
@@ -151,6 +159,7 @@ namespace LightShadow.UI
                 if (nextStep >= stepsEn.Length)
                 {
                     busy = true;
+                    if (closeButton != null) closeButton.interactable = false;
                     SetLocalized(feedbackText,
                         "Every step in place. The cabinet's clip lets go.",
                         "كل خطوة في مكانها. انفتح قفل الخزانة.");
@@ -192,6 +201,26 @@ namespace LightShadow.UI
                 : TextAnchor.MiddleCenter;
         }
 
+        // P1: the display order must be a true permutation of the step
+        // indices; a duplicate or out-of-range entry leaves a step untappable
+        // and the overlay soft-locks.
+        public static bool ValidDisplayOrder(int[] displayOrder, int stepCount)
+        {
+            if (displayOrder == null || displayOrder.Length != stepCount) return false;
+            bool[] seen = new bool[stepCount];
+            for (int i = 0; i < displayOrder.Length; i++)
+            {
+                int step = displayOrder[i];
+                if (step < 0 || step >= stepCount || seen[step]) return false;
+                seen[step] = true;
+            }
+            return true;
+        }
+
+        // P2: pure discard policy - a busy overlay (the success beat, the
+        // sequence playback) may only close solved. Static so tests pin it.
+        public static bool CanDiscard(bool busy) => !busy;
+
         IEnumerator CloseAfterFeedback(float seconds)
         {
             yield return new WaitForSeconds(seconds);
@@ -200,6 +229,10 @@ namespace LightShadow.UI
 
         void Close(bool solved)
         {
+            // P2: an unsolved dismiss (close button, Esc, overlay dismiss
+            // callback) must not discard the overlay while it is busy; the
+            // success beat closes itself with Close(true).
+            if (!solved && !CanDiscard(busy)) return;
             if (panel != null) panel.SetActive(false);
             ReleaseLock();
 
@@ -212,7 +245,7 @@ namespace LightShadow.UI
 
         void ReleaseLock()
         {
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (cursorWasLocked && !Application.isMobilePlatform)
             {
                 Cursor.lockState = CursorLockMode.Locked;

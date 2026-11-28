@@ -121,7 +121,7 @@ namespace LightShadow.Enemy
             if (breathClip != null && distance < 5f && Time.time >= nextBreathTime
                 && state != EnemyBehaviour.State.Repelled)
             {
-                stingerSource.PlayOneShot(breathClip, 0.6f);
+                stingerSource.PlayOneShot(breathClip, 0.6f * Mathf.Max(0.3f, LightShadow.Audio.AudioDirector.Mix.WraithVoice));
                 nextBreathTime = Time.time + Mathf.Max(4f, breathClip.length + 1.5f);
             }
 
@@ -130,6 +130,7 @@ namespace LightShadow.Enemy
             if (state == EnemyBehaviour.State.Chase) target *= 1.25f;
             if (state == EnemyBehaviour.State.Repelled) target *= 0.6f;
 
+            target *= LightShadow.Audio.AudioDirector.Mix.WraithVoice;
             smoothedVolume = Mathf.Lerp(smoothedVolume, target, Time.deltaTime * 2.5f);
             growlSource.volume = smoothedVolume;
             growlSource.pitch = state == EnemyBehaviour.State.Chase ? 1.08f : 0.92f;

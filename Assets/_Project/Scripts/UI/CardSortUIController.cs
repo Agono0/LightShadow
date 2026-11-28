@@ -1,3 +1,4 @@
+using LightShadow.Contrib.Abdelraouf.Overlay;
 using System;
 using System.Collections;
 using LightShadow.Core;
@@ -48,6 +49,7 @@ namespace LightShadow.UI
         Action onWrongAttempt;
         bool busy;
         bool cursorWasLocked;
+        InputLockToken lockToken;
 
         void Awake()
         {
@@ -72,6 +74,11 @@ namespace LightShadow.UI
         {
             if (cluesEn == null || correctDrawers == null) return;
             if (cluesEn.Length == 0 || cluesEn.Length != correctDrawers.Length) return;
+            if (!ValidDrawers(correctDrawers, drawerButtons.Length))
+            {
+                Debug.LogWarning("[CardSortUI] Show refused: every correctDrawers entry must index drawerButtons.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -108,6 +115,7 @@ namespace LightShadow.UI
             {
                 closeButton.onClick.RemoveAllListeners();
                 closeButton.onClick.AddListener(() => Close(false));
+                closeButton.interactable = true;
             }
 
             RenderStatics();
@@ -115,7 +123,7 @@ namespace LightShadow.UI
 
             if (panel != null) panel.SetActive(true);
 
-            PlayerController.ExternalInputLocked = true;
+            lockToken = OverlayStack.Acquire("CardSortUI", true, true, () => Close(false));
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
             if (cursorWasLocked)
             {
@@ -146,6 +154,7 @@ namespace LightShadow.UI
                 if (cardIndex >= cluesEn.Length)
                 {
                     busy = true;
+                    if (closeButton != null) closeButton.interactable = false;
                     SetLocalized(feedbackText,
                         "Something slim drops into the return tray.",
                         "سقط شيء رفيع في صينية الإرجاع.");
@@ -179,6 +188,20 @@ namespace LightShadow.UI
                 : TextAnchor.MiddleCenter;
         }
 
+        // P1: every clue's drawer must be a real button, or the last card
+        // can never file and the overlay soft-locks. Pure, so tests pin it.
+        public static bool ValidDrawers(int[] correctDrawers, int drawerCount)
+        {
+            if (correctDrawers == null || correctDrawers.Length == 0) return false;
+            for (int i = 0; i < correctDrawers.Length; i++)
+                if (correctDrawers[i] < 0 || correctDrawers[i] >= drawerCount) return false;
+            return true;
+        }
+
+        // P2: pure discard policy - a busy overlay (the success beat, the
+        // sequence playback) may only close solved. Static so tests pin it.
+        public static bool CanDiscard(bool busy) => !busy;
+
         IEnumerator CloseAfterFeedback(float seconds)
         {
             yield return new WaitForSeconds(seconds);
@@ -187,6 +210,10 @@ namespace LightShadow.UI
 
         void Close(bool solved)
         {
+            // P2: an unsolved dismiss (close button, Esc, overlay dismiss
+            // callback) must not discard the overlay while it is busy; the
+            // success beat closes itself with Close(true).
+            if (!solved && !CanDiscard(busy)) return;
             if (panel != null) panel.SetActive(false);
             ReleaseLock();
 
@@ -199,7 +226,7 @@ namespace LightShadow.UI
 
         void ReleaseLock()
         {
-            PlayerController.ExternalInputLocked = false;
+            OverlayStack.Release(ref lockToken);
             if (cursorWasLocked && !Application.isMobilePlatform)
             {
                 Cursor.lockState = CursorLockMode.Locked;
@@ -223,7 +250,7 @@ namespace LightShadow.UI
             {
                 string en = i < drawersEn.Length ? drawersEn[i] : "";
                 string ar = i < drawersAr.Length ? drawersAr[i] : "";
-                SetLocalized(drawerLabels[i], (i + 1) + ". " + en, ar);
+                SetLocalized(drawerLabels[i], (i + 1) + ". " + en, string.IsNullOrEmpty(ar) ? "" : (i + 1) + ". " + ar);
                 if (drawerLabels[i] != null)
                 {
                     drawerLabels[i].alignment = arabic ? TextAnchor.MiddleRight : TextAnchor.MiddleCenter;

@@ -56,6 +56,7 @@ namespace LightShadow.Enemy
         float catchCooldownTimer;
         bool aggressive;
         bool catching;
+        float catchingSeconds;
 
         // Hearing (P3 noise bus): the last noise the player made and how loud
         // it was. OnNoiseEmitted fills these; the FSM reacts in Update.
@@ -169,6 +170,9 @@ namespace LightShadow.Enemy
             if (shadowMotion == null) shadowMotion = GetComponent<ShadowMotion>();
             if (cameraShake == null && playerCamera != null) cameraShake = playerCamera.GetComponent<CameraShake>();
             if (sight != null && sight.target == null && playerCamera != null) sight.target = playerCamera.transform;
+            // E3: the config is the one source of truth for sight range;
+            // HidingSystem and MenaceDirector read sight.range.
+            if (sight != null) sight.range = ResolveSightRange(config != null, config != null ? config.sightRange : 0f, sight.range);
 
             if (breathingSource != null)
             {
@@ -203,7 +207,20 @@ namespace LightShadow.Enemy
         void Update()
         {
             if (player == null || agent == null || !agent.isOnNavMesh) return;
-            if (catching) return;
+            if (catching)
+            {
+                // Watchdog: the catch must always hand back. If the sequence or
+                // the checkpoint wake never clears it, force the wraith to
+                // withdraw so it can never freeze in place for good.
+                catchingSeconds += Time.deltaTime;
+                if (CatchRecovery.WatchdogExpired(catchingSeconds))
+                {
+                    Debug.LogWarning("[LightShadow] Catch watchdog fired: forcing the wraith to withdraw.");
+                    StopAllCoroutines();
+                    ApplyCatchPlan(CatchRecovery.AfterStrike(true));
+                }
+                return;
+            }
 
             float dt = Time.deltaTime;
             if (repelCooldownTimer > 0f) repelCooldownTimer -= dt;
@@ -234,12 +251,13 @@ namespace LightShadow.Enemy
             // and a hidden Nour - the Shadow cannot grab through the spot wall;
             // Search still FINDS a witnessed hider through sight (UpdateSearch).
             if (state != State.Repelled && state != State.ForcedCooldown && catchCooldownTimer <= 0f
-                && distance <= CatchDistance && !LitZone.PlayerInLitZone
+                && distance <= CatchDistance && !LitZoneProtects(aggressive, LitZone.PlayerInLitZone)
                 && !HidingSystem.IsHidden)
             {
+                // No cinematic close-up here any more: it swapped the camera
+                // while input stayed live and was part of the first-hit
+                // freeze report. The shake in CatchSequence carries the hit.
                 StartCoroutine(CatchSequence());
-                // The catch close-up (premium pass); no-op if the rigs/CM are absent.
-                Systems.CinematicDirector.PlayShot(Systems.CinematicDirector.ShotCatch);
                 return;
             }
 
@@ -283,7 +301,7 @@ namespace LightShadow.Enemy
         // when the director sees ForcedCooldown exit.
         public void ForceCooldown(float seconds)
         {
-            if (catching) return;
+            if (catching || !CanForceCooldown(aggressive)) return;
             forcedCooldownSeconds = Mathf.Max(1f, seconds);
             EnterState(State.ForcedCooldown);
         }
@@ -405,11 +423,49 @@ namespace LightShadow.Enemy
             EnterState(State.Search);
         }
 
+        // Dawn chase (Doc 4.4, story: "the Shadow is right behind you"): once the
+        // gate is powered the lit rooms stop protecting Nour, the entrance
+        // included, so the run to the gate is a real finale. Before dawn the lit
+        // rooms stay safe (destinations clamped, no catch inside).
+        public static bool ClampsToLitZones(bool dawnChase) { return !dawnChase; }
+        public static bool LitZoneProtects(bool dawnChase, bool playerInLitZone) { return playerInLitZone && !dawnChase; }
+
+        // N1: in the dawn chase the menace gauge climbs fast, and parking the
+        // Shadow for 45-60s right after the gate powers would kill the finale.
+        public static bool CanForceCooldown(bool dawnChase) { return !dawnChase; }
+
+        // E3 seam: config wins over the EnemySight field when there is one.
+        public static float ResolveSightRange(bool hasConfig, float configRange, float fieldRange)
+        {
+            return hasConfig && configRange > 0f ? configRange : fieldRange;
+        }
+
+        // E1 seam: a hidden target counts as sight-lost for Chase, even when
+        // the Shadow watched her duck in (witnessed hiders do not blind it).
+        public static bool ChaseSightLost(bool sighted, bool hidden)
+        {
+            return !sighted || hidden;
+        }
+
+        public static bool ShouldExitChase(bool escaped, float sightLostTimer, float grace)
+        {
+            return escaped || sightLostTimer > grace;
+        }
+
+        // E1 seam: a search stop on the occupied spot forces the extraction
+        // only for a hider the Shadow watched enter. Unwitnessed stays safe.
+        public static bool ShouldExtractHider(int searchStage, bool atStop, bool hidden, bool enteredUnderWatch)
+        {
+            return searchStage == 0 && atStop && hidden && enteredUnderWatch;
+        }
+
         void UpdateSearch(float dt, Vector3 playerPosition, bool sighted)
         {
             searchTimer += dt;
 
-            if (sighted && !MenaceDirector.ChaseBlocked)
+            // A hider the Shadow can still "see" must not bounce Search back to
+            // Chase: the stop at her spot decides it (E1).
+            if (sighted && !HidingSystem.IsHidden && !MenaceDirector.ChaseBlocked)
             {
                 EnterState(State.Chase);
                 return;
@@ -428,6 +484,13 @@ namespace LightShadow.Enemy
                 // Dwell at the stop and look it over, then move to the next.
                 agent.isStopped = true;
                 FaceTowards(searchStageIndex == 0 ? playerPosition : target);
+                if (ShouldExtractHider(searchStageIndex, true, HidingSystem.IsHidden, HidingSystem.EnteredUnderWatch)
+                    && !catching && catchCooldownTimer <= 0f && !LitZone.PlayerInLitZone)
+                {
+                    HidingSystem.ExitCurrent();
+                    StartCoroutine(CatchSequence());
+                    return;
+                }
                 searchDwell += dt;
                 if (searchDwell >= SearchSpotDwellSeconds)
                 {
@@ -518,7 +581,7 @@ namespace LightShadow.Enemy
         // straight patrol (plan 4.12).
         void UpdateChase(float dt, Vector3 playerPosition, float distance, bool sighted)
         {
-            if (sighted)
+            if (!ChaseSightLost(sighted, HidingSystem.IsHidden))
             {
                 sightLostTimer = 0f;
                 SetDestination(playerPosition);
@@ -529,8 +592,7 @@ namespace LightShadow.Enemy
             }
 
             bool escaped = distance > ChaseExitDistance;
-            bool lost = sightLostTimer > SightLostGrace;
-            if (escaped || lost)
+            if (ShouldExitChase(escaped, sightLostTimer, SightLostGrace))
             {
                 BeginSearch(playerPosition);
             }
@@ -546,11 +608,18 @@ namespace LightShadow.Enemy
 
         // ------------------------- State plumbing -------------------------
 
+        // Pure policy, no NavMesh or AudioSource needed, so tests can pin it.
+        public static bool BreathingFor(State target)
+        {
+            return target == State.Stalk || target == State.Investigate || target == State.Search;
+        }
+
         void EnterState(State next)
         {
-            if (state == State.Stalk && next != State.Stalk) SetBreathing(false);
-
             state = next;
+            // One central rule for the breathing loop (policy: on while the
+            // Shadow stalks, investigates or searches; off otherwise).
+            SetBreathing(BreathingFor(next));
             // Audio snapshot driving (AudioSnapshotController) follows the FSM
             // through this single raise: every transition enters here.
             GameEvents.RaiseEnemyStateChanged((int)next);
@@ -567,7 +636,6 @@ namespace LightShadow.Enemy
                     break;
                 case State.Stalk:
                     agent.speed = StalkSpeed;
-                    SetBreathing(true);
                     break;
                 case State.Chase:
                     agent.speed = ChaseSpeed;
@@ -583,7 +651,6 @@ namespace LightShadow.Enemy
                     agent.speed = StalkSpeed;
                     agent.isStopped = false;
                     investigateTimer = 0f;
-                    SetBreathing(true);
                     break;
                 case State.Ambush:
                     // Slip into cover: stop, go quiet, wait for her.
@@ -594,7 +661,6 @@ namespace LightShadow.Enemy
                     }
                     ambushTimer = 18f;
                     ambushCooldown = 45f;
-                    SetBreathing(false);
                     break;
                 case State.ForcedCooldown:
                     // Leaving the wing: patrol pace, quiet, no target fixes
@@ -603,7 +669,6 @@ namespace LightShadow.Enemy
                     agent.isStopped = false;
                     forcedCooldownTimer = 0f;
                     PickFarWaypoint();
-                    SetBreathing(false);
                     break;
                 case State.Search:
                     // Check the picked spots with a stalker's pace.
@@ -611,7 +676,6 @@ namespace LightShadow.Enemy
                     agent.isStopped = false;
                     searchStageIndex = 0;
                     searchDwell = 0f;
-                    SetBreathing(true);
                     break;
             }
         }
@@ -645,6 +709,7 @@ namespace LightShadow.Enemy
         public void ResetToPatrol()
         {
             catching = false;
+            catchingSeconds = 0f;
             catchCooldownTimer = 1.5f;
             sightLostTimer = 0f;
             investigateTimer = 0f;
@@ -661,6 +726,7 @@ namespace LightShadow.Enemy
         System.Collections.IEnumerator CatchSequence()
         {
             catching = true;
+            catchingSeconds = 0f;
             sightLostTimer = 0f;
             investigateTimer = 0f;
             forcedCooldownTimer = 0f;
@@ -688,13 +754,29 @@ namespace LightShadow.Enemy
 
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.EnemyHitPlayer();
-                // Two-hit health (user brief 2026-11-27): after the strike the
-                // wraith withdraws into the dark, so a surviving Nour gets room
-                // to run instead of an instant second hit.
-                EnterState(State.ForcedCooldown);
+                bool survived = GameManager.Instance.EnemyHitPlayer();
+                ApplyCatchPlan(CatchRecovery.AfterStrike(survived));
             }
             else ResetToPatrol();
+        }
+
+        // Applies the pure CatchRecovery plan. A survived strike clears the
+        // catching flag (the old code never did, which froze the wraith after
+        // the first hit) and sends it away for a while; a lethal one stays
+        // frozen until the checkpoint wake calls ResetToPatrol.
+        void ApplyCatchPlan(CatchRecovery.Plan plan)
+        {
+            catchingSeconds = 0f;
+            if (plan.ClearCatching) catching = false;
+            catchCooldownTimer = Mathf.Max(catchCooldownTimer, plan.CatchCooldownSeconds);
+            if (plan.Retreat)
+            {
+                ForceCooldown(plan.RetreatSeconds);
+            }
+            else if (plan.ResetToPatrol && !catching)
+            {
+                ResetToPatrol();
+            }
         }
 
         // Doc Act III: when the gate is powered, dawn lights the corridors and
@@ -760,11 +842,11 @@ namespace LightShadow.Enemy
             if (waypoint != null) SetDestination(waypoint.position);
         }
 
-        // All destinations are clamped out of lit zones (Doc 4.3: the Shadow
+        // Before dawn all destinations are clamped out of lit zones (Doc 4.3: the Shadow
         // genuinely cannot enter lit rooms, not merely "avoids" them).
         void SetDestination(Vector3 position)
         {
-            agent.SetDestination(LitZone.ClampPoint(position, 0.8f));
+            agent.SetDestination(ClampsToLitZones(aggressive) ? LitZone.ClampPoint(position, 0.8f) : position);
         }
 
         void FaceTowards(Vector3 position)

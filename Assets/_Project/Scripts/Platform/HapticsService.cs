@@ -11,11 +11,20 @@ namespace LightShadow.Platform
     // check alone cannot save compilation on Windows Standalone).
     public static class HapticsService
     {
+        // Player opt-out (audit 7.2). Default on; stored so it survives restarts.
+        public const string PrefKey = "ls_haptics_enabled";
+
+        public static bool Enabled
+        {
+            get { return PlayerPrefs.GetInt(PrefKey, 1) != 0; }
+            set { PlayerPrefs.SetInt(PrefKey, value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
         // Light: correct answers, fragment pickups.
         public static void Light()
         {
 #if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
-            Handheld.Vibrate();
+            if (Enabled) Handheld.Vibrate();
 #endif
         }
 
@@ -23,7 +32,7 @@ namespace LightShadow.Platform
         public static void Heavy()
         {
 #if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
-            Handheld.Vibrate();
+            if (Enabled) Handheld.Vibrate();
 #endif
         }
     }

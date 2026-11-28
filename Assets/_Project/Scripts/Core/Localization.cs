@@ -181,11 +181,18 @@ namespace LightShadow.Core
 
         public static string QuestionOption(QuestionData question, int index)
         {
+            return Present(QuestionOptionLogical(question, index));
+        }
+
+        // Logical (unshaped) option text, for callers that build a longer line
+        // and shape it once (shaping fragments separately mis-orders the line).
+        public static string QuestionOptionLogical(QuestionData question, int index)
+        {
             if (question == null || question.options == null || index < 0 || index >= question.options.Length)
                 return "";
             if (Current == GameLanguage.Arabic && question.optionsAr != null
                 && index < question.optionsAr.Length && !string.IsNullOrEmpty(question.optionsAr[index]))
-                return Present(question.optionsAr[index]);
+                return question.optionsAr[index];
             return question.options[index];
         }
 
@@ -241,10 +248,10 @@ namespace LightShadow.Core
             // ---- how to play ----------------------------------------------
             { "You are Nour. The school is dark, the demolition crew comes at dawn, and the Shadow hunts in the dark.",
               "أنت نور. المدرسة مظلمة، وفريق الهدم يأتي عند الفجر، والظل يطارد في العتمة." },
-            { "Answer chalkboard questions to charge the Bright Idea Meter. A brighter beam reaches further, repels the Shadow above 30, and keeps the dark away. Wrong answers and timeouts dim it.",
-              "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد، ويطرد الظل فوق 30، ويبقي العتمة بعيدة. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع." },
-            { "Lit rooms are safe: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is fuel and runs out; batteries are scattered through the school.",
-              "الغرف المضاءة آمنة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة." },
+            { "Answer chalkboard questions to charge the Bright Idea Meter. A brighter beam reaches further and keeps the dark away. Hold the focused beam on the Shadow long enough and it recoils and backs off: hold right mouse, hold Y on a gamepad, or long-press the flashlight button on touch. Focus only works while the beam is on, and it drains the battery faster. Wrong answers and timeouts dim the beam.",
+              "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد ويبقي العتمة بعيدة. أبقِ الشعاع المركّز على الظل مدة كافية فيرتدّ ويبتعد: اضغط مطولًا على زر الفأرة الأيمن، أو Y في يد التحكم، أو اضغط مطولًا على زر المصباح في اللمس. التركيز يعمل فقط والشعاع مضاء، ويستهلك البطارية أسرع. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع." },
+            { "Lit rooms are safe until the gate is powered: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is fuel and runs out; batteries are scattered through the school.",
+              "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة." },
             { "Restore three fuse boxes, collect six Knowledge Fragments, power the gate, and walk out. You cannot die - being caught only costs light and sends you back to the last checkpoint.",
               "أعد تشغيل ثلاثة صناديق مصاهر، واجمع ست شذرات معرفة، وشغّل البوابة، واخرج. لا يمكنك الموت — الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ." },
 
@@ -327,6 +334,23 @@ namespace LightShadow.Core
 
             // ---- recap ----------------------------------------------------
             { "Study Recap", "خلاصة المراجعة" },
+            // Added with the recap export feedback; machine-written, NOT native-verified.
+            { "Recap saved: {0}", "تم حفظ الخلاصة: {0}" },
+            { "Recap export failed", "تعذّر حفظ الخلاصة" },
+            // Prompts that were missing from the table (audit 3.2/3.4); not native-verified.
+            { "Locked - {0} needed", "مغلق - يلزم {0}" },
+            { "Pick it up", "التقطه" },
+            { "Put it down", "ضعه" },
+            { "Take the medkit", "خذ الإسعافات" },
+            // AI-drafted Arabic (Abdelraouf proposal), NOT native-reviewed. House term for the kit: الإسعافات.
+            { "Open the door", "افتح الباب" },
+            { "Close the door", "أغلق الباب" },
+            { "Unlocked with the {0}.", "تم الفتح باستخدام {0}." },
+            { "It struck her - she is barely standing. Find a medkit.", "أصابها - إنها بالكاد تستطيع الوقوف. ابحث عن حقيبة الإسعافات." },
+            { "Locked. The key must be somewhere in this school.", "مقفل. لا بد أن المفتاح في مكان ما داخل هذه المدرسة." },
+            { "Medkit packed. Press M when she needs it.", "تم حزم حقيبة الإسعافات. اضغط M عندما تحتاجها." },
+            { "Medkit used. Back on her feet.", "تم استخدام حقيبة الإسعافات. عادت إلى قدميها." },
+            { "No medkit. They are rare - some puzzles hide one.", "لا توجد حقيبة إسعافات. إنها نادرة - بعض الألغاز يخفي واحدة." },
             { "No questions were answered tonight.", "لم تُجب عن أي سؤال هذه الليلة." },
             { "Nothing was asked tonight.", "لم يُطرح شيء هذه الليلة." },
             { "Answered: {0}    Correct: {1} ({2}%)", "أجبت: {0}    صحيح: {1} ({2}%)" },
