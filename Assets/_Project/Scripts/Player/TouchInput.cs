@@ -39,9 +39,23 @@ namespace LightShadow.Player
             }
         }
 
+        // Pure policy (audit M1): while input is locked (dialogue, hiding,
+        // inspect view) no finger may look, and the tracked look finger is
+        // dropped so the camera cannot jump when the lock releases.
+        public static int LookFingerAfterLock(bool locked, int currentFingerId)
+        {
+            return locked ? -1 : currentFingerId;
+        }
+
+        public static bool CanLook(bool locked) { return !locked; }
+
         void Update()
         {
             if (!Application.isMobilePlatform) return;
+
+            bool locked = PlayerController.ExternalInputLocked;
+            lookFingerId = LookFingerAfterLock(locked, lookFingerId);
+            if (!CanLook(locked)) return;
 
             foreach (Touch touch in Input.touches)
             {
