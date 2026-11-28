@@ -102,7 +102,8 @@ namespace LightShadow.Tools
             "Hidden/Universal Render Pipeline/UberPost",
             "Hidden/Universal Render Pipeline/BokehDepthOfField",
             "Hidden/Universal Render Pipeline/Bloom",
-            "Hidden/Universal Render Pipeline/FilmGrain",
+            // No FilmGrain entry: URP 17 renders grain inside UberPost and
+            // ships no separate shader, so the old name always logged MISSING.
         };
 
         static string EnsurePostShadersIncluded()
@@ -240,17 +241,28 @@ namespace LightShadow.Tools
                     return basePath + " MISSING";
                 }
 
-                if (File.Exists(variantPath))
-                {
-                    AssetDatabase.DeleteAsset(variantPath);
-                }
-                if (!AssetDatabase.CopyAsset(basePath, variantPath))
-                {
-                    Debug.LogWarning("[LightShadow] CopyAsset failed: " + basePath + " -> " + variantPath);
-                    return "COPY FAILED";
-                }
-
+                // Refresh an existing tier in place: deleting and re-copying it
+                // gave the asset a new GUID on every BuildAll (seen in the first
+                // editor run, 2026-11-28), churning the .meta files and
+                // breaking anything that referenced a tier.
                 Object variant = AssetDatabase.LoadAssetAtPath<Object>(variantPath);
+                Object source = AssetDatabase.LoadAssetAtPath<Object>(basePath);
+                if (variant != null && source != null && variant.GetType() == source.GetType())
+                {
+                    string keepName = variant.name;
+                    EditorUtility.CopySerialized(source, variant);
+                    variant.name = keepName;
+                }
+                else
+                {
+                    if (File.Exists(variantPath)) AssetDatabase.DeleteAsset(variantPath);
+                    if (!AssetDatabase.CopyAsset(basePath, variantPath))
+                    {
+                        Debug.LogWarning("[LightShadow] CopyAsset failed: " + basePath + " -> " + variantPath);
+                        return "COPY FAILED";
+                    }
+                    variant = AssetDatabase.LoadAssetAtPath<Object>(variantPath);
+                }
                 if (variant == null) return "LOAD FAILED";
 
                 SerializedObject serialized = new SerializedObject(variant);
