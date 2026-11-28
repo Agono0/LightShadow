@@ -21,7 +21,7 @@ namespace LightShadow.Tests.Editor
         static readonly MethodInfo RowValueMethod =
             typeof(SettingsPanelController).GetMethod("RowValue", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-        // The exact declared order of all 27 rows (page A then page B, with
+        // The exact declared order of all 28 rows (page A then page B, with
         // Voice/Shadow appended last - indices 0..24 must never move).
         static readonly string[] ExpectedRowKeys =
         {
@@ -34,6 +34,7 @@ namespace LightShadow.Tests.Editor
             "Touch control size",
             "Sound captions", "Hints",
             "Voice volume", "Shadow volume",
+            "Haptics", // appended by the audit 7.2 haptics row
         };
 
         GameObject host;
@@ -94,9 +95,9 @@ namespace LightShadow.Tests.Editor
         }
 
         [Test]
-        public void TotalRows_Is27()
+        public void TotalRows_Is28()
         {
-            Assert.AreEqual(27, SettingsPanelController.TotalRows);
+            Assert.AreEqual(28, SettingsPanelController.TotalRows);
         }
 
         [Test]
