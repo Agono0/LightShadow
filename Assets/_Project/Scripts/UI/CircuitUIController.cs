@@ -78,6 +78,11 @@ namespace LightShadow.UI
         {
             if (feedsEn == null || terminalsEn == null || mapping == null) return;
             if (feedsEn.Length != 3 || terminalsEn.Length != 3 || mapping.Length != 3) return;
+            if (!ValidMapping(mapping, feedsEn.Length, terminalsEn.Length))
+            {
+                Debug.LogWarning("[CircuitUI] Show refused: mapping must pair each feed with a distinct terminal.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -131,6 +136,7 @@ namespace LightShadow.UI
             {
                 closeButton.onClick.RemoveAllListeners();
                 closeButton.onClick.AddListener(() => Close(false));
+                closeButton.interactable = true;
             }
 
             RenderStatics();
@@ -196,6 +202,7 @@ namespace LightShadow.UI
                 if (lockedCount >= 3)
                 {
                     busy = true;
+                    if (closeButton != null) closeButton.interactable = false;
                     SetLocalized(feedbackText,
                         "Every bus hums. The board is live.",
                         "كل الخطوط تطن. اللوحة حية.");
@@ -231,6 +238,26 @@ namespace LightShadow.UI
                 : TextAnchor.MiddleCenter;
         }
 
+        // P1: every feed must map to a DISTINCT in-range terminal; a shared
+        // terminal locks once, so the last feed can never pair and the
+        // overlay soft-locks.
+        public static bool ValidMapping(int[] mapping, int feedCount, int terminalCount)
+        {
+            if (mapping == null || mapping.Length != feedCount) return false;
+            bool[] used = new bool[terminalCount];
+            for (int i = 0; i < mapping.Length; i++)
+            {
+                int terminal = mapping[i];
+                if (terminal < 0 || terminal >= terminalCount || used[terminal]) return false;
+                used[terminal] = true;
+            }
+            return true;
+        }
+
+        // P2: pure discard policy - a busy overlay (the success beat, the
+        // sequence playback) may only close solved. Static so tests pin it.
+        public static bool CanDiscard(bool busy) => !busy;
+
         IEnumerator CloseAfterFeedback(float seconds)
         {
             yield return new WaitForSeconds(seconds);
@@ -239,6 +266,10 @@ namespace LightShadow.UI
 
         void Close(bool solved)
         {
+            // P2: an unsolved dismiss (close button, Esc, overlay dismiss
+            // callback) must not discard the overlay while it is busy; the
+            // success beat closes itself with Close(true).
+            if (!solved && !CanDiscard(busy)) return;
             if (panel != null) panel.SetActive(false);
             ReleaseLock();
 
