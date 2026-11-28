@@ -15,6 +15,7 @@ namespace LightShadow.Tools
         const string PlayerHandLModel = "SM_Player_Hand_L";
         const string PlayerHandRModel = "SM_Player_Hand_R";
         const string PlayerTorchModel = "SM_Torch";
+        const float TorchSeatForward = 0.02f;
 
         static bool HeroModelExists(string modelName)
         {
@@ -108,6 +109,10 @@ namespace LightShadow.Tools
                         offset = PlayerRigFit.RootOffsetForGrip(handGripPoint, grip.localPosition,
                             torch.transform.localRotation, torch.transform.localScale.x);
                     }
+                    // Seat the torch 20 mm forward of the grip alignment: its tail
+                    // would otherwise overlap the hand's cuff and forearm
+                    // (Ziad's fit note, second-pass models). The muzzle follows.
+                    offset += new Vector3(0f, 0f, TorchSeatForward);
                     torch.transform.parent.localPosition = offset;
                     if (muzzle != null && PlayerRigFit.IsUsable(muzzle.localPosition))
                     {
