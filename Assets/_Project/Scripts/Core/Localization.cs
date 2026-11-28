@@ -324,6 +324,7 @@ namespace LightShadow.Core
             { "Mouse sensitivity", "حساسية الفأرة" },
             { "Narrator voice", "صوت الراوي" },
             { "On", "مفعّل" },
+            { "Haptics", "الاهتزاز" },
             { "Off", "متوقف" },
             { "Reset defaults", "إعادة الإعدادات الافتراضية" },
             { "Low", "منخفضة" },

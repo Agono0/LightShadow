@@ -871,6 +871,7 @@ namespace LightShadow.Tools
                 "Touch control size",
                 "Sound captions", "Hints",
                 "Voice volume", "Shadow volume",
+                "Haptics",
             };
 
             for (int i = 0; i < pageBKeys.Length; i++)
@@ -880,8 +881,9 @@ namespace LightShadow.Tools
                 // touch control size (user brief 2026-11-27) makes it a 6 + 5 grid.
                 // Sound captions (i == 11) sits at the end of the right column,
                 // Hints (i == 12) at the end of the left column (row 6).
-                bool leftColumn = i < 6 || i == 12;
-                int columnRow = i < 6 ? i : (i == 12 ? 6 : (i >= 13 ? i - 7 : i - 6));
+                // Haptics (i == 15) sits under Hints at the end of the left column (row 7).
+                bool leftColumn = i < 6 || i == 12 || i == 15;
+                int columnRow = i < 6 ? i : (i == 12 ? 6 : (i == 15 ? 7 : (i >= 13 ? i - 7 : i - 6)));
                 float x = leftColumn ? 48f : 580f;
                 float valueX = leftColumn ? 285f : 817f;
                 float prevX = leftColumn ? 412f : 944f;
