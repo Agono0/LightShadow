@@ -318,7 +318,7 @@ namespace LightShadow.Core
             if (sceneMatches && hasReceiver)
             {
                 game.ApplyLoadedState(data);
-                InvokeEach(SaveApplied, data, "SaveApplied");
+                NotifySaveApplied(data);
                 return;
             }
 
@@ -374,7 +374,7 @@ namespace LightShadow.Core
             GameManager game = GameManager.Instance;
             if (data == null || game == null || game.player == null) return;
             game.ApplyLoadedState(data);
-            InvokeEach(SaveApplied, data, "SaveApplied");
+            NotifySaveApplied(data);
         }
 
         // S2: Android can kill a backgrounded app, so save when it is paused or
@@ -430,6 +430,17 @@ namespace LightShadow.Core
         }
 
         // S3: one throwing subscriber must not skip the others or lose the save.
+        // Inventory and PuzzleManager restore inside SaveApplied and raise no
+        // item or puzzle events, and ApplyLoadedState refreshes the HUD before
+        // they run, so the objective line could stay stale after a deferred
+        // restore. Refresh once more after every handler has run.
+        public static void NotifySaveApplied(SaveData data)
+        {
+            InvokeEach(SaveApplied, data, "SaveApplied");
+            LightShadow.UI.HUDController hud = LightShadow.UI.HUDController.Instance;
+            if (hud != null) hud.RefreshObjectives();
+        }
+
         static void InvokeEach(Action<SaveData> handlers, SaveData data, string label)
         {
             if (handlers == null) return;
