@@ -1,0 +1,157 @@
+import math, sys, os
+OUT = sys.argv[1]
+class Mesh:
+    def __init__(s,name): s.name=name; s.v=[]; s.f=[]
+    def add(s,verts,faces):
+        b=len(s.v); s.v+=verts; s.f+=[tuple(i+b for i in f) for f in faces]
+    def vol(s):
+        t=0
+        for a,b,c in s.f:
+            A,B,C=s.v[a],s.v[b],s.v[c]
+            t+=(A[0]*(B[1]*C[2]-B[2]*C[1])-A[1]*(B[0]*C[2]-B[2]*C[0])+A[2]*(B[0]*C[1]-B[1]*C[0]))/6
+        return t
+    def fix(s):
+        if s.vol()<0: s.f=[(a,c,b) for a,b,c in s.f]
+        return s
+import itertools
+def closed(f):
+    e=set()
+    for a,b,c in f:
+        for x in((a,b),(b,c),(c,a)):
+            if x in e: return False
+            e.add(x)
+    return all((y,x) in e for x,y in e)
+def flipf(f): return [(a,c,b) for a,b,c in f]
+def loft(name,axis,st,n=8,c=(0,0),rot=0):
+    """st: list of (t, ra, rb, ca, cb) stations along axis; capped both ends."""
+    m=Mesh(name); rings=[]
+    for (t,ra,rb,ca,cb) in st:
+        r=[]
+        for i in range(n):
+            a=2*math.pi*i/n+rot
+            p=(ca+ra*math.cos(a), cb+rb*math.sin(a))
+            r.append((p[0],t,p[1]) if axis=='y' else (p[0],p[1],t))
+        rings.append(r)
+    verts=[p for r in rings for p in r]; faces=[]
+    for k in range(len(rings)-1):
+        for i in range(n):
+            j=(i+1)%n
+            a,b,c2,d=k*n+i,k*n+j,(k+1)*n+j,(k+1)*n+i
+            faces+= [(a,b,c2),(a,c2,d)]
+    side=faces; faces=[]
+    for k,top in ((0,False),(len(rings)-1,True)):
+        verts.append((sum(p[0] for p in rings[k])/n,sum(p[1] for p in rings[k])/n,sum(p[2] for p in rings[k])/n))
+        ci=len(verts)-1
+        for i in range(n):
+            j=(i+1)%n
+            faces.append((ci,k*n+i,k*n+j))
+    capb=faces[:n]; capt=faces[n:]
+    for fs,fb,ft in itertools.product((0,1),repeat=3):
+        cand=(flipf(side) if fs else side)+(flipf(capb) if fb else capb)+(flipf(capt) if ft else capt)
+        if closed(cand): faces=cand; break
+    else: raise Exception('loft not closable')
+    m.add(verts,faces); return m.fix()
+def box(name,x0,x1,y0,y1,z0,z1):
+    m=Mesh(name)
+    v=[(x,y,z) for x in(x0,x1) for y in(y0,y1) for z in(z0,z1)]
+    q=[(0,1,3,2),(4,6,7,5),(0,4,5,1),(2,3,7,6),(0,2,6,4),(1,5,7,3)]
+    f=[]
+    for a,b,c,d in q: f+=[(a,b,c),(a,c,d)]
+    m.add(v,f); return m.fix()
+def ell(name,cx,cy,cz,rx,ry,rz,seg=8,rings=5):
+    m=Mesh(name); v=[(cx,cy+ry,cz)]; f=[]
+    for k in range(1,rings):
+        th=math.pi*k/rings
+        for i in range(seg):
+            a=2*math.pi*i/seg
+            v.append((cx+rx*math.sin(th)*math.cos(a),cy+ry*math.cos(th),cz+rz*math.sin(th)*math.sin(a)))
+    v.append((cx,cy-ry,cz)); bot=len(v)-1
+    for i in range(seg):
+        j=(i+1)%seg; f.append((0,1+i,1+j))
+    for k in range(rings-2):
+        for i in range(seg):
+            j=(i+1)%seg
+            a,b,c,d=1+k*seg+i,1+k*seg+j,1+(k+1)*seg+j,1+(k+1)*seg+i
+            f+=[(a,b,c),(a,c,d)]
+    base=1+(rings-2)*seg
+    f2=[]
+    for i in range(seg):
+        j=(i+1)%seg; f2.append((bot,base+j,base+i))
+    top=f[:seg]; mid=f[seg:]
+    for ft,fm,fb in itertools.product((0,1),repeat=3):
+        cand=(flipf(top) if ft else top)+(flipf(mid) if fm else mid)+(flipf(f2) if fb else f2)
+        if closed(cand): f=cand; break
+    else: raise Exception('ell')
+    m.add(v,f); return m.fix()
+def marker(name,x,y,z,h=0.004):
+    return box(name,x-h,x+h,y-h,y+h,z-h,z+h)
+def mirror(m,name):
+    r=Mesh(name); r.v=[(-x,y,z) for x,y,z in m.v]; r.f=[(a,c,b) for a,b,c in m.f]; return r
+def write(fn,mats,objs):
+    base=os.path.join(OUT,fn)
+    with open(base+'.mtl','w') as f:
+        f.write(f"# {fn} material (no textures). Original content.\n")
+        f.write(f"newmtl {mats[0]}\nKa 0.02 0.02 0.02\nKd {mats[1]}\nKs 0.03 0.03 0.03\nNs 8\nd 1\nillum 1\n")
+    with open(base+'.obj','w') as f:
+        f.write(f"# {fn}: units=metres, Y-up, +Z forward, right-handed file convention, scale 1\nmtllib {fn}.mtl\n")
+        off=1
+        for m in objs:
+            f.write(f"o {m.name}\nusemtl {mats[0]}\n")
+            for v in m.v: f.write("v %.5f %.5f %.5f\n"%v)
+            for a,b,c in m.f: f.write(f"f {a+off} {b+off} {c+off}\n")
+            off+=len(m.v)
+# ---------- BODY (+X = character left, +Z forward, feet at y=0)
+body=[]
+body.append(ell("Head",0,1.49,0.01,0.085,0.11,0.10))
+body.append(loft("Neck",'y',[(1.37,0.045,0.045,0,0),(1.43,0.040,0.040,0,0.005)]))
+body.append(loft("Torso",'y',[(0.80,0.17,0.10,0,0),(0.97,0.14,0.09,0,0),(1.20,0.17,0.105,0,0),(1.34,0.19,0.10,0,0)]))
+def side(sx,suf):
+    p=[]
+    p.append(loft("UpperArm_"+suf,'y',[(1.05,0.04,0.04,sx*0.235,0),(1.31,0.050,0.050,sx*0.235,0)],6))
+    p.append(loft("Forearm_"+suf,'y',[(0.80,0.028,0.028,sx*0.235,0),(1.05,0.040,0.040,sx*0.235,0)],6))
+    p.append(box("Hand_"+suf,sx*0.235-0.03,sx*0.235+0.03,0.68,0.80,-0.02,0.03) if False else box("Hand_"+suf,min(sx*0.205,sx*0.265),max(sx*0.205,sx*0.265),0.69,0.80,-0.025,0.025))
+    p.append(loft("Thigh_"+suf,'y',[(0.47,0.060,0.065,sx*0.09,0),(0.84,0.085,0.09,sx*0.09,0)],6))
+    p.append(loft("Shin_"+suf,'y',[(0.08,0.040,0.045,sx*0.09,0),(0.47,0.058,0.062,sx*0.09,0)],6))
+    p.append(box("Foot_"+suf,min(sx*0.055,sx*0.125),max(sx*0.055,sx*0.125),0.0,0.08,-0.06,0.20))
+    return p
+body+=side(+1,"L")+side(-1,"R")
+write("SM_Player_Body","MAT_Player_Body 0.14 0.13 0.13".split(' ',1)[::1] and ["MAT_Player_Body","0.14 0.13 0.13"],body)
+# ---------- HANDS: wrist origin, forearm back along -Z, fingers forward +Z, palm faces midline.
+def hand(side_sign,suf):
+    s=side_sign  # +1 left file +X ; inward (palm side) = -s in x
+    inw=-s
+    o=[]
+    o.append(loft("Forearm",'z',[(-0.28,0.040,0.040,0,0),(-0.10,0.032,0.032,0,0),(0,0.027,0.025,0,0)],6))
+    o.append(box("Palm",-0.032,0.032,-0.022,0.022,0.0,0.09))
+    # fingers: 4 bars curled toward palm side, stacked along Y
+    fm=Mesh("Fingers")
+    for k,y in enumerate((-0.0165,-0.0055,0.0055,0.0165)):
+        L=0.075-0.006*abs(k-1.5)
+        b=box("f",inw*0.0+ -0.030*(1) if False else -0.030, 0.030,y-0.005,y+0.005,0.09,0.09+L*0.0+0.0 + 0.0) if False else None
+        x0,x1=(0.0,0.036) if inw>0 else (-0.036,0.0)
+        # curled finger: slab on palm side, base then tip
+        a=box("f",x0,x1,y-0.0052,y+0.0052,0.09,0.09+L*0.55)
+        fm.add(a.v,a.f)
+        xt0,xt1=(0.028,0.062) if inw>0 else (-0.062,-0.028)
+        t=box("f",xt0,xt1,y-0.0048,y+0.0048,0.09+L*0.35,0.09+L*0.55)
+        fm.add(t.v,t.f)
+    o.append(fm)
+    xt0,xt1=(0.028,0.056) if inw>0 else (-0.056,-0.028)
+    # thumb: wraps on top (+Y)
+    th=Mesh("Thumb"); a=box("t",-0.02,0.03,0.022,0.036,0.01,0.075) if True else None
+    th.add(a.v,a.f); o.append(th)
+    gx=inw*0.034
+    o.append(marker("Grip",gx,0.0,0.05))
+    return o
+for s,suf in((1,"L"),(-1,"R")):
+    write(f"SM_Player_Hand_{suf}",["MAT_Player_Hand","0.17 0.15 0.14"],hand(s,suf))
+# ---------- TORCH: grip origin, axis +Z, lens forward, length z in [-0.10, 0.20]
+t=[]
+t.append(loft("Handle",'z',[(-0.10,0.014,0.014,0,0),(-0.06,0.016,0.016,0,0),(0.05,0.016,0.016,0,0)],8))
+t.append(loft("Body",'z',[(0.05,0.022,0.022,0,0),(0.10,0.030,0.030,0,0),(0.17,0.036,0.036,0,0)],8))
+t.append(loft("Reflector",'z',[(0.17,0.040,0.040,0,0),(0.195,0.040,0.040,0,0)],8))
+t.append(loft("Lens",'z',[(0.195,0.030,0.030,0,0),(0.200,0.030,0.030,0,0)],8))
+t.append(box("Switch",-0.006,0.006,0.016,0.022,0.0,0.02))
+t.append(marker("Grip",0,0,0))
+t.append(marker("Muzzle",0,0,0.200))
+write("SM_Torch",["MAT_Torch","0.10 0.10 0.11"],t)

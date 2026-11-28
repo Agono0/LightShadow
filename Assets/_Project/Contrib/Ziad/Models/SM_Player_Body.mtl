@@ -1,0 +1,8 @@
+# SM_Player_Body material (no textures). Original content.
+newmtl MAT_Player_Body
+Ka 0.02 0.02 0.02
+Kd 0.14 0.13 0.13
+Ks 0.03 0.03 0.03
+Ns 8
+d 1
+illum 1
