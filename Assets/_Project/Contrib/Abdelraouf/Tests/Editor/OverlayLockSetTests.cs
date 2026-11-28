@@ -189,5 +189,53 @@ namespace LightShadow.Contrib.Abdelraouf.Tests.Editor
             set.Release(t, 1);
             Assert.IsFalse(set.Holds("Journal"));
         }
+
+        [Test]
+        public void ClearWithCallbacks_InterruptsNonDismissableStory()
+        {
+            var set = new OverlayLockSet();
+            InputLockToken story = null;
+            int interrupted = 0;
+            story = set.Acquire("Story", true, false, null, () => { interrupted++; set.Release(story, 3); });
+            int dropped = set.Clear(true, 3);
+            Assert.AreEqual(1, interrupted);
+            Assert.AreEqual(0, dropped, "the story ended itself, nothing was dropped silently");
+            Assert.AreEqual(0, set.Count);
+        }
+
+        [Test]
+        public void ClearWithoutCallbacks_DoesNotInterrupt()
+        {
+            var set = new OverlayLockSet();
+            set.Acquire("Story", true, false, null, () => Assert.Fail("callbacks off"));
+            set.Clear(false, 1);
+            Assert.AreEqual(0, set.Count);
+        }
+
+        [Test]
+        public void ThrowingCallbackDoesNotAbortClear()
+        {
+            var set = new OverlayLockSet();
+            int closedB = 0;
+            InputLockToken b = null;
+            set.Acquire("A", true, true, () => throw new System.InvalidOperationException("boom"));
+            b = set.Acquire("B", true, true, () => { closedB++; set.Release(b, 1); });
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("Overlay callback failed"));
+            set.Clear(true, 1);
+            Assert.AreEqual(1, closedB);
+            Assert.AreEqual(0, set.Count);
+        }
+
+        [Test]
+        public void TryCloseTop_ThrowingCallbackFallsThroughToNext()
+        {
+            var set = new OverlayLockSet();
+            int closedOlder = 0;
+            set.Acquire("Older", true, true, () => closedOlder++);
+            set.Acquire("Newer", true, true, () => throw new System.InvalidOperationException("boom"));
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("Overlay callback failed"));
+            Assert.IsTrue(set.TryCloseTop());
+            Assert.AreEqual(1, closedOlder);
+        }
     }
 }

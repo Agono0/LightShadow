@@ -30,9 +30,9 @@ namespace LightShadow.Contrib.Abdelraouf.Overlay
             }
         }
 
-        public InputLockToken Acquire(string owner, bool wantsFreeCursor, bool dismissable, Action closeCallback)
+        public InputLockToken Acquire(string owner, bool wantsFreeCursor, bool dismissable, Action closeCallback, Action interruptCallback = null)
         {
-            var token = new InputLockToken(owner, wantsFreeCursor, dismissable, closeCallback);
+            var token = new InputLockToken(owner, wantsFreeCursor, dismissable, closeCallback, interruptCallback);
             tokens.Add(token);
             return token;
         }
@@ -68,10 +68,21 @@ namespace LightShadow.Contrib.Abdelraouf.Overlay
             {
                 InputLockToken token = tokens[i];
                 if (!token.Dismissable || token.CloseCallback == null) continue;
-                token.CloseCallback();
+                if (!SafeInvoke(token.CloseCallback)) continue; // a throwing close must not stop Esc
                 return true;
             }
             return false;
+        }
+
+        // One failing overlay callback must not abort the rest of a reset.
+        static bool SafeInvoke(Action callback)
+        {
+            try { callback(); return true; }
+            catch (Exception exception)
+            {
+                UnityEngine.Debug.LogWarning("[LightShadow] Overlay callback failed: " + exception.Message);
+                return false;
+            }
         }
 
         // Asks every dismissable overlay to close itself, then drops whatever
@@ -84,7 +95,16 @@ namespace LightShadow.Contrib.Abdelraouf.Overlay
                 for (int i = snapshot.Count - 1; i >= 0; i--)
                 {
                     InputLockToken token = snapshot[i];
-                    if (token.IsActive && token.Dismissable && token.CloseCallback != null) token.CloseCallback();
+                    if (!token.IsActive) continue;
+                    if (token.Dismissable && token.CloseCallback != null) SafeInvoke(token.CloseCallback);
+                }
+                // Then the non-dismissable holders that know how to end cleanly
+                // (the story conversation), so no panel or director state is
+                // left behind once the lock is dropped.
+                for (int i = snapshot.Count - 1; i >= 0; i--)
+                {
+                    InputLockToken token = snapshot[i];
+                    if (token.IsActive && !token.Dismissable && token.InterruptCallback != null) SafeInvoke(token.InterruptCallback);
                 }
             }
 

@@ -25,9 +25,9 @@ namespace LightShadow.Contrib.Abdelraouf.Overlay
         public static bool Holds(string owner) => set.Holds(owner);
 
         public static InputLockToken Acquire(string owner, bool wantsFreeCursor = false,
-            bool dismissable = false, System.Action closeCallback = null)
+            bool dismissable = false, System.Action closeCallback = null, System.Action interruptCallback = null)
         {
-            return set.Acquire(owner, wantsFreeCursor, dismissable, closeCallback);
+            return set.Acquire(owner, wantsFreeCursor, dismissable, closeCallback, interruptCallback);
         }
 
         // Safe to call with null, a released token, or one dropped by ResetAll.

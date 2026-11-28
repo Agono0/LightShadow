@@ -24,8 +24,14 @@ namespace LightShadow.Contrib.Abdelraouf.Overlay
         // jump) has to clear the stack. May be null.
         internal Action CloseCallback { get; private set; }
 
-        internal InputLockToken(string owner, bool wantsFreeCursor, bool dismissable, Action closeCallback)
+        // How a NON-dismissable holder (the story) ends cleanly when the stack
+        // is reset (respawn, quit to menu). Dismissable overlays use
+        // CloseCallback instead. May be null.
+        internal Action InterruptCallback { get; private set; }
+
+        internal InputLockToken(string owner, bool wantsFreeCursor, bool dismissable, Action closeCallback, Action interruptCallback = null)
         {
+            InterruptCallback = interruptCallback;
             Owner = string.IsNullOrEmpty(owner) ? "unknown" : owner;
             WantsFreeCursor = wantsFreeCursor;
             Dismissable = dismissable;

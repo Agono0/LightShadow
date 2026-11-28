@@ -153,7 +153,7 @@ namespace LightShadow.UI
             itemAnchor = null;
 
             OverlayStack.Release(ref lockToken);
-            if (!Application.isMobilePlatform && !PauseMenu.IsOpen)
+            if (!Application.isMobilePlatform && !PauseMenu.IsOpen && !OverlayStack.WantsFreeCursor)
             {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;

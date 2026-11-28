@@ -61,6 +61,7 @@ namespace LightShadow.Tests.Editor
 
         GameLanguage priorLanguage;
         string priorRootOverride;
+        int priorCurrentSlot;
         string tempDir;
 
         [SetUp]
@@ -71,6 +72,7 @@ namespace LightShadow.Tests.Editor
 
             // Own unique temp root, set BEFORE any save call. The real
             // persistentDataPath is never used by these tests.
+            priorCurrentSlot = SaveSystem.CurrentSlot;
             priorRootOverride = SaveSystem.RootDirectoryOverride;
             tempDir = Path.Combine(Path.GetTempPath(), "ls_saveslot_confirm_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(tempDir);
@@ -108,6 +110,7 @@ namespace LightShadow.Tests.Editor
             // Restore the prior override value (not just reset to null), then
             // delete only our own known temp directory.
             SaveSystem.RootDirectoryOverride = priorRootOverride;
+            SaveSystem.CurrentSlot = priorCurrentSlot;
             if (tempDir != null && tempDir.Contains("ls_saveslot_confirm_") && Directory.Exists(tempDir))
             {
                 Directory.Delete(tempDir, true);

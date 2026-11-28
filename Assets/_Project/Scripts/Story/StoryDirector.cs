@@ -238,6 +238,7 @@ namespace LightShadow.Story
             if (current != null) return;                       // a conversation is live
             if (QuizOpen()) return;                            // quiz keeps priority (brief #3)
             if (InspectOpen()) return;                         // P3: so does the inspect overlay
+            if (OverlayStack.AnyDismissable) return;           // O4: never open over a puzzle, journal or bag; wait until it closes
             if (Time.unscaledTime - lastConversationEndedAt < (config != null ? config.triggerDelaySeconds : 1.2f)) return;
 
             // Drain until a playable node is found (stale ordinals just drop).
@@ -311,7 +312,7 @@ namespace LightShadow.Story
                 SaveSystem.Autosave();
             }
 
-            if (storyLock == null || !storyLock.IsActive) storyLock = OverlayStack.Acquire("Story", true, false);
+            if (storyLock == null || !storyLock.IsActive) storyLock = OverlayStack.Acquire("Story", true, false, null, InterruptFromStack);
             StoryEvents.RaiseNodeEntered(node);
 
             // Node-enter effects (timeout/route nodes carry their own small
@@ -465,6 +466,21 @@ namespace LightShadow.Story
             PlayNode(next);
         }
 
+        // OverlayStack.ResetAll(true) (respawn, quit to menu) reaches the story
+        // through its token: end the live conversation and hide its panel so
+        // nothing stays blocked or visible while the player moves.
+        void InterruptFromStack()
+        {
+            StopAllCoroutines();      // a pending PlayAfterGap must not reopen it
+            chainScheduled = false;
+            if (current != null) EndConversation(null);
+            else
+            {
+                OverlayStack.Release(ref storyLock);
+                if (dialogueUI != null) dialogueUI.Hide();
+            }
+        }
+
         void EndConversation(StoryNode node)
         {
             current = null;
@@ -616,6 +632,15 @@ namespace LightShadow.Story
         void OnSaveApplied(SaveSystem.SaveData data)
         {
             if (data == null) return;
+            // A restore replaces the story: no stale conversation, queued
+            // trigger or chained node from the previous state may survive.
+            StopAllCoroutines();
+            chainScheduled = false;
+            pending.Clear();
+            conversationVisited.Clear();
+            current = null;
+            OverlayStack.Release(ref storyLock);
+            if (dialogueUI != null) dialogueUI.Hide();
             DeserializeState(data.storyJson);
             // Nothing on screen while a save is applied - the next trigger will
             // resume the graph from wherever the flags/played set stands.

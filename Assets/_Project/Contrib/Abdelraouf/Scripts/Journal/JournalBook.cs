@@ -91,6 +91,12 @@ namespace LightShadow.Contrib.Abdelraouf.Journal
             if (IsOpen) return;
             // Do not stack on the pause menu or another overlay.
             if (PauseMenu.IsOpen || PlayerController.ExternalInputLocked) return;
+            // Same guards as the Inventory screen: never over a live timed quiz,
+            // never without a running game (audit O3).
+            GameManager gm = GameManager.Instance;
+            if (gm == null) return;
+            if (gm.quizUI != null && gm.quizUI.IsOpen) return;
+            if (InspectViewController.IsOpen) return;
 
             lockToken = OverlayStack.Acquire("Journal", true, true, Close);
             cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
@@ -114,7 +120,7 @@ namespace LightShadow.Contrib.Abdelraouf.Journal
         void ReleaseLock()
         {
             OverlayStack.Release(ref lockToken);
-            if (cursorWasLocked && !Application.isMobilePlatform)
+            if (cursorWasLocked && !Application.isMobilePlatform && !PauseMenu.IsOpen && !OverlayStack.WantsFreeCursor)
             {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
