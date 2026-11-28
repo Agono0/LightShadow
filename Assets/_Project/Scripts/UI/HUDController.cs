@@ -261,6 +261,15 @@ namespace LightShadow.UI
             promptText.text = shown;
         }
 
+        // Drops the current message and any queued beats (the memory line must
+        // not sit on top of the question that follows it).
+        public void ClearMessage()
+        {
+            messageQueue.Clear();
+            messageTimer = 0f;
+            if (messageText != null) messageText.gameObject.SetActive(false);
+        }
+
         public void ShowMessage(string text, float seconds = 4f)
         {
             if (messageText == null || string.IsNullOrEmpty(text)) return;

@@ -77,6 +77,10 @@ namespace LightShadow.Gameplay
                 QuestionData question = gm.database.GetNextQuestion(category);
                 if (question != null)
                 {
+                    // The memory is over once the close-up closes: cut its narration and
+                    // HUD line so they do not talk over the question.
+                    StoryTeller.Stop();
+                    if (gm.hud != null) gm.hud.ClearMessage();
                     // Never stack on another open question (it would displace it).
                     while (gm.quizUI.IsOpen) yield return null;
                     bool answered = false;
