@@ -52,3 +52,7 @@ Written by the execution agent for the user (Ag). Nothing here was seen in the e
 - Ziad batch 2-3: question history and the recap answers are saved and restored (GameManager Capture/ApplyAnswers, QuestionDatabase.MarkAsked; the bag is not reset when a restore is pending), which also fills the recap when a save made in the escape zone replays the ending (Escape on load is intended); respawn clears planar velocity and stamina.
 - Ziad batch 4: the owed medkit is granted a frame after the use finishes (the inventory screen removes the item again after the health code did, which deleted the new kit); every new-run path resets it through Inventory.ResetForNewRun; first-aid toast says medkit.
 - Ziad N11/N12: the code lock clears the selected button so Enter does not also submit a +/- button; a code lock whose overlay token was cleared by a respawn closes itself instead of staying visible.
+- Ziad re-verify: a death during the code lock success beat no longer drops the solve; an owed medkit is granted after a load even if the save was taken one frame after the kit was used.
+- Ziad part 2/3: DawnChase lamp exemption is ancestor-based (lamps sit under a Lamp child); puzzle overlays relock the cursor only when pause, inspect and other overlays no longer need it; code lock hint click clears focus.
+- Sequence puzzle relock uses the same guard as the other puzzle overlays.
+- CI: the EditMode job now checks out LFS files; before it imported OBJ pointer text, so the model import tests ran against empty models.

@@ -283,7 +283,7 @@ namespace LightShadow.UI
         void ReleaseLock()
         {
             OverlayStack.Release(ref lockToken);
-            if (cursorWasLocked && !Application.isMobilePlatform)
+            if (cursorWasLocked && !Application.isMobilePlatform && !PauseMenu.IsOpen && !InspectViewController.IsOpen && !OverlayStack.WantsFreeCursor)
             {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
