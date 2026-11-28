@@ -129,6 +129,7 @@ namespace LightShadow.UI
             {
                 closeButton.onClick.RemoveAllListeners();
                 closeButton.onClick.AddListener(() => Close(false));
+                closeButton.interactable = true;
             }
 
             RenderTexts();
@@ -198,6 +199,7 @@ namespace LightShadow.UI
             if (entered == expectedCode)
             {
                 busy = true;
+                if (closeButton != null) closeButton.interactable = false;
                 SetText(feedbackText, "The lock clicks open.", "فُتح القفل.");
                 StartCoroutine(CloseAfterFeedback(1.2f));
             }
@@ -234,6 +236,10 @@ namespace LightShadow.UI
             return true;
         }
 
+        // P2: pure discard policy - a busy overlay (the success beat, the
+        // sequence playback) may only close solved. Static so tests pin it.
+        public static bool CanDiscard(bool busy) => !busy;
+
         IEnumerator CloseAfterFeedback(float seconds)
         {
             yield return new WaitForSeconds(seconds);
@@ -242,6 +248,10 @@ namespace LightShadow.UI
 
         void Close(bool solved)
         {
+            // P2: an unsolved dismiss (close button, Esc, overlay dismiss
+            // callback) must not discard the overlay while it is busy; the
+            // success beat closes itself with Close(true).
+            if (!solved && !CanDiscard(busy)) return;
             if (panel != null) panel.SetActive(false);
             ReleaseLock();
 
