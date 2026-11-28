@@ -99,6 +99,7 @@ namespace LightShadow.Story
             Instance.current = null;
             // Frees only the story's own lock; a Journal or puzzle token stays.
             OverlayStack.Release(ref storyLock);
+            StopNarration();
             if (Instance.dialogueUI != null) Instance.dialogueUI.Hide();
         }
 
@@ -478,9 +479,17 @@ namespace LightShadow.Story
             if (current != null) EndConversation(null);
             else
             {
+                StopNarration();
                 OverlayStack.Release(ref storyLock);
                 if (dialogueUI != null) dialogueUI.Hide();
             }
+        }
+
+        // Both narration paths: recorded VO and the speech fallback (SAPI).
+        static void StopNarration()
+        {
+            VoiceoverPlayer.Stop();
+            StoryTeller.Stop();
         }
 
         void EndConversation(StoryNode node)
@@ -489,7 +498,7 @@ namespace LightShadow.Story
             conversationVisited.Clear();
             lastConversationEndedAt = Time.unscaledTime;
             OverlayStack.Release(ref storyLock);
-            VoiceoverPlayer.Stop();
+            StopNarration();
             StoryEvents.RaiseConversationEnded();
 
             if (dialogueUI != null) dialogueUI.Hide();
@@ -642,6 +651,7 @@ namespace LightShadow.Story
             conversationVisited.Clear();
             current = null;
             OverlayStack.Release(ref storyLock);
+            StopNarration();
             if (dialogueUI != null) dialogueUI.Hide();
             DeserializeState(data.storyJson);
             // Nothing on screen while a save is applied - the next trigger will

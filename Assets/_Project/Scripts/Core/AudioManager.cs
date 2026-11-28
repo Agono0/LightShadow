@@ -117,7 +117,7 @@ namespace LightShadow.Core
         public void PlaySfxAt(AudioClip clip, Vector3 position, float volume)
         {
             if (clip == null) return;
-            AudioSource source = GetOneShotSource();
+            AudioSource source = GetPositionalSource();
             if (source == null) return;
             source.transform.position = position;
             source.spatialBlend = 1f;
@@ -127,6 +127,48 @@ namespace LightShadow.Core
             source.minDistance = 1.5f;
             source.maxDistance = LightShadow.Audio.DangerModel.AudibleRadius(volume);
             source.PlayOneShot(clip, Mathf.Clamp01(volume));
+        }
+
+        // A small bounded pool for positional one-shots: an overlapping call
+        // takes a free source (or steals the oldest) instead of moving the
+        // position and rolloff of a clip that is still playing.
+        public const int PositionalPoolSize = 6;
+        readonly AudioSource[] positionalPool = new AudioSource[PositionalPoolSize];
+        int positionalCursor;
+
+        // Pure seam: the first source that is not busy, else the next in
+        // round-robin order (oldest stolen). busy.Length is the pool size.
+        public static int PickPoolIndex(bool[] busy, int cursor)
+        {
+            if (busy == null || busy.Length == 0) return 0;
+            for (int i = 0; i < busy.Length; i++)
+            {
+                if (!busy[i]) return i;
+            }
+            return ((cursor % busy.Length) + busy.Length) % busy.Length;
+        }
+
+        AudioSource GetPositionalSource()
+        {
+            bool[] busy = new bool[PositionalPoolSize];
+            for (int i = 0; i < PositionalPoolSize; i++)
+            {
+                busy[i] = positionalPool[i] != null && positionalPool[i].isPlaying;
+            }
+            int index = PickPoolIndex(busy, positionalCursor);
+            positionalCursor = index + 1;
+
+            if (positionalPool[index] == null)
+            {
+                var go = new GameObject("SfxPositional_" + index);
+                go.transform.SetParent(transform, false);
+                AudioSource created = go.AddComponent<AudioSource>();
+                created.playOnAwake = false;
+                LightShadow.Audio.VolumeCategories.Register(
+                    created, LightShadow.Audio.VolumeCategories.Category.Sfx, 1f);
+                positionalPool[index] = created;
+            }
+            return positionalPool[index];
         }
 
         AudioSource GetOneShotSource()
