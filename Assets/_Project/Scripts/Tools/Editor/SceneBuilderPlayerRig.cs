@@ -40,19 +40,66 @@ namespace LightShadow.Tools
             return null;
         }
 
+        static void HideMarker(Transform marker)
+        {
+            if (marker == null) return;
+            foreach (Renderer r in marker.GetComponentsInChildren<Renderer>(true)) r.enabled = false;
+        }
+
+        // Delivered OBJ materials import as plain defaults; use the project's
+        // canonical palette so the pieces match the rest of the art.
+        static void RestyleRigModel(GameObject model, Material material)
+        {
+            if (material == null) return;
+            foreach (Renderer r in model.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++) mats[i] = material;
+                r.sharedMaterials = mats;
+            }
+        }
+
         // handRoot: the first-person hand; flashlightGo: the light object that
         // should start at the lens; torchPrimitive: the fallback cylinder.
+        // Only the right hand is shown in first person (it holds the torch);
+        // the left hand and body models are imported for later use.
         static void ApplyPlayerRigModels(GameObject player, GameObject handRoot,
-            GameObject flashlightGo, GameObject torchPrimitive)
+            GameObject flashlightGo, GameObject torchPrimitive, Palette palette)
         {
-            Vector3 handGripPoint = new Vector3(0.01f, 0.035f, 0.02f);
+            Vector3 handGripPoint = new Vector3(0.01f, 0.035f, 0.05f);
+            bool handAdded = false;
+
+            if (HeroModelExists(PlayerHandRModel))
+            {
+                GameObject hand = AddHeroModelChild(handRoot, PlayerHandRModel, 0f, Quaternion.identity,
+                    Vector3.zero, "ArtModel_" + PlayerHandRModel);
+                if (hand != null)
+                {
+                    handAdded = true;
+                    RestyleRigModel(hand, palette.paper);
+                    Transform handGrip = FindMarker(hand.transform, PlayerRigFit.GripName);
+                    if (handGrip != null && PlayerRigFit.IsUsable(handGrip.localPosition))
+                    {
+                        // Grip marker position expressed in the hand root's space.
+                        handGripPoint = handRoot.transform.InverseTransformPoint(handGrip.position);
+                    }
+                    HideMarker(handGrip);
+                    foreach (string part in new[] { "Palm", "Thumb", "Forearm" })
+                    {
+                        Transform box = handRoot.transform.Find(part);
+                        if (box != null) box.gameObject.SetActive(false);
+                    }
+                    Count("player hand model");
+                }
+            }
 
             if (HeroModelExists(PlayerTorchModel))
             {
                 GameObject torch = AddHeroModelChild(handRoot, PlayerTorchModel, 0f,
-                    Quaternion.identity, handGripPoint, "ArtModel_" + PlayerTorchModel);
+                    Quaternion.identity, Vector3.zero, "ArtModel_" + PlayerTorchModel);
                 if (torch != null)
                 {
+                    RestyleRigModel(torch, palette.metal);
                     Transform grip = FindMarker(torch.transform, PlayerRigFit.GripName);
                     Transform muzzle = FindMarker(torch.transform, PlayerRigFit.MuzzleName);
                     Vector3 offset = handGripPoint;
@@ -68,6 +115,8 @@ namespace LightShadow.Tools
                             offset, muzzle.localPosition, torch.transform.localRotation,
                             torch.transform.localScale.x);
                     }
+                    HideMarker(grip);
+                    HideMarker(muzzle);
                     if (torchPrimitive != null)
                     {
                         Renderer r = torchPrimitive.GetComponent<Renderer>();
@@ -80,30 +129,13 @@ namespace LightShadow.Tools
                 }
             }
 
-            bool handAdded = false;
-            foreach (string handModel in new[] { PlayerHandRModel, PlayerHandLModel })
-            {
-                if (!HeroModelExists(handModel)) continue;
-                GameObject hand = AddHeroModelChild(handRoot, handModel, 0f, Quaternion.identity,
-                    Vector3.zero, "ArtModel_" + handModel);
-                if (hand != null) handAdded = true;
-            }
-            if (handAdded)
-            {
-                foreach (string part in new[] { "Palm", "Thumb", "Forearm" })
-                {
-                    Transform box = handRoot.transform.Find(part);
-                    if (box != null) box.gameObject.SetActive(false);
-                }
-                Count("player hand models");
-            }
-
             if (HeroModelExists(PlayerBodyModel))
             {
                 GameObject body = AddHeroModelChild(player, PlayerBodyModel, 0f, Quaternion.identity,
                     Vector3.zero, "ArtModel_" + PlayerBodyModel);
                 if (body != null)
                 {
+                    RestyleRigModel(body, palette.metal);
                     // First person: the body only throws a shadow, never blocks the view.
                     foreach (Renderer r in body.GetComponentsInChildren<Renderer>(true))
                     {
@@ -112,6 +144,7 @@ namespace LightShadow.Tools
                     Count("player body model");
                 }
             }
+            if (!handAdded) return;
         }
     }
 }

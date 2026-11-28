@@ -263,7 +263,7 @@ namespace LightShadow.Tools
             flashlightGo.transform.localPosition = new Vector3(0.01f, 0.035f, 0.13f);
             flashlightGo.transform.localRotation = Quaternion.Inverse(handRootGo.transform.localRotation);
 
-            ApplyPlayerRigModels(root, handRootGo, flashlightGo, torch);
+            ApplyPlayerRigModels(root, handRootGo, flashlightGo, torch, palette);
 
             FirstPersonHands hands = handRootGo.AddComponent<FirstPersonHands>();
             hands.handRoot = handRootGo.transform;

@@ -19,3 +19,8 @@ Written by the execution agent for the user (Ag). Nothing here was seen in the e
 - Physics: the player keeps its CharacterController as the mover and now also has a kinematic, rotation-frozen Rigidbody (`PlayerRigFit.ConfigureBody`), independent of the model.
 - No model files are in the repo yet. Nothing in this section has been seen in the editor.
 - F2 (120 Hz frame rate) needed no change: `PerformanceManager` already handles it.
+
+## Delivered models (peer-prepared, never opened in Unity)
+- SM_Player_Body, SM_Player_Hand_L/R and SM_Torch (OBJ, from the contrib branch contrib/ziad-models-player-torch @ a680a2d, real files taken from the delivery zip since the branch copies are LFS pointers) are in Models/Hero with fresh .meta files. The rig uses the right hand only in first person; its Grip marker is where the torch's Grip marker lands. The torch Muzzle sets the beam origin. Marker cubes are hidden. Materials are replaced with the project palette.
+- PlayerModelImportTests checks left/right after Unity's X mirror, forward axis, markers, and outward normals; if CI fails there, the import (not the rig) needs a flip.
+- Still crude: blocky humanoid body, hands are long tapered boxes with a block of fingers (not curled around the handle), torch is a plain tube with no head ring or lens bezel, one flat colour per model, no textures.
