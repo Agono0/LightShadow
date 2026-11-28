@@ -608,12 +608,12 @@ namespace LightShadow.Tools
             controller.nextButtons = new Button[SettingsPanelController.TotalRows];
 
             RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1120f, 1080f), PanelDark, false).rectTransform;
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1120f, SettingsPanelController.CardHeight), PanelDark, false).rectTransform;
             card.gameObject.AddComponent<LightShadow.UI.CardFit>();
 
             controller.title = MakeText(card, "Title", "SETTINGS", 44, Warm, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -42f), new Vector2(900f, 58f), FontStyle.Bold, true);
+                new Vector2(0f, -36f), new Vector2(900f, 58f), FontStyle.Bold, true);
 
             string[] rowKeys =
             {
@@ -624,7 +624,7 @@ namespace LightShadow.Tools
 
             for (int i = 0; i < rowKeys.Length; i++)
             {
-                float y = -120f - i * 64f;
+                float y = -SettingsPanelController.RowTop - i * SettingsPanelController.RowPitch;
 
                 controller.rowLabels[i] = MakeText(card, "RowLabel" + i, rowKeys[i], 22, Paper,
                     TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
@@ -636,24 +636,24 @@ namespace LightShadow.Tools
 
                 Text prevLabel;
                 controller.prevButtons[i] = MakeButton(card, "Prev" + i, "<", new Vector2(0f, 1f),
-                    new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(846f, y + 3f), new Vector2(44f, 40f),
+                    new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(846f, y + SettingsPanelController.ArrowDrop), new Vector2(SettingsPanelController.ArrowWidth, SettingsPanelController.ArrowHeight),
                     ButtonDark, 22, out prevLabel);
 
                 Text nextLabel;
                 controller.nextButtons[i] = MakeButton(card, "Next" + i, ">", new Vector2(0f, 1f),
-                    new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(1006f, y + 3f), new Vector2(44f, 40f),
+                    new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(1006f, y + SettingsPanelController.ArrowDrop), new Vector2(SettingsPanelController.ArrowWidth, SettingsPanelController.ArrowHeight),
                     ButtonDark, 22, out nextLabel);
             }
 
             Text resetLabel;
             controller.resetButton = MakeButton(card, "Reset", "Reset defaults", new Vector2(0f, 0f),
-                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(64f, 48f), new Vector2(330f, 58f),
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(64f, 40f), new Vector2(330f, 58f),
                 ButtonDark, 19, out resetLabel);
             controller.resetLabel = resetLabel;
 
             Text closeLabel;
             controller.closeButton = MakeButton(card, "Close", "Close", new Vector2(1f, 0f),
-                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-64f, 48f), new Vector2(300f, 58f),
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-64f, 40f), new Vector2(300f, 58f),
                 ButtonWarm, 20, out closeLabel);
             controller.closeLabel = closeLabel;
 
@@ -774,7 +774,7 @@ namespace LightShadow.Tools
         {
             RectTransform dim = MakeFullScreen(root, "HowToPanel", new Color(0f, 0f, 0f, 0.86f), true);
             RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1000f, 700f), PanelDark, false).rectTransform;
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1200f, 840f), PanelDark, false).rectTransform;
             card.gameObject.AddComponent<LightShadow.UI.CardFit>();
 
             Text title = MakeText(card, "Title", "HOW TO PLAY", 42, Warm, TextAnchor.MiddleCenter,
@@ -805,9 +805,14 @@ namespace LightShadow.Tools
                 "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة.\n\n" +
                 "أعد تشغيل ثلاثة صناديق مصاهر، ثم جد المفتاح الرئيسي في خزانة غرفة المعلمين، ووصّل لوحة القواطع، وأدر المقبض، واخرج من البوابة الرئيسية. شذرات المعرفة اختيارية. لديك ضربتان من الصحة: الإسعافات تعالجك، والاستيقاظ عند نقطة حفظ يعيدها. الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ.";
 
-            Text bodyText = MakeText(card, "Body", body, 21, Paper, TextAnchor.UpperLeft,
+            Text bodyText = MakeText(card, "Body", body, 22, Paper, TextAnchor.UpperLeft,
                 new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -118f), new Vector2(-96f, 480f));
+                new Vector2(0f, -108f), new Vector2(-96f, 640f));
+            // Best fit is the safety net for long or Arabic text; the
+            // estimate in CardFit.EstimateTextHeight keeps 22 px the norm.
+            bodyText.resizeTextForBestFit = true;
+            bodyText.resizeTextMinSize = 17;
+            bodyText.resizeTextMaxSize = 22;
             Localize(bodyText, arabicBody, true);
 
             Text closeLabel;

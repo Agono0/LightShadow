@@ -52,6 +52,15 @@ namespace LightShadow.UI
         public const int CaptionsRow = 23;     // sound captions on/off
         public const int HintsRow = 24;        // progressive hints on/off
 
+        // Compact layout so the card fits a 900 px tall phone canvas at full
+        // scale (a shrunk card made text and arrows too small): 52 px row
+        // pitch, arrows 56x48 (touch targets >= 48 px), card 840 tall.
+        public const float RowTop = 100f;
+        public const float RowPitch = 52f;
+        public const float ArrowWidth = 56f;
+        public const float ArrowHeight = 48f;
+        public const float ArrowDrop = 6f;
+        public const float CardHeight = 840f;
         public const int PageARows = 12;
         public const int VolumeVoiceRow = 25;  // appended: existing row indices never move
         public const int VolumeShadowRow = 26;
@@ -124,7 +133,7 @@ namespace LightShadow.UI
             for (int i = 0; i < PageARows; i++)
             {
                 if (HiddenOnMobile(i)) continue;
-                float y = -120f - visible * 64f;
+                float y = -RowTop - visible * RowPitch;
                 if (rowLabels != null && i < rowLabels.Length && rowLabels[i] != null)
                 {
                     rowLabels[i].rectTransform.anchoredPosition = new Vector2(rowLabels[i].rectTransform.anchoredPosition.x, y);
@@ -136,12 +145,12 @@ namespace LightShadow.UI
                 if (prevButtons != null && i < prevButtons.Length && prevButtons[i] != null)
                 {
                     prevButtons[i].GetComponent<RectTransform>().anchoredPosition =
-                        new Vector2(prevButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + 3f);
+                        new Vector2(prevButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + ArrowDrop);
                 }
                 if (nextButtons != null && i < nextButtons.Length && nextButtons[i] != null)
                 {
                     nextButtons[i].GetComponent<RectTransform>().anchoredPosition =
-                        new Vector2(nextButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + 3f);
+                        new Vector2(nextButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + ArrowDrop);
                 }
                 visible++;
             }

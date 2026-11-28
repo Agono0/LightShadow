@@ -26,7 +26,7 @@ namespace LightShadow.Tests.Editor
         {
             new Vector2(1120f, 1080f), // settings
             new Vector2(900f, 1020f),  // save slots
-            new Vector2(1000f, 700f),  // how to play
+            new Vector2(1200f, 840f),  // how to play
         };
 
         static readonly Vector2[] Canvases =
@@ -52,10 +52,32 @@ namespace LightShadow.Tests.Editor
         [Test]
         public void CardFit_NeverScalesUp_AndKeepsTextReadable()
         {
-            Assert.AreEqual(1f, CardFit.FitScale(new Vector2(1000f, 700f), new Vector2(1920f, 1080f), CardFit.Margin));
+            Assert.AreEqual(1f, CardFit.FitScale(new Vector2(1200f, 840f), new Vector2(1920f, 1080f), CardFit.Margin));
             // Settings on the 900 tall phone canvas stays at 0.79 or more
-            // (still 0.95x the desktop size after the 1.2x mobile lift).
-            Assert.GreaterOrEqual(CardFit.FitScale(new Vector2(1120f, 1080f), new Vector2(1600f, 900f), CardFit.Margin), 0.78f);
+            // stays at full scale now that the card is compact.
+            Assert.AreEqual(1f, CardFit.FitScale(new Vector2(1120f, SettingsPanelController.CardHeight), new Vector2(1600f, 900f), CardFit.Margin));
+        }
+
+        [Test]
+        public void SettingsCard_FitsPhoneCanvasWithoutShrinking_AndArrowsAreTouchSized()
+        {
+            Assert.GreaterOrEqual(SettingsPanelController.ArrowWidth, 48f);
+            Assert.GreaterOrEqual(SettingsPanelController.ArrowHeight, 48f);
+            // The arrow of the tallest page (12 rows) must end above the
+            // bottom buttons (top edge at CardHeight - 98).
+            float lastArrowBottom = SettingsPanelController.RowTop + 11 * SettingsPanelController.RowPitch
+                - SettingsPanelController.ArrowDrop + SettingsPanelController.ArrowHeight;
+            Assert.Less(lastArrowBottom, SettingsPanelController.CardHeight - 98f);
+            Assert.LessOrEqual(SettingsPanelController.CardHeight, 900f - 2f * CardFit.Margin);
+        }
+
+        [Test]
+        public void HowToBody_EstimatedHeightFitsItsBox()
+        {
+            // Builder texts: English 1198 chars, Arabic 1016, 11 hard breaks each.
+            // Body box is 1104 x 640 at 22 px; best fit shrinks to 17 at worst.
+            Assert.LessOrEqual(CardFit.EstimateTextHeight(1198, 11, 1104f, 22f), 640f);
+            Assert.LessOrEqual(CardFit.EstimateTextHeight(1198 * 12 / 10, 11, 1104f, 17f), 640f);
         }
 }
 }
