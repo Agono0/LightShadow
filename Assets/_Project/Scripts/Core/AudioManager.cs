@@ -75,17 +75,41 @@ namespace LightShadow.Core
         // Story voiceover: one line at a time, interrupting itself, never
         // looping. Generated clips play through here (VoiceoverPlayer) so a
         // new node line always cuts the previous one off.
+        Coroutine pendingVoice;
+
         public void PlayVoice(AudioClip clip)
         {
             if (clip == null || voiceSource == null) return;
-            voiceSource.Stop();
+            StopVoice();
             voiceSource.clip = clip;
             voiceSource.loop = false;
-            voiceSource.Play();
+            // VO clips import with preload off. AudioSource.Play on a clip whose
+            // data is still loading did nothing (seen in the editor 2026-11-28:
+            // chapter-1 line assigned, isPlaying false, time 0), so wait for the
+            // data first, bounded by the config timeout.
+            if (clip.loadState == AudioDataLoadState.Loaded) voiceSource.Play();
+            else pendingVoice = StartCoroutine(PlayWhenLoaded(clip));
+        }
+
+        System.Collections.IEnumerator PlayWhenLoaded(AudioClip clip)
+        {
+            if (clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
+            GameConfig config = GameManager.Instance != null ? GameManager.Instance.config : null;
+            float deadline = Time.unscaledTime + (config != null ? config.voiceLoadTimeoutSeconds : 3f);
+            while (clip.loadState == AudioDataLoadState.Loading && Time.unscaledTime < deadline) yield return null;
+            pendingVoice = null;
+            if (clip.loadState != AudioDataLoadState.Loaded)
+            {
+                Debug.LogWarning("[LightShadow] Voice clip " + clip.name + " did not load (" + clip.loadState + ").");
+                yield break;
+            }
+            if (voiceSource != null && voiceSource.clip == clip) voiceSource.Play();
         }
 
         public void StopVoice()
         {
+            if (pendingVoice != null) StopCoroutine(pendingVoice);
+            pendingVoice = null;
             if (voiceSource != null) voiceSource.Stop();
         }
 

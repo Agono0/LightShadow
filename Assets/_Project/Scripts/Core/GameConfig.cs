@@ -108,6 +108,9 @@ namespace LightShadow.Core
         public float inspectDragDegreesPerPixel = 0.4f;
         public float inspectAutoSeconds = 12f;
 
+        [Tooltip("Longest wait for a voice clip's audio data before the line is skipped (VO imports with preload off).")]
+        public float voiceLoadTimeoutSeconds = 3f;
+
         [Header("Noise And Hearing (Plan 4.12, P3)")]
         // Hearing radii in metres: how far each player noise carries to the
         // Shadow. Sprint is 10 m per plan 4.12 (the old sprintNoiseRange was 8).
