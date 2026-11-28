@@ -35,3 +35,10 @@ Written by the execution agent for the user (Ag). Nothing here was seen in the e
 - Replaced the first-pass OBJs with Ziad's second pass (contrib/ziad-models-player-torch @ 053b1f4, real files from the zip): coat body 5648 tris, fist hands 2668 each wrapping the torch handle, ribbed torch with a lens ring 2560. Same names, markers and pivots, so the loader is unchanged: the torch Grip lands on the hand's Grip marker (handle axis), the Muzzle starts the beam.
 - Import test updated: the hand grips must be 0.034 m off the wrist on opposite sides (the handle sits toward the body midline); the absolute side is not asserted because it depends on Unity's OBJ X mirror. The normal check now covers the cylinders (Handle, Body) only.
 - Still unverified: that the fist visually wraps the torch in the first-person view. Needs one look in the editor.
+
+## Source audit of the playable flow (round 3)
+- Enemy: NavMeshAgent.hasPath is false and remainingDistance is infinite while a just-set destination is still being computed. Patrol, Investigate, Search and ForcedCooldown treated that as "no path / arrived", so the wraith re-rolled its waypoint every frame and dwelled at the wrong spot on the first frame of an investigation. They now wait for pathPending (EnemyBehaviour.NoPathOrArrived).
+- Interaction: the hint rebuilt the "[E] ..." string and ran the localiser every frame while aiming at an object; now only when target, state or text changes.
+- Mobile: TouchInput used Input.touches (allocates every frame); now touchCount/GetTouch. TouchJoystick re-resolves a lost player reference.
+- Audited with no change needed: movement and camera (input lock, pitch clamp, crouch, stamina), pause (overlay token, quiz gate, Esc order), puzzle cursor restore (CursorGuard is the net), catch and respawn reset, exit gate.
+- Not verified in the editor or on a device: all of the above (CI compile and tests only).

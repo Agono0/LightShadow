@@ -323,7 +323,7 @@ namespace LightShadow.Enemy
         void UpdatePatrol(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
         {
             agent.isStopped = false;
-            if (!agent.hasPath || agent.remainingDistance <= 0.7f) AdvanceWaypoint();
+            if (NoPathOrArrived(0.7f)) AdvanceWaypoint();
 
             bool playerIsDark = light < StalkLightThreshold;
             if (distance <= EngageRadius && (playerIsDark || aggressive)) EnterState(State.Stalk);
@@ -345,7 +345,7 @@ namespace LightShadow.Enemy
         // nearby reads exactly like any other patrol stalk engagement.
         void UpdateInvestigate(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
         {
-            if (!agent.hasPath || agent.remainingDistance <= InvestigateArriveDistance)
+            if (NoPathOrArrived(InvestigateArriveDistance))
             {
                 // Arrived: stand still and sweep the gaze across the noise spot.
                 agent.isStopped = true;
@@ -531,7 +531,7 @@ namespace LightShadow.Enemy
             }
 
             Vector3 target = searchPath[searchStageIndex];
-            if (!agent.hasPath || agent.remainingDistance <= InvestigateArriveDistance)
+            if (NoPathOrArrived(InvestigateArriveDistance))
             {
                 // Dwell at the stop and look it over, then move to the next.
                 agent.isStopped = true;
@@ -566,6 +566,7 @@ namespace LightShadow.Enemy
         // stalking and the beam repel - the Shadow is leaving, full stop.
         void UpdateForcedCooldown(float dt)
         {
+            if (agent.pathPending) return; // let the request finish; re-asking every frame starves it
             if (!agent.hasPath || agent.remainingDistance > InvestigateArriveDistance)
             {
                 agent.isStopped = false;
@@ -879,6 +880,17 @@ namespace LightShadow.Enemy
         // wraith has not visited lately, so its wandering reads as intent,
         // not a patrol loop. Falls back to the next waypoint when the route
         // is tiny.
+        // A destination that was just set reports hasPath == false and an infinite
+        // remaining distance until the async path request finishes. Treating that
+        // as "no path / arrived" re-rolled the patrol waypoint every frame (the
+        // wraith never committed to a route) and made Investigate and Search
+        // dwell at the wrong spot at once. Wait for the request instead.
+        bool NoPathOrArrived(float arriveDistance)
+        {
+            if (agent.pathPending) return false;
+            return !agent.hasPath || agent.remainingDistance <= arriveDistance;
+        }
+
         void AdvanceWaypoint()
         {
             if (route == null || route.Count == 0) return;
