@@ -75,6 +75,11 @@ namespace LightShadow.Tools
                 // first editor play (2026-11-28); no default cubemap may feed them.
                 bool reflectionsOff = RenderSettings.reflectionIntensity <= 0.001f
                     || (RenderSettings.defaultReflectionMode == DefaultReflectionMode.Custom && RenderSettings.customReflectionTexture == null);
+                // The story pass must have run: no director means no story nodes
+                // and no chapter voice-over at all.
+                LightShadow.Story.StoryDirector director = Object.FindAnyObjectByType<LightShadow.Story.StoryDirector>(FindObjectsInactive.Include);
+                if (director == null || director.config == null || director.dialogueUI == null)
+                    problems.Add("School has no wired StoryDirector (config + dialogue UI); the story pass did not run.");
                 if (!reflectionsOff) problems.Add("School environment reflections are on (" + RenderSettings.defaultReflectionMode + " x" + RenderSettings.reflectionIntensity.ToString("0.00") + "); the map must stay torch-lit.");
                 report.AppendLine("School point lights: " + points);
                 if (points > 90) problems.Add("School scene has " + points + " point lights; budget is 90.");

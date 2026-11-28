@@ -282,6 +282,13 @@ namespace LightShadow.Tools
             // school scene (see SceneBuilderContrib.cs).
             RunLevelContributions();
 
+            // Story pass (director, dialogue UI, save-slot and ending hooks). It
+            // only ran from its own menu item, so every BuildAll shipped a school
+            // with no StoryDirector: no story node, no chapter-1 voice-over (seen
+            // in the editor 2026-11-28; CI never ran it either).
+            string storySummary = BuildStoryAll();
+            Debug.Log("[LightShadow] " + storySummary);
+
             // Premium pass: quality-tier URP asset variants (idempotent each run).
             ConfigureQualityForBuild();
 
