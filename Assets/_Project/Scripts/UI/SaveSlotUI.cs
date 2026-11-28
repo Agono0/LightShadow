@@ -361,6 +361,8 @@ namespace LightShadow.UI
                 LightShadow.Contrib.Abdelraouf.Journal.JournalProgress.ResetForNewRun();
             }
 
+            // Load and new game both start with no hide (Pause > Menu > Load used to keep it).
+            LightShadow.Player.HidingSystem.ResetState();
             LoadingScreen.Transition(SceneNames.School);
 
             if (intent == Intent.Load)

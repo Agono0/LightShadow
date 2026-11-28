@@ -184,6 +184,7 @@ namespace LightShadow.UI
             if (panel != null) panel.SetActive(false);
             Time.timeScale = 1f;
             OverlayStack.ResetAll(true);
+            LightShadow.Player.HidingSystem.ResetState();
             LoadingScreen.Transition(SceneNames.MainMenu);
         }
 

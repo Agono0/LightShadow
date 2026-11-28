@@ -276,6 +276,8 @@ namespace LightShadow.Core
             GameManager game = GameManager.Instance;
             if (game == null || game.player == null) return null;
             if (SceneManager.GetActiveScene().name != SceneNames.School) return null;
+            // Mid catch fade: keep the previous good save rather than the death spot.
+            if (game.IsRespawning) return null;
 
             EnsureSession();
 

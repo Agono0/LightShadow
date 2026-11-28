@@ -342,6 +342,10 @@ namespace LightShadow.Core
             return false;
         }
 
+        // True during the catch fade and the checkpoint wake. Autosave skips it so a
+        // save never stores the death position with one hit.
+        public bool IsRespawning { get { return respawning; } }
+
         public void CaughtPlayer()
         {
             if (respawning || escaped) return;
