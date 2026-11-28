@@ -51,3 +51,8 @@ product decision.
 - Main gate is now a double gate: two leaves, one per pillar, covering the full opening; wing doors now cover the full 2 m doorway. Both rebuild with the scene builder. Not seen in the editor.
 - Objectives: pure ObjectiveLines chain (fuses, key, wire console, crank, escape), fragments marked optional, panel peeks at start and after each fuse. Arabic rows added.
 - Touch: joystick has a dead zone, an eased response and a floating origin; held thumb keeps steering. Mobile canvases use a 1600x900 reference (1.2x). Quiz card is a flat opaque panel with larger text, best-fit for long questions. Mobile button labels are larger.
+
+## Cards that overflowed the mobile canvas (Ziad's read)
+- New `CardFit` (UI): scales a card down only as far as needed to fit its parent with a 24 px margin. Added to the settings card (1120x1080), save-slots card (900x1020) and how-to card (1000x700). Settings on a 900 px canvas lands at about 0.79, so Title and Reset/Close are on screen. Fonts are not shrunk elsewhere.
+- Android Back is Escape in Unity: traced MainMenuController (settings, save slots, how-to) and PauseMenu (settings) both close on Escape.
+- Tests: card sizes against 1600x900, 1600x1000, 1600x1200, 1920x1080 and 2000x900. Not seen on a device.

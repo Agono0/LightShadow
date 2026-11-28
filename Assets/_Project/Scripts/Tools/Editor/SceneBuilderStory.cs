@@ -624,6 +624,7 @@ namespace LightShadow.Tools
             RectTransform card = MakeStoryPanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 1020f), StoryPanelDark, false)
                 .rectTransform;
+            card.gameObject.AddComponent<LightShadow.UI.CardFit>();
 
             slots.titleText = MakeStoryText(card, "Title", "SAVE SLOTS", 40, StoryWarm,
                 TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),

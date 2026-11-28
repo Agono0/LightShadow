@@ -609,6 +609,7 @@ namespace LightShadow.Tools
 
             RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1120f, 1080f), PanelDark, false).rectTransform;
+            card.gameObject.AddComponent<LightShadow.UI.CardFit>();
 
             controller.title = MakeText(card, "Title", "SETTINGS", 44, Warm, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
@@ -774,6 +775,7 @@ namespace LightShadow.Tools
             RectTransform dim = MakeFullScreen(root, "HowToPanel", new Color(0f, 0f, 0f, 0.86f), true);
             RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1000f, 700f), PanelDark, false).rectTransform;
+            card.gameObject.AddComponent<LightShadow.UI.CardFit>();
 
             Text title = MakeText(card, "Title", "HOW TO PLAY", 42, Warm, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
