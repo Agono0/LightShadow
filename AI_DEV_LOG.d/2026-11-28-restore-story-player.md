@@ -54,3 +54,4 @@ Written by the execution agent for the user (Ag). Nothing here was seen in the e
 - Ziad N11/N12: the code lock clears the selected button so Enter does not also submit a +/- button; a code lock whose overlay token was cleared by a respawn closes itself instead of staying visible.
 - Ziad re-verify: a death during the code lock success beat no longer drops the solve; an owed medkit is granted after a load even if the save was taken one frame after the kit was used.
 - Ziad part 2/3: DawnChase lamp exemption is ancestor-based (lamps sit under a Lamp child); puzzle overlays relock the cursor only when pause, inspect and other overlays no longer need it; code lock hint click clears focus.
+- Sequence puzzle relock uses the same guard as the other puzzle overlays.
