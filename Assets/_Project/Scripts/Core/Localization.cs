@@ -342,6 +342,7 @@ namespace LightShadow.Core
             { "Pick it up", "التقطه" },
             { "Put it down", "ضعه" },
             { "Take the medkit", "خذ الإسعافات" },
+            { "Already carrying a medkit.", "تحمل حقيبة إسعاف بالفعل." },
             // AI-drafted Arabic (Abdelraouf proposal), NOT native-reviewed. House term for the kit: الإسعافات.
             { "Open the door", "افتح الباب" },
             { "Close the door", "أغلق الباب" },

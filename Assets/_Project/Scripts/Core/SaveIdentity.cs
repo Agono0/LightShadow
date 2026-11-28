@@ -17,6 +17,10 @@ namespace LightShadow.Core
         {
             public List<string> fuses = new List<string>();
             public List<string> fragments = new List<string>();
+            // Medkit props that were taken (audit K1). hasMedkitIdentity is
+            // false in saves written before this field existed.
+            public bool hasMedkitIdentity;
+            public List<string> medkits = new List<string>();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -38,6 +42,11 @@ namespace LightShadow.Core
             {
                 if (fragment != null && fragment.Collected) blob.fragments.Add(fragment.SaveId);
             }
+            blob.hasMedkitIdentity = true;
+            foreach (MedkitPickup kit in UnityEngine.Object.FindObjectsByType<MedkitPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (kit != null && kit.Collected) blob.medkits.Add(kit.SaveId);
+            }
             SaveSystem.SetContrib(data, Key, Write(blob));
         }
 
@@ -54,12 +63,24 @@ namespace LightShadow.Core
                 if (blob == null) return null;
                 if (blob.fuses == null) blob.fuses = new List<string>();
                 if (blob.fragments == null) blob.fragments = new List<string>();
+                if (blob.medkits == null) blob.medkits = new List<string>();
                 return blob;
             }
             catch (Exception)
             {
                 return null;
             }
+        }
+
+        // Which medkit props to hide on load (audit K1). New saves name the
+        // kits taken. Old saves have no medkit identity: they only know the
+        // inventory held a kit, so one kit (the first) is hidden, the other
+        // stays available.
+        public static bool[] SelectMedkitRestores(IList<string> names, Blob blob, bool oldSaveCarriedKit)
+        {
+            if (blob != null && blob.hasMedkitIdentity)
+                return SelectRestores(names, blob.medkits, blob.medkits.Count);
+            return SelectRestores(names, null, oldSaveCarriedKit ? 1 : 0);
         }
 
         // Which of the scene's objects to restore. names[i] is object i's

@@ -407,6 +407,13 @@ namespace LightShadow.Core
             bool[] fragPick = SaveIdentity.SelectRestores(fragNames, identity != null ? identity.fragments : null, FragmentsCollected);
             for (int i = 0; i < fragments.Length; i++) if (fragPick[i]) fragments[i].RestoreFromSave();
 
+            MedkitPickup[] kits = FindObjectsByType<MedkitPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            string[] kitNames = new string[kits.Length];
+            for (int i = 0; i < kits.Length; i++) kitNames[i] = kits[i].SaveId;
+            bool oldCarried = !string.IsNullOrEmpty(data.inventoryJson) && data.inventoryJson.Contains("\"" + MedkitPickup.ItemId + "\"");
+            bool[] kitPick = SaveIdentity.SelectMedkitRestores(kitNames, identity, oldCarried);
+            for (int i = 0; i < kits.Length; i++) if (kitPick[i]) kits[i].RestoreFromSave();
+
             if (GatePowered)
             {
                 ExitGate gate = FindFirstObjectByType<ExitGate>();
