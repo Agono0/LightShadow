@@ -99,6 +99,7 @@ namespace LightShadow.Core
             if (enemy == null || player == null) return;
             if (!EnemySaveState.TryParse(SaveSystem.GetContrib(data, EnemySaveState.Key), out blob)) return;
             if (EnemySaveState.ShouldPlace(blob.Position, player.position)) enemy.PlaceFromSave(blob.Position);
+            else enemy.EnsureAwayFrom(player.position, EnemySaveState.MinPlayerDistance); // refused spot: do not keep a spawn inside 10 m
             MenaceDirector menace = MenaceDirector.Instance;
             if (menace != null) menace.RestoreGauge(blob.gauge);
         }

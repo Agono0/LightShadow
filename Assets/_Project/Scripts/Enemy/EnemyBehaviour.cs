@@ -771,6 +771,33 @@ namespace LightShadow.Enemy
             ResetToPatrol();
         }
 
+        // Save restore fallback: when the saved spot was refused and the wraith's
+        // scene spawn is still closer than minDistance to the restored player,
+        // move it to the patrol waypoint farthest from her that is on the NavMesh.
+        // Waypoints are authored on the mesh, so this cannot no-op the way a
+        // computed "away from the player" point can. Returns true if it moved.
+        public bool EnsureAwayFrom(Vector3 playerPosition, float minDistance)
+        {
+            if (Vector3.Distance(transform.position, playerPosition) >= minDistance) return false;
+            if (route == null) return false;
+            Vector3 best = Vector3.zero;
+            float bestDistance = -1f;
+            for (int i = 0; i < route.Count; i++)
+            {
+                Transform waypoint = route.Get(i);
+                if (waypoint == null) continue;
+                NavMeshHit hit;
+                if (!NavMesh.SamplePosition(waypoint.position, out hit, 2f, NavMesh.AllAreas)) continue;
+                float d = Vector3.Distance(hit.position, playerPosition);
+                if (d > bestDistance) { bestDistance = d; best = hit.position; }
+            }
+            if (bestDistance <= Vector3.Distance(transform.position, playerPosition)) return false;
+            if (agent != null && agent.isOnNavMesh) agent.Warp(best);
+            else transform.position = best;
+            ResetToPatrol();
+            return true;
+        }
+
         // Called by the GameManager after a catch, and used internally on exit.
         public void ResetToPatrol()
         {
