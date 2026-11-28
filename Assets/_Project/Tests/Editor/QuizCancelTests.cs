@@ -13,5 +13,13 @@ namespace LightShadow.Tests
             Assert.IsFalse(QuizUIController.IsCancel(-1), "-1 is the timer running out, a real wrong answer");
             for (int i = 0; i < 4; i++) Assert.IsFalse(QuizUIController.IsCancel(i));
         }
+
+        [Test]
+        public void Pause_isBlockedOnlyWhileQuizOpenAndPauseClosed()
+        {
+            Assert.IsTrue(PauseMenu.ShouldBlockForQuiz(false, true));
+            Assert.IsFalse(PauseMenu.ShouldBlockForQuiz(true, true), "an open pause can always close");
+            Assert.IsFalse(PauseMenu.ShouldBlockForQuiz(false, false));
+        }
     }
 }

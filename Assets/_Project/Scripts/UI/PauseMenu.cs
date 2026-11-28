@@ -81,7 +81,7 @@ namespace LightShadow.UI
 
             // While a question is up, Esc does nothing - let the timer decide.
             Core.GameManager gm = Core.GameManager.Instance;
-            if (!IsOpen && gm != null && gm.quizUI != null && gm.quizUI.IsOpen) return;
+            if (ShouldBlockForQuiz(IsOpen, gm != null && gm.quizUI != null && gm.quizUI.IsOpen)) return;
 
             Toggle();
         }
@@ -90,6 +90,13 @@ namespace LightShadow.UI
         public static bool ShouldYieldEscape(bool anyDismissableOverlay, bool overlayClosedThisFrame)
         {
             return anyDismissableOverlay || overlayClosedThisFrame;
+        }
+
+        // U2: a live question blocks opening pause (timeScale 0 would freeze
+        // its timer while the answer keys still work). Closing is never blocked.
+        public static bool ShouldBlockForQuiz(bool pauseOpen, bool quizOpen)
+        {
+            return !pauseOpen && quizOpen;
         }
 
         // Pause may re-lock the cursor only when no overlay still needs it.
@@ -113,6 +120,8 @@ namespace LightShadow.UI
                 return;
             }
             if (!IsOpen && OverlayStack.TryCloseTop()) return;
+            Core.GameManager gm = Core.GameManager.Instance;
+            if (ShouldBlockForQuiz(IsOpen, gm != null && gm.quizUI != null && gm.quizUI.IsOpen)) return;
             Instance.Toggle();
         }
 
