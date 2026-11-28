@@ -113,7 +113,12 @@ namespace LightShadow.Core
                 InventorySave save = JsonUtility.FromJson<InventorySave>(data.inventoryJson);
                 if (save != null && save.itemIds != null)
                 {
-                    for (int i = 0; i < save.itemIds.Count; i++) items.Add(save.itemIds[i]);
+                    for (int i = 0; i < save.itemIds.Count; i++)
+                    {
+                        // A null or empty id in a hand-edited save is not an item.
+                        if (string.IsNullOrEmpty(save.itemIds[i])) continue;
+                        items.Add(save.itemIds[i]);
+                    }
                 }
             }
             catch (Exception exception)
