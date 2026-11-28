@@ -106,9 +106,20 @@ namespace LightShadow.Core
 
         // ---------------------------------------------------------------- io --
 
+        // Test seam: tests point saves at a temp folder so they never touch real
+        // slots. null (the default) keeps Application.persistentDataPath.
+        public static string RootDirectoryOverride { get; set; }
+
+        public static void ResetRootDirectoryOverride() { RootDirectoryOverride = null; }
+
+        static string RootDirectory()
+        {
+            return string.IsNullOrEmpty(RootDirectoryOverride) ? Application.persistentDataPath : RootDirectoryOverride;
+        }
+
         static string SlotPath(int slot)
         {
-            return Path.Combine(Application.persistentDataPath,
+            return Path.Combine(RootDirectory(),
                 FolderName, FilePrefix + slot + FileExtension);
         }
 
