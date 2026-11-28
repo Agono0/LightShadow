@@ -257,7 +257,26 @@ namespace LightShadow.UI
             pendingIntent = intent;
             pendingSlot = slot;
             if (row.confirmText != null) row.confirmText.text = message;
+            ApplyConfirmButtons(row, intent);
             row.confirmRoot.SetActive(true);
+        }
+
+        // Pure: a Notice is close-only, so it reads CLOSE and hides CANCEL
+        // instead of showing a YES/NO pair that does the same thing.
+        public static string YesLabelKey(bool notice) { return notice ? "CLOSE" : "CONFIRM"; }
+        public static bool ShowNoButton(bool notice) { return !notice; }
+
+        static void ApplyConfirmButtons(SlotRow row, Intent intent)
+        {
+            bool notice = intent == Intent.Notice;
+            if (row.confirmYes != null)
+            {
+                Text label = row.confirmYes.GetComponentInChildren<Text>(true);
+                LocalizedText localized = label != null ? label.GetComponent<LocalizedText>() : null;
+                if (localized != null) localized.SetKey(YesLabelKey(notice));
+                else if (label != null) label.text = StoryStrings.Tr(YesLabelKey(notice));
+            }
+            if (row.confirmNo != null) row.confirmNo.gameObject.SetActive(ShowNoButton(notice));
         }
 
         // Close-only message on a slot row; either button just closes it.
