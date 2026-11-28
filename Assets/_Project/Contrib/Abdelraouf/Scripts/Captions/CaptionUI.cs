@@ -54,9 +54,13 @@ namespace LightShadow.Contrib.Abdelraouf.Captions
             }
         }
 
+        // One row = a background Image with the Text on a child: Unity allows a
+        // single Graphic per GameObject. The old Image+Text row threw a
+        // NullReferenceException in Awake (seen in the editor 2026-11-28), so
+        // no caption ever showed and the first empty box stayed on screen.
         Text MakeLabel(int index)
         {
-            var go = new GameObject("Caption_" + index, typeof(RectTransform), typeof(Image), typeof(Text));
+            var go = new GameObject("Caption_" + index, typeof(RectTransform), typeof(Image));
             go.transform.SetParent(root, false);
             var rect = (RectTransform)go.transform;
             rect.anchorMin = new Vector2(0f, 0f);
@@ -67,7 +71,15 @@ namespace LightShadow.Contrib.Abdelraouf.Captions
             var image = go.GetComponent<Image>();
             image.color = new Color(0f, 0f, 0f, 0.6f);
             image.raycastTarget = false;
-            var text = go.GetComponent<Text>();
+
+            var textObject = new GameObject("Text", typeof(RectTransform), typeof(Text));
+            textObject.transform.SetParent(go.transform, false);
+            var textRect = (RectTransform)textObject.transform;
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+            var text = textObject.GetComponent<Text>();
             text.font = Localization.CurrentFont;
             text.fontSize = 22;
             text.alignment = TextAnchor.MiddleCenter;
@@ -85,19 +97,20 @@ namespace LightShadow.Contrib.Abdelraouf.Captions
             for (int i = 0; i < labels.Count; i++)
             {
                 Text label = labels[i];
+                GameObject rowObject = label.transform.parent.gameObject;
                 if (i >= rows.Count)
                 {
-                    if (label.gameObject.activeSelf) label.gameObject.SetActive(false);
+                    if (rowObject.activeSelf) rowObject.SetActive(false);
                     continue;
                 }
                 Row row = rows[i];
-                if (!label.gameObject.activeSelf) label.gameObject.SetActive(true);
+                if (!rowObject.activeSelf) rowObject.SetActive(true);
                 label.font = font;
                 label.text = row.marker == ' ' ? row.text : MarkerLine(row);
                 Color color = label.color;
                 color.a = row.alpha;
                 label.color = color;
-                Image background = label.GetComponent<Image>();
+                Image background = rowObject.GetComponent<Image>();
                 Color backgroundColor = background.color;
                 backgroundColor.a = 0.6f * row.alpha;
                 background.color = backgroundColor;
