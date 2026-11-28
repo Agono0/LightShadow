@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using LightShadow.Core;
 using LightShadow.Enemy;
 using UnityEngine;
@@ -30,6 +32,90 @@ namespace LightShadow.Gameplay
         // First time Nour opens or unlocks the door. The wraith's rule keys
         // off this and nothing else.
         public bool PlayerFreed { get; private set; }
+
+        public const string SaveKey = "doors";
+
+        [Serializable]
+        public class DoorState
+        {
+            public string id = "";
+            public bool open;
+            public bool locked;
+            public bool freed;
+        }
+
+        [Serializable]
+        public class DoorsSave
+        {
+            public List<DoorState> doors = new List<DoorState>();
+        }
+
+        // Stable per-door identity: name plus rounded position (names repeat).
+        public static string IdFor(string name, Vector3 position)
+        {
+            return name + "@" + Mathf.RoundToInt(position.x * 10f) + "," + Mathf.RoundToInt(position.y * 10f) + "," + Mathf.RoundToInt(position.z * 10f);
+        }
+
+        public string SaveId => IdFor(name, transform.position);
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void Hook()
+        {
+            SaveSystem.SaveCaptured -= OnSaveCaptured;
+            SaveSystem.SaveCaptured += OnSaveCaptured;
+            SaveSystem.SaveApplied -= OnSaveApplied;
+            SaveSystem.SaveApplied += OnSaveApplied;
+        }
+
+        static void OnSaveCaptured(SaveSystem.SaveData data)
+        {
+            if (data == null) return;
+            DoorsSave save = new DoorsSave();
+            DoorController[] all = FindObjectsByType<DoorController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < all.Length; i++)
+            {
+                save.doors.Add(new DoorState { id = all[i].SaveId, open = all[i].IsOpen, locked = all[i].IsLocked, freed = all[i].PlayerFreed });
+            }
+            SaveSystem.SetContrib(data, SaveKey, JsonUtility.ToJson(save));
+        }
+
+        static void OnSaveApplied(SaveSystem.SaveData data)
+        {
+            if (data == null) return;
+            string json = SaveSystem.GetContrib(data, SaveKey);
+            if (string.IsNullOrEmpty(json)) return;
+            DoorsSave save = null;
+            try { save = JsonUtility.FromJson<DoorsSave>(json); }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("[LightShadow] Door save blob unreadable, doors keep their start state: " + exception.Message);
+            }
+            if (save == null || save.doors == null) return;
+
+            DoorController[] all = FindObjectsByType<DoorController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            HashSet<string> done = new HashSet<string>();
+            for (int s = 0; s < save.doors.Count; s++)
+            {
+                DoorState state = save.doors[s];
+                if (state == null || string.IsNullOrEmpty(state.id) || !done.Add(state.id)) continue; // each identity once
+                for (int i = 0; i < all.Length; i++)
+                {
+                    if (all[i].SaveId == state.id) { all[i].RestoreFromSave(state.open, state.locked, state.freed); break; }
+                }
+            }
+        }
+
+        // Instant restore: no swing, no sound. A lock only holds if the door
+        // can lock at all (keyId set).
+        public void RestoreFromSave(bool open, bool locked, bool freed)
+        {
+            if (swing != null) { StopCoroutine(swing); swing = null; }
+            IsLocked = locked && !string.IsNullOrEmpty(keyId);
+            IsOpen = open && !IsLocked;
+            PlayerFreed = freed || IsOpen;
+            if (hinge != null) hinge.localRotation = Quaternion.Euler(0f, IsOpen ? openAngle : 0f, 0f);
+            ApplyPassage();
+        }
 
         NavMeshObstacle obstacle;
         Coroutine swing;
