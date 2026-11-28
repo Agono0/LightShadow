@@ -65,6 +65,8 @@ namespace LightShadow.Core
         void Awake()
         {
             Instance = this;
+            SaveSystem.SaveCaptured += CaptureEnemyState;
+            SaveSystem.SaveApplied += ApplyEnemyState;
             if (config == null)
             {
                 // So the game still runs if the asset was never assigned.
@@ -75,7 +77,30 @@ namespace LightShadow.Core
 
         void OnDestroy()
         {
+            SaveSystem.SaveCaptured -= CaptureEnemyState;
+            SaveSystem.SaveApplied -= ApplyEnemyState;
             if (Instance == this) Instance = null;
+        }
+
+        // Enemy state in saves: where the wraith was and how full the menace
+        // gauge was. It comes back as a patrolling wraith at that spot, and
+        // only when that spot is not on top of the player.
+        void CaptureEnemyState(SaveSystem.SaveData data)
+        {
+            if (enemy == null) return;
+            MenaceDirector menace = MenaceDirector.Instance;
+            SaveSystem.SetContrib(data, EnemySaveState.Key, EnemySaveState.ToJson(
+                enemy.transform.position, menace != null ? menace.Gauge : 0f, enemy.IsAggressive));
+        }
+
+        void ApplyEnemyState(SaveSystem.SaveData data)
+        {
+            EnemySaveState.Blob blob;
+            if (enemy == null || player == null) return;
+            if (!EnemySaveState.TryParse(SaveSystem.GetContrib(data, EnemySaveState.Key), out blob)) return;
+            if (EnemySaveState.ShouldPlace(blob.Position, player.position)) enemy.PlaceFromSave(blob.Position);
+            MenaceDirector menace = MenaceDirector.Instance;
+            if (menace != null) menace.RestoreGauge(blob.gauge);
         }
 
         void Start()
@@ -94,14 +119,19 @@ namespace LightShadow.Core
             Debug.Log("[LightShadow] The night begins: Nour entered the school.");
 
             // Opening story beat: the stakes on the HUD while the narrator sets
-            // the tone over the speakers.
-            ShowMessage("The demolition crew comes at dawn. Restore the light. Carry her memories home.", 6f);
+            // the tone over the speakers. Only on a new night (F6): loading a
+            // save must not replay the intro.
+            bool restoring = SaveSystem.RestorePending | SaveSystem.ConsumeRestoredFlag();
+            if (!restoring)
+            {
+                ShowMessage("The demolition crew comes at dawn. Restore the light. Carry her memories home.", 6f);
 
-            // The narrator (Windows SAPI voice) opens the night once. Audio is
-            // quiet enough not to hide the Shadow's cues; the option is offable
-            // in Settings.
-            StoryTeller.Speak(Localization.Tr(
-                "The school remembers her mother. Nour must carry what is precious out before dawn."), true);
+                // The narrator (Windows SAPI voice) opens the night once. Audio is
+                // quiet enough not to hide the Shadow's cues; the option is offable
+                // in Settings.
+                StoryTeller.Speak(Localization.Tr(
+                    "The school remembers her mother. Nour must carry what is precious out before dawn."), true);
+            }
         }
 
         // ---- Small services other scripts call --------------------------------
@@ -435,7 +465,10 @@ namespace LightShadow.Core
                 {
                     CharacterController controller = player.GetComponent<CharacterController>();
                     if (controller != null) controller.enabled = false;
-                    player.SetPositionAndRotation(data.position, Quaternion.Euler(0f, data.yaw, 0f));
+                    Vector3 target = data.position;
+                    Vector3 projected;
+                    if (SaveSystem.TryProjectToNavMesh(target, 1.5f, out projected)) target = projected;
+                    player.SetPositionAndRotation(target, Quaternion.Euler(0f, data.yaw, 0f));
                     if (controller != null) controller.enabled = true;
                 }
                 else

@@ -757,6 +757,19 @@ namespace LightShadow.Enemy
             if (burstSource != null && whisperClip != null) burstSource.PlayOneShot(whisperClip);
         }
 
+        // Restored from a save: stand at the saved spot (snapped to the
+        // NavMesh) and go back to patrol. Never resumes a chase.
+        public void PlaceFromSave(Vector3 position)
+        {
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(position, out hit, 2f, NavMesh.AllAreas))
+            {
+                if (agent != null && agent.isOnNavMesh) agent.Warp(hit.position);
+                else transform.position = hit.position;
+            }
+            ResetToPatrol();
+        }
+
         // Called by the GameManager after a catch, and used internally on exit.
         public void ResetToPatrol()
         {

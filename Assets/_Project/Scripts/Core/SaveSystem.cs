@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using LightShadow.Player;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
 namespace LightShadow.Core
@@ -104,6 +105,31 @@ namespace LightShadow.Core
 
         // Pending restore waiting for the right scene to finish loading.
         static SaveData pendingRestore;
+
+        // F6: the opening line and narration belong to a new night only. A
+        // restore is either still pending when the school starts, or has
+        // already been applied; both mean "do not replay the intro".
+        static bool restoredThisRun;
+        public static bool RestorePending { get { return pendingRestore != null; } }
+
+        public static bool ConsumeRestoredFlag()
+        {
+            bool value = restoredThisRun;
+            restoredThisRun = false;
+            return value;
+        }
+
+        // Saved positions can land inside geometry that moved since the save
+        // (or a rebaked layout). Project x/z onto the NavMesh within maxDistance;
+        // y stays as saved. False when there is no NavMesh or nothing close.
+        public static bool TryProjectToNavMesh(Vector3 point, float maxDistance, out Vector3 projected)
+        {
+            projected = point;
+            NavMeshHit hit;
+            if (!NavMesh.SamplePosition(point, out hit, maxDistance, NavMesh.AllAreas)) return false;
+            projected = new Vector3(hit.position.x, point.y, hit.position.z);
+            return true;
+        }
 
         // ---------------------------------------------------------------- io --
 
@@ -402,6 +428,7 @@ namespace LightShadow.Core
         public static void ClearPendingRestore()
         {
             pendingRestore = null;
+            restoredThisRun = false;
             SceneManager.sceneLoaded -= OnSceneLoadedForRestore;
         }
 
@@ -435,6 +462,7 @@ namespace LightShadow.Core
         // restore. Refresh once more after every handler has run.
         public static void NotifySaveApplied(SaveData data)
         {
+            restoredThisRun = true;
             InvokeEach(SaveApplied, data, "SaveApplied");
             LightShadow.UI.HUDController hud = LightShadow.UI.HUDController.Instance;
             if (hud == null) return;
