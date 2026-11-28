@@ -138,9 +138,24 @@ namespace LightShadow.Systems
             string gpuName = SystemInfo.graphicsDeviceName ?? string.Empty;
             bool looksIntegrated = gpuName.IndexOf("Intel", StringComparison.OrdinalIgnoreCase) >= 0
                 && gpuName.IndexOf("Arc", StringComparison.OrdinalIgnoreCase) < 0;
-            if (looksIntegrated) return Tier.High;
+            if (looksIntegrated || LooksLikeAmdIntegrated(gpuName)) return Tier.High;
 
             return gpuMemory >= UltraTierGpuMemory ? Tier.Ultra : Tier.High;
+        }
+
+        // AMD APUs report shared system memory as VRAM like Intel iGPUs do
+        // (audit 6.4). Their names read "AMD Radeon(TM) Graphics", "Radeon
+        // Vega 8 Graphics", "Radeon 780M"; discrete cards say RX, Pro or Fury.
+        public static bool LooksLikeAmdIntegrated(string gpuName)
+        {
+            if (string.IsNullOrEmpty(gpuName)) return false;
+            if (gpuName.IndexOf("Radeon", StringComparison.OrdinalIgnoreCase) < 0) return false;
+            string[] discrete = { " RX", "Radeon Pro", "Radeon VII", "Fury", "Nano" };
+            for (int i = 0; i < discrete.Length; i++)
+            {
+                if (gpuName.IndexOf(discrete[i], StringComparison.OrdinalIgnoreCase) >= 0) return false;
+            }
+            return true;
         }
 
         public static string TierLabel(Tier tier)

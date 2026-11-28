@@ -37,8 +37,9 @@ editor or on a device; CI is the first compile.
   ui-tests-input, settings-tests-input, audio-assets-input (AMB_NightWindDrips, UNWIRED, not auditioned);
   Abdelraouf overlay-locks, overlay-esc-fix, quiz-factcheck-input (report only; no factSource promoted).
 - Packages: unused packages dropped from manifest.json; packages-lock.json not edited.
-- Not done here (open): settings sliders for Voice/Shadow, kit skin wiring, save restore by identity, enemy state in saves,
+- Not done here (open): kit skin wiring (needs kit under Resources), enemy state in saves (NavMesh warp untestable here), 6.6 editor-only DontDestroyOnLoad, 8.3 CI ValidateBatch (needs license secret),
   "Not done here:" auto-rotation and activeInputHandler left as is (landscape-only
   autorotation, both input systems in use); 132/133 quiz questions still need a
   teacher fact-check, so no release-readiness claim; Arabic strings are not
   native-verified.
+- Also done: Voice/Shadow volume rows, restore fuse boxes and fragments by identity (each once, count fallback), load-before-leave-menu, inventory and journal reset on new run, AMD APU tier cap (6.4), editor restores the URP asset after Play (6.5). 6.3 was already cached; 6.7 is documented intent. None of it compiled or seen in the editor beyond CI.
