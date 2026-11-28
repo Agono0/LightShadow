@@ -787,7 +787,7 @@ namespace LightShadow.Tools
                 "<b>Move</b>  W A S D        <b>Look</b>  mouse\n" +
                 "<b>Sprint</b>  hold Left Shift    <b>Crouch</b>  hold Left Ctrl\n" +
                 "<b>Flashlight</b>  F            <b>Interact</b>  E\n" +
-                "<b>Answer</b>  1 2 3 4          <b>Objectives</b>  Tab      <b>Pause</b>  Esc\n\n" +
+                "<b>Answer</b>  1 2 3 4          <b>Objectives</b>  Tab    <b>Inventory</b>  I    <b>Pause</b>  Esc\n\n" +
                 "Answer chalkboard questions to charge the <b>Bright Idea Meter</b>. A brighter beam reaches further " +
                 "and keeps the dark away. Hold the focused beam on the Shadow long enough and it recoils and backs off: hold right mouse, hold Y on a gamepad, or long-press the flashlight button on touch. Focus only works while the beam is on, and it drains the battery faster. Wrong answers and timeouts dim the beam.\n\n" +
                 "Lit rooms are safe until the gate is powered: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is " +
@@ -800,7 +800,7 @@ namespace LightShadow.Tools
                 "الحركة: W A S D        النظر: الفأرة\n" +
                 "الجري: استمر بالضغط على Shift الأيسر    الانخفاض: Ctrl الأيسر\n" +
                 "المصباح: F            التفاعل: E\n" +
-                "الإجابة: 1 2 3 4          المهام: Tab      الإيقاف: Esc\n\n" +
+                "الإجابة: 1 2 3 4          المهام: Tab    الحقيبة: I    الإيقاف: Esc\n\n" +
                 "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد ويبقي العتمة بعيدة. أبقِ الشعاع المركّز على الظل مدة كافية فيرتدّ ويبتعد: اضغط مطولًا على زر الفأرة الأيمن، أو Y في يد التحكم، أو اضغط مطولًا على زر المصباح في اللمس. التركيز يعمل فقط والشعاع مضاء، ويستهلك البطارية أسرع. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع.\n\n" +
                 "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة.\n\n" +
                 "أعد تشغيل ثلاثة صناديق مصاهر، ثم جد المفتاح الرئيسي في خزانة غرفة المعلمين، ووصّل لوحة القواطع، وأدر المقبض، واخرج من البوابة الرئيسية. شذرات المعرفة اختيارية. لديك ضربتان من الصحة: الإسعافات تعالجك، والاستيقاظ عند نقطة حفظ يعيدها. الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ.";

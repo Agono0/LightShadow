@@ -163,8 +163,10 @@ namespace LightShadow.UI
             if (feedbackPanel != null) feedbackPanel.SetActive(false);
             if (panel != null) panel.SetActive(true);
 
-            // Free the cursor on desktop while the question is up.
-            cursorWasLocked = Cursor.lockState == CursorLockMode.Locked;
+            // Free the cursor on desktop while the question is up. Gameplay on
+            // desktop always has the cursor locked, so a view that just closed
+            // (its relock may not read back yet this frame) still counts.
+            cursorWasLocked = !Application.isMobilePlatform && !PauseMenu.IsOpen;
             if (cursorWasLocked)
             {
                 Cursor.lockState = CursorLockMode.None;

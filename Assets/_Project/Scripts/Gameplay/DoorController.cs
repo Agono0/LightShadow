@@ -19,6 +19,7 @@ namespace LightShadow.Gameplay
     {
         [Header("Wiring")]
         public Transform hinge;          // rotates on local Y to swing the panel
+        public Transform hingeB;         // optional second leaf (double door); swings the mirrored way
         public string keyId = "";        // empty = never locks
         public bool startsLocked;
 
@@ -114,6 +115,7 @@ namespace LightShadow.Gameplay
             IsOpen = open && !IsLocked;
             PlayerFreed = freed || IsOpen;
             if (hinge != null) hinge.localRotation = Quaternion.Euler(0f, IsOpen ? openAngle : 0f, 0f);
+            if (hingeB != null) hingeB.localRotation = Quaternion.Euler(0f, IsOpen ? -openAngle : 0f, 0f);
             ApplyPassage();
         }
 
@@ -208,6 +210,8 @@ namespace LightShadow.Gameplay
             if (hinge == null) yield break;
             Quaternion start = hinge.localRotation;
             Quaternion target = Quaternion.Euler(0f, targetAngle, 0f);
+            Quaternion startB = hingeB != null ? hingeB.localRotation : Quaternion.identity;
+            Quaternion targetB = Quaternion.Euler(0f, -targetAngle, 0f);
             float elapsed = 0f;
             while (elapsed < swingSeconds)
             {
@@ -216,9 +220,11 @@ namespace LightShadow.Gameplay
                 float t = Mathf.Clamp01(elapsed / Mathf.Max(0.05f, swingSeconds));
                 t = t * t * (3f - 2f * t);
                 hinge.localRotation = Quaternion.Slerp(start, target, t);
+                if (hingeB != null) hingeB.localRotation = Quaternion.Slerp(startB, targetB, t);
                 yield return null;
             }
             hinge.localRotation = target;
+            if (hingeB != null) hingeB.localRotation = targetB;
             swing = null;
         }
     }

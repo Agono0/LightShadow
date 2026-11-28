@@ -43,9 +43,18 @@ namespace LightShadow.Tools
                 foreach (Light light in Object.FindObjectsByType<Light>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 {
                     if (light.type == LightType.Directional) problems.Add("School scene has a directional light (" + light.name + "); it must stay dark.");
-                    if (light.type == LightType.Point) points++;
+                    if (light.type == LightType.Point)
+                    {
+                        points++;
+                        // Torch-first darkness (playtest 2026-11-28): no fixed lamp may
+                        // out-shine the flashlight. Wing lamps and the entrance stay soft.
+                        if (light.intensity > 1.0f) problems.Add("School lamp too bright for a torch-first game: " + light.name + " intensity " + light.intensity.ToString("0.0") + " (max 1.0).");
+                    }
                     if (light.name.Contains("Moon")) problems.Add("School scene still has a moon fill light: " + light.name);
                 }
+                Color ambient = RenderSettings.ambientLight;
+                float ambientLuma = ambient.r * 0.2126f + ambient.g * 0.7152f + ambient.b * 0.0722f;
+                if (ambientLuma > 0.03f) problems.Add("School ambient light is " + ambientLuma.ToString("0.000") + "; it must stay near black (max 0.03).");
                 report.AppendLine("School point lights: " + points);
                 if (points > 90) problems.Add("School scene has " + points + " point lights; budget is 90.");
             }

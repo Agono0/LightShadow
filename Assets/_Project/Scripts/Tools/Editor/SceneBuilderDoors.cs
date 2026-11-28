@@ -81,14 +81,28 @@ namespace LightShadow.Tools
             // Layer 0, NOT LevelLayer: the NavMesh bake collects LevelLayer
             // colliders, and a baked-in panel would seal the doorway forever -
             // runtime passage is the DoorController's carving obstacle alone.
-            Box(hinge.transform, "Panel", new Vector3(0f, 1.025f, 0.98f),
-                new Vector3(0.08f, 2.05f, 1.96f), palette.wood, true, 0);
+            // Double door (playtest 2026-11-28: a single leaf read as half a
+            // door and the doorway looked unfinished): two leaves meet in the
+            // middle of the 2 m gap, each hinged on its own jamb, and swing
+            // the same way into the room.
+            const float leafWidth = 0.98f;
+            Box(hinge.transform, "Panel", new Vector3(0f, 1.025f, leafWidth * 0.5f),
+                new Vector3(0.08f, 2.05f, leafWidth), palette.wood, true, 0);
             float handleSide = x < 0f ? 0.07f : -0.07f;
-            Box(hinge.transform, "Handle", new Vector3(handleSide, 1.0f, 1.75f),
+            Box(hinge.transform, "Handle", new Vector3(handleSide, 1.0f, leafWidth - 0.16f),
+                new Vector3(0.05f, 0.05f, 0.14f), palette.metal, false, 0);
+
+            var hingeB = new GameObject("HingeB");
+            hingeB.transform.SetParent(root.transform, false);
+            hingeB.transform.localPosition = new Vector3(0f, 0f, 2f);
+            Box(hingeB.transform, "PanelB", new Vector3(0f, 1.025f, -leafWidth * 0.5f),
+                new Vector3(0.08f, 2.05f, leafWidth), palette.wood, true, 0);
+            Box(hingeB.transform, "HandleB", new Vector3(handleSide, 1.0f, -(leafWidth - 0.16f)),
                 new Vector3(0.05f, 0.05f, 0.14f), palette.metal, false, 0);
 
             DoorController door = root.AddComponent<DoorController>();
             door.hinge = hinge.transform;
+            door.hingeB = hingeB.transform;
             door.keyId = keyId;
             door.startsLocked = locked;
             door.openAngle = openAngle;

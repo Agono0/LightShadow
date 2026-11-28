@@ -565,10 +565,10 @@ namespace LightShadow.Tools
             var lights = Group("Lighting", parent);
 
             // Entrance is always lit and is the first checkpoint.
-            AddLamp(lights.transform, new Vector3(-3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 2.4f, 10f);
-            AddLamp(lights.transform, new Vector3(3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 2.4f, 10f);
+            AddLamp(lights.transform, new Vector3(-3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 0.6f, 5f);
+            AddLamp(lights.transform, new Vector3(3f, 2.85f, -30f), new Color(1f, 0.83f, 0.58f), 0.6f, 5f);
             CreatePointLight(lights.transform, "GateGlow", new Vector3(0f, 2.6f, -33.5f),
-                new Color(1f, 0.72f, 0.42f), 1.6f, 8f);
+                new Color(1f, 0.72f, 0.42f), 0.5f, 4f);
 
             // Map lights off (user brief 2026-11-27): the corridor is dark but
             // for decorations. One faulty emergency lamp stutters mid-corridor;
@@ -599,29 +599,29 @@ namespace LightShadow.Tools
 
             // ---- fuse-controlled light groups ---------------------------------
             set.libraryLights = Group("LibraryLights", parent);
-            AddLamp(set.libraryLights.transform, new Vector3(-8f, 2.8f, -19f), new Color(1f, 0.80f, 0.52f), 2.6f, 12f);
-            AddLamp(set.libraryLights.transform, new Vector3(-16f, 2.8f, -14f), new Color(1f, 0.80f, 0.52f), 2.6f, 12f);
-            AddLamp(set.libraryLights.transform, new Vector3(-8f, 2.8f, -10f), new Color(1f, 0.80f, 0.52f), 2.6f, 12f);
+            AddLamp(set.libraryLights.transform, new Vector3(-8f, 2.8f, -19f), new Color(1f, 0.80f, 0.52f), 0.8f, 6.5f);
+            AddLamp(set.libraryLights.transform, new Vector3(-16f, 2.8f, -14f), new Color(1f, 0.80f, 0.52f), 0.8f, 6.5f);
+            AddLamp(set.libraryLights.transform, new Vector3(-8f, 2.8f, -10f), new Color(1f, 0.80f, 0.52f), 0.8f, 6.5f);
 
             // The infirmary belongs to the library wing: its lamp lives under
             // the same fuse-controlled root (the staff room / hall precedent).
-            AddLamp(set.libraryLights.transform, new Vector3(-12f, 2.8f, -2f), new Color(0.86f, 0.92f, 1f), 2.2f, 10f);
+            AddLamp(set.libraryLights.transform, new Vector3(-12f, 2.8f, -2f), new Color(0.86f, 0.92f, 1f), 0.7f, 6f);
 
             set.physicsLights = Group("PhysicsLights", parent);
-            AddLamp(set.physicsLights.transform, new Vector3(8f, 2.8f, -19f), new Color(0.85f, 0.90f, 1f), 2.5f, 12f);
-            AddLamp(set.physicsLights.transform, new Vector3(16f, 2.8f, -14f), new Color(0.85f, 0.90f, 1f), 2.5f, 12f);
-            AddLamp(set.physicsLights.transform, new Vector3(8f, 2.8f, -10f), new Color(0.85f, 0.90f, 1f), 2.5f, 12f);
+            AddLamp(set.physicsLights.transform, new Vector3(8f, 2.8f, -19f), new Color(0.85f, 0.90f, 1f), 0.8f, 6.5f);
+            AddLamp(set.physicsLights.transform, new Vector3(16f, 2.8f, -14f), new Color(0.85f, 0.90f, 1f), 0.8f, 6.5f);
+            AddLamp(set.physicsLights.transform, new Vector3(8f, 2.8f, -10f), new Color(0.85f, 0.90f, 1f), 0.8f, 6.5f);
 
             set.mainHallLights = Group("MainHallLights", parent);
-            AddLamp(set.mainHallLights.transform, new Vector3(-8f, 4f, 31f), new Color(1f, 0.82f, 0.55f), 3.0f, 15f);
-            AddLamp(set.mainHallLights.transform, new Vector3(8f, 4f, 31f), new Color(1f, 0.82f, 0.55f), 3.0f, 15f);
-            AddLamp(set.mainHallLights.transform, new Vector3(-8f, 4f, 38f), new Color(1f, 0.82f, 0.55f), 3.0f, 15f);
-            AddLamp(set.mainHallLights.transform, new Vector3(8f, 4f, 38f), new Color(1f, 0.82f, 0.55f), 3.0f, 15f);
+            AddLamp(set.mainHallLights.transform, new Vector3(-8f, 4f, 31f), new Color(1f, 0.82f, 0.55f), 0.9f, 8f);
+            AddLamp(set.mainHallLights.transform, new Vector3(8f, 4f, 31f), new Color(1f, 0.82f, 0.55f), 0.9f, 8f);
+            AddLamp(set.mainHallLights.transform, new Vector3(-8f, 4f, 38f), new Color(1f, 0.82f, 0.55f), 0.9f, 8f);
+            AddLamp(set.mainHallLights.transform, new Vector3(8f, 4f, 38f), new Color(1f, 0.82f, 0.55f), 0.9f, 8f);
 
             // The staff room belongs to the Main Hall wing: its lamps live under
             // the same fuse-controlled root as the hall.
-            AddLamp(set.mainHallLights.transform, new Vector3(-8f, 2.8f, 23f), new Color(1f, 0.84f, 0.58f), 2.2f, 10f);
-            AddLamp(set.mainHallLights.transform, new Vector3(-16f, 2.8f, 23f), new Color(1f, 0.84f, 0.58f), 2.2f, 10f);
+            AddLamp(set.mainHallLights.transform, new Vector3(-8f, 2.8f, 23f), new Color(1f, 0.84f, 0.58f), 0.8f, 6.5f);
+            AddLamp(set.mainHallLights.transform, new Vector3(-16f, 2.8f, 23f), new Color(1f, 0.84f, 0.58f), 0.8f, 6.5f);
             set.staffLights = set.mainHallLights;
 
             // Per-wing LIT grade (plan section 10): a local warm volume inside
@@ -1204,7 +1204,7 @@ namespace LightShadow.Tools
         static void AddCandle(Transform parent, Vector3 localPosition)
         {
             Light flame = CreatePointLight(parent, "Candle", localPosition,
-                new Color(1f, 0.72f, 0.38f), 0.6f, 3.5f);
+                new Color(1f, 0.72f, 0.38f), 0.45f, 3f);
             if (flame == null) return;
             LightFlicker flicker = flame.gameObject.AddComponent<LightFlicker>();
             flicker.amplitude = 0.35f;

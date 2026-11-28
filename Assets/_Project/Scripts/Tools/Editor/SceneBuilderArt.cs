@@ -363,7 +363,11 @@ namespace LightShadow.Tools
             }
             if (name.StartsWith("Door_"))
             {
-                SwapDoorWithHeroModel(transform);
+                // Working doors (DoorController: hinge, collider, key lock)
+                // keep their swinging wooden panel. The grille swap was written
+                // for the old collider-free decor boxes; on a real door it parked
+                // a static, non-swinging model on the root. Only decor doors swap.
+                if (transform.GetComponent<DoorController>() == null) SwapDoorWithHeroModel(transform);
                 return;
             }
             if (name.StartsWith("Planter_"))

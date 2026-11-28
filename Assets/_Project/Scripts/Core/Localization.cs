@@ -357,6 +357,7 @@ namespace LightShadow.Core
             { "It struck her - she is barely standing. Find a medkit.", "أصابها - إنها بالكاد تستطيع الوقوف. ابحث عن حقيبة الإسعافات." },
             { "Locked. The key must be somewhere in this school.", "مقفل. لا بد أن المفتاح في مكان ما داخل هذه المدرسة." },
             { "Medkit packed. Press M when she needs it.", "تم حزم حقيبة الإسعافات. اضغط M عندما تحتاجها." },
+            { "Medkit packed. I opens the bag, M uses it.", "تم حزم حقيبة الإسعافات. I يفتح الحقيبة، M يستخدمها." },
             { "Medkit used. Back on her feet.", "تم استخدام حقيبة الإسعافات. عادت إلى قدميها." },
             { "No medkit. They are rare - some puzzles hide one.", "لا توجد حقيبة إسعافات. إنها نادرة - بعض الألغاز يخفي واحدة." },
             { "No questions were answered tonight.", "لم تُجب عن أي سؤال هذه الليلة." },

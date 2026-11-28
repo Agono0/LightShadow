@@ -59,8 +59,17 @@ namespace LightShadow.Gameplay
             // plays; the quiz waits until the player closes it.
             UI.InspectViewController.ShowFrom(this);
 
-            yield return new WaitForSeconds(memorySeconds);
-            while (UI.InspectViewController.IsOpen) yield return null;
+            // With the close-up open, its own close (button, Esc or auto) ends
+            // the wait and the question follows at once. Without it, the memory
+            // line plays for memorySeconds first.
+            if (UI.InspectViewController.IsOpen)
+            {
+                while (UI.InspectViewController.IsOpen) yield return null;
+            }
+            else
+            {
+                yield return new WaitForSeconds(memorySeconds);
+            }
 
             // The themed question. Answering or not, the fragment is recovered.
             if (gm != null && gm.quizUI != null && gm.database != null)
