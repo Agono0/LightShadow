@@ -38,9 +38,16 @@ namespace LightShadow.UI
         bool answered;
         bool cursorWasLocked;
 
+        bool opening;
+
         void Awake()
         {
-            if (panel != null) panel.SetActive(false);
+            // The builder ships the panel inactive and the controller sits ON the
+            // panel, so this Awake first runs inside ShowQuestion's SetActive(true).
+            // Hiding it then swallowed the first question of every session and
+            // left its owner waiting forever (a fragment never counted; seen in
+            // the editor 2026-11-28).
+            if (panel != null && !opening) panel.SetActive(false);
             if (feedbackPanel != null) feedbackPanel.SetActive(false);
 
             // Auto-wire the label inside each button if not set in the editor.
@@ -161,7 +168,9 @@ namespace LightShadow.UI
             }
 
             if (feedbackPanel != null) feedbackPanel.SetActive(false);
+            opening = true;
             if (panel != null) panel.SetActive(true);
+            opening = false;
 
             // Free the cursor on desktop while the question is up. Gameplay on
             // desktop always has the cursor locked, so a view that just closed
