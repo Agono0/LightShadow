@@ -290,7 +290,7 @@ namespace LightShadow.Tools
             Scene scene = NewScene();
             // Darkness pass: near-black ambient — the flashlight and the lit
             // islands carry the scene now (player request: top-horror look).
-            ApplyAtmosphere(new Color(0.012f, 0.014f, 0.022f), new Color(0.014f, 0.017f, 0.026f), 0.026f);
+            ApplyAtmosphere(new Color(0.012f, 0.014f, 0.022f), new Color(0.014f, 0.017f, 0.026f), 0.026f, false);
 
             var level = new GameObject("Level");
             level.layer = LevelLayer;

@@ -79,6 +79,28 @@ namespace LightShadow.Tools
             }
         }
 
+        // Emissive twin of the torch's Lens part, a hair in front of it. The
+        // battery shows it only while the light is on, so a lit torch has the
+        // bright lens of the owner's reference and a dead one does not.
+        static void AddLensGlow(GameObject player, Transform torch, Material material)
+        {
+            Transform lens = FindMarker(torch, "Lens");
+            MeshFilter source = lens != null ? lens.GetComponent<MeshFilter>() : null;
+            FlashlightBattery battery = player.GetComponent<FlashlightBattery>();
+            if (source == null || material == null || battery == null) return;
+            var glow = new GameObject("LensGlow");
+            glow.layer = lens.gameObject.layer;
+            glow.transform.SetParent(lens, false);
+            glow.transform.localPosition = new Vector3(0f, 0f, 0.0015f);
+            glow.AddComponent<MeshFilter>().sharedMesh = source.sharedMesh;
+            MeshRenderer r = glow.AddComponent<MeshRenderer>();
+            r.sharedMaterial = material;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            r.enabled = false;
+            battery.lensGlow = r;
+        }
+
         // handRoot: the first-person hand; flashlightGo: the light object that
         // should start at the lens; torchPrimitive: the fallback cylinder.
         // Only the right hand is shown in first person (it holds the torch);
@@ -144,6 +166,7 @@ namespace LightShadow.Tools
                         torch.transform.localScale.x);
                     HideMarker(grip);
                     HideMarker(muzzle);
+                    AddLensGlow(player, torch.transform, palette.torchLens);
                     if (torchPrimitive != null)
                     {
                         Renderer r = torchPrimitive.GetComponent<Renderer>();

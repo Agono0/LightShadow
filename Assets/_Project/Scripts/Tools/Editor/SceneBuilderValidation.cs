@@ -71,6 +71,11 @@ namespace LightShadow.Tools
                 Color ambient = RenderSettings.ambientLight;
                 float ambientLuma = ambient.r * 0.2126f + ambient.g * 0.7152f + ambient.b * 0.0722f;
                 if (ambientLuma > 0.03f) problems.Add("School ambient light is " + ambientLuma.ToString("0.000") + "; it must stay near black (max 0.03).");
+                // Environment reflections lit the whole "dark" school grey in the
+                // first editor play (2026-11-28); no default cubemap may feed them.
+                bool reflectionsOff = RenderSettings.reflectionIntensity <= 0.001f
+                    || (RenderSettings.defaultReflectionMode == DefaultReflectionMode.Custom && RenderSettings.customReflectionTexture == null);
+                if (!reflectionsOff) problems.Add("School environment reflections are on (" + RenderSettings.defaultReflectionMode + " x" + RenderSettings.reflectionIntensity.ToString("0.00") + "); the map must stay torch-lit.");
                 report.AppendLine("School point lights: " + points);
                 if (points > 90) problems.Add("School scene has " + points + " point lights; budget is 90.");
             }

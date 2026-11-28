@@ -20,6 +20,7 @@ namespace LightShadow.Player
         public GameConfig config;
         public BrightIdeaMeter meter;
         public Light spotLight;
+        public Renderer lensGlow;       // emissive lens; lit only while the torch is on
         public AudioClip toggleClip;
         public FlashlightCrank crank;   // shares the desktop F key with Toggle
 
@@ -78,6 +79,7 @@ namespace LightShadow.Player
             // Never leave a stale light level behind for the Shadow to read.
             PlayerLightLevel = 0f;
             if (spotLight != null) spotLight.enabled = false;
+            if (lensGlow != null) lensGlow.enabled = false;
         }
 
         void OnDestroy()
@@ -200,6 +202,7 @@ namespace LightShadow.Player
         void ApplyState()
         {
             if (spotLight != null) spotLight.enabled = IsOn;
+            if (lensGlow != null) lensGlow.enabled = IsOn;
         }
     }
 }
