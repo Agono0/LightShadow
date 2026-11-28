@@ -34,7 +34,10 @@ namespace LightShadow.Tools
     //   lights                          every active light with intensity/range
     //   find <substring>                active objects whose name contains it
     //   models                          imported hero OBJ children, pivots and marker bounds
+    //   cfg <field> [value]             read/write a GameConfig field (asset edit: persists!)
+    //   ui                              active UI graphics with screen rects and colours
     //   timescale <v> / stop
+    // Outside Play mode: "play", or "editstatic <Type> <Method>" (e.g. SceneBuilder BuildAll).
     [InitializeOnLoad]
     public static class PlaytestRemote
     {
@@ -68,8 +71,30 @@ namespace LightShadow.Tools
 
         static void Poll()
         {
-            if (!EditorApplication.isPlaying) return;
             if (EditorApplication.timeSinceStartup < nextPoll) return;
+            if (!EditorApplication.isPlaying)
+            {
+                // Outside Play mode only "play" is honoured (after a script reload).
+                if (EditorApplication.isCompiling || EditorApplication.isPlayingOrWillChangePlaymode) return;
+                if (!File.Exists(CommandFile)) return;
+                string idle = File.ReadAllText(CommandFile).Trim();
+                if (idle == "play")
+                {
+                    File.Delete(CommandFile);
+                    PlayFromBootstrap();
+                }
+                else if (idle.StartsWith("editstatic "))
+                {
+                    // e.g. "editstatic SceneBuilder BuildAll": runs an editor method
+                    // in this editor (one Unity instance per project).
+                    File.Delete(CommandFile);
+                    string result;
+                    try { result = CallStatic(("static " + idle.Substring(11)).Split(' ')); }
+                    catch (Exception e) { result = "ERROR " + (e.InnerException ?? e).Message; }
+                    File.AppendAllText(LogFile, "> " + idle + "\n" + result + "\nDONE\n");
+                }
+                return;
+            }
             nextPoll = EditorApplication.timeSinceStartup + 0.2;
             if (!File.Exists(CommandFile)) return;
             string[] lines;
@@ -121,6 +146,23 @@ namespace LightShadow.Tools
                 case "lights": return Lights();
                 case "find": return FindNames(a[1]);
                 case "models": return ModelReport();
+                case "ambient": return AmbientReport();
+                case "cfg": return ConfigField(a);
+                case "ui": return UiReport();
+                case "darkprobe":
+                    // Experiment: a flat SH probe from the scene's ambient colour and
+                    // no environment reflections, to see what the stale probe adds.
+                    var sh = new UnityEngine.Rendering.SphericalHarmonicsL2();
+                    sh.AddAmbientLight(RenderSettings.ambientLight);
+                    RenderSettings.ambientProbe = sh;
+                    RenderSettings.defaultReflectionMode = UnityEngine.Rendering.DefaultReflectionMode.Custom;
+                    RenderSettings.customReflectionTexture = null;
+                    RenderSettings.reflectionIntensity = 0f;
+                    return AmbientReport();
+                case "lightsoff":
+                    foreach (Light l in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsInactive.Exclude))
+                        if (l.type == LightType.Point) l.enabled = false;
+                    return "point lights off";
                 case "timescale":
                     Time.timeScale = F(a[1]);
                     return "timeScale " + Time.timeScale;
@@ -391,6 +433,48 @@ namespace LightShadow.Tools
                 }
                 UnityEngine.Object.DestroyImmediate(asset);
             }
+            return sb.ToString();
+        }
+
+        static string ConfigField(string[] a)
+        {
+            var gm = LightShadow.Core.GameManager.Instance;
+            if (gm == null || gm.config == null) return "no GameConfig";
+            FieldInfo f = gm.config.GetType().GetField(a[1], All);
+            if (f == null) return "no field " + a[1];
+            if (a.Length > 2) f.SetValue(gm.config, Convert(a[2], f.FieldType));
+            var meter = UnityEngine.Object.FindAnyObjectByType<LightShadow.Player.BrightIdeaMeter>();
+            if (meter != null) meter.ApplyToLight();
+            return a[1] + " = " + Describe(f.GetValue(gm.config));
+        }
+
+        static string UiReport()
+        {
+            var sb = new StringBuilder();
+            foreach (UnityEngine.UI.Graphic g in UnityEngine.Object.FindObjectsByType<UnityEngine.UI.Graphic>(FindObjectsInactive.Exclude))
+            {
+                if (!g.enabled || g.canvasRenderer.cull) continue;
+                float alpha = g.color.a * g.canvasRenderer.GetInheritedAlpha();
+                if (alpha < 0.02f) continue;
+                Vector3[] c = new Vector3[4];
+                g.rectTransform.GetWorldCorners(c);
+                string text = g is UnityEngine.UI.Text t ? " text \"" + t.text.Replace('\n', ' ') + "\"" : "";
+                sb.AppendLine(Path(g.transform) + " [" + g.GetType().Name + "] rect " + c[0].ToString("F0") + "-" + c[2].ToString("F0")
+                    + " colour " + g.color + " alpha " + alpha.ToString("0.00") + text);
+            }
+            return sb.ToString();
+        }
+
+        static string AmbientReport()
+        {
+            var sh = RenderSettings.ambientProbe;
+            var dirs = new[] { Vector3.up, Vector3.down, Vector3.forward, Vector3.right };
+            var colors = new Color[dirs.Length];
+            sh.Evaluate(dirs, colors);
+            var sb = new StringBuilder("ambientProbe up " + colors[0] + " down " + colors[1] + " fwd " + colors[2] + " right " + colors[3]);
+            sb.Append(" | reflection " + RenderSettings.defaultReflectionMode + " x" + RenderSettings.reflectionIntensity
+                + " custom " + (RenderSettings.customReflectionTexture != null ? RenderSettings.customReflectionTexture.name : "none")
+                + " | lightmapsData " + (Lightmapping.lightingDataAsset != null ? Lightmapping.lightingDataAsset.name : "none"));
             return sb.ToString();
         }
 
