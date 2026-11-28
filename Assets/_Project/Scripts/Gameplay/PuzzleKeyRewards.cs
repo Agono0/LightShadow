@@ -115,6 +115,9 @@ namespace LightShadow.Gameplay
         static void OnSaveApplied(SaveSystem.SaveData data)
         {
             pendingMedkit = data != null && SaveSystem.GetContrib(data, PendingSaveKey) == "1";
+            // A save taken in the frame after the kit was used holds pending=true
+            // with no kit: grant after the inventory restore has finished.
+            if (pendingMedkit) GrantRunner.Schedule();
         }
 
         static void Grant(string itemId)

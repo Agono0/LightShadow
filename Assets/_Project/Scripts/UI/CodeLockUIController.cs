@@ -150,9 +150,10 @@ namespace LightShadow.UI
         {
             // A respawn clears every overlay token (OverlayStack.ResetAll) but a busy
             // success panel refuses Close(false) and stayed on screen unlocked.
-            if (IsOpen && (lockToken == null || !lockToken.IsActive))
+            // Not while busy: Close(false) would drop onSolved and the player would
+            // have to re-enter the code (the success beat closes itself).
+            if (IsOpen && !busy && (lockToken == null || !lockToken.IsActive))
             {
-                busy = false;
                 Close(false);
                 return;
             }
