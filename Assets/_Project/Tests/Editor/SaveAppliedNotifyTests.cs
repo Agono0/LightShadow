@@ -10,13 +10,13 @@ namespace LightShadow.Tests.Editor
         public void NotifySaveApplied_RunsEveryHandler_AndSurvivesNoHud()
         {
             int calls = 0;
-            Action<SaveData> a = d => calls++;
-            Action<SaveData> b = d => calls++;
+            Action<SaveSystem.SaveData> a = d => calls++;
+            Action<SaveSystem.SaveData> b = d => calls++;
             SaveSystem.SaveApplied += a;
             SaveSystem.SaveApplied += b;
             try
             {
-                Assert.DoesNotThrow(() => SaveSystem.NotifySaveApplied(new SaveData()));
+                Assert.DoesNotThrow(() => SaveSystem.NotifySaveApplied(new SaveSystem.SaveData()));
                 Assert.AreEqual(2, calls);
             }
             finally
