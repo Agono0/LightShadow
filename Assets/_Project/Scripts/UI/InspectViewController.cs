@@ -82,6 +82,21 @@ namespace LightShadow.UI
         GameConfig Config => config != null
             ? config
             : (config = GameManager.Instance != null ? GameManager.Instance.config : null);
+        // Audit H2: the item is a child of the main camera but this canvas is
+        // ScreenSpaceOverlay, so it draws over the item. The 0.94 backdrop hid
+        // it almost completely. Moving to ScreenSpaceCamera was rejected at
+        // source level: the plane would be depth-tested against world
+        // geometry (walls near the camera could cut the UI) and the item has
+        // to sit nearer than the plane to show in front of the backdrop.
+        // Bounded fix: a lighter backdrop so the item reads through it.
+        public const float BackdropAlpha = 0.5f;
+        public const float MinVisibleItemShare = 0.4f; // 1 - alpha must stay above this
+
+        public static float ItemVisibleShare(float backdropAlpha)
+        {
+            return 1f - Mathf.Clamp01(backdropAlpha);
+        }
+
         float ItemDistance => Config != null ? Config.inspectItemDistance : 0.55f;
         float ItemScale => Config != null ? Config.inspectItemScale : 1.2f;
         float SpinSpeed => Config != null ? Config.inspectSpinSpeed : 20f;
@@ -216,7 +231,7 @@ namespace LightShadow.UI
             root = host;
 
             backdrop = MakeImage(root.transform, "Backdrop", Vector2.zero, Vector2.one,
-                Vector2.zero, Vector2.zero, new Color(0.01f, 0.01f, 0.02f, 0.94f));
+                Vector2.zero, Vector2.zero, new Color(0.01f, 0.01f, 0.02f, BackdropAlpha));
             backdrop.raycastTarget = true;   // the drag surface
 
             // Point anchors (anchorMin == anchorMax): the MakeText/MakeButton
