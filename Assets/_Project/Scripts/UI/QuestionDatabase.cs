@@ -19,6 +19,22 @@ namespace LightShadow.UI
         {
             actBag.Clear();
             categoryBag.Clear();
+            asked.Clear();
+        }
+
+        // Questions already drawn this run, by asset name. A save keeps them so a
+        // loaded run does not repeat what the player already answered.
+        readonly HashSet<string> asked = new HashSet<string>();
+        public void MarkAsked(string questionName)
+        {
+            if (!string.IsNullOrEmpty(questionName)) asked.Add(questionName);
+        }
+
+        public QuestionData FindByName(string questionName)
+        {
+            if (string.IsNullOrEmpty(questionName)) return null;
+            for (int i = 0; i < all.Count; i++) if (all[i] != null && all[i].name == questionName) return all[i];
+            return null;
         }
 
         // Used by quiz boards. difficulty cap ramps with restored fuse boxes.
@@ -42,17 +58,24 @@ namespace LightShadow.UI
             int index = bag.Count - 1;
             QuestionData picked = bag[index];
             bag.RemoveAt(index);
+            asked.Add(picked.name);
             return picked;
         }
 
         void RefillBag(List<QuestionData> bag, Func<QuestionData, bool> filter)
         {
             bag.Clear();
-            foreach (QuestionData q in all)
+            for (int pass = 0; pass < 2 && bag.Count == 0; pass++)
             {
-                if (q == null || !q.IsValid) continue;
-                if (filter != null && !filter(q)) continue;
-                bag.Add(q);
+                // Pass 0 skips what this run already asked; if that empties the pool
+                // the second pass allows repeats again.
+                foreach (QuestionData q in all)
+                {
+                    if (q == null || !q.IsValid) continue;
+                    if (filter != null && !filter(q)) continue;
+                    if (pass == 0 && asked.Contains(q.name)) continue;
+                    bag.Add(q);
+                }
             }
             Shuffle(bag);
         }

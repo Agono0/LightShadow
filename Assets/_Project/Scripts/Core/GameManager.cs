@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using LightShadow.Enemy;
 using LightShadow.Gameplay;
@@ -67,6 +68,8 @@ namespace LightShadow.Core
             Instance = this;
             SaveSystem.SaveCaptured += CaptureEnemyState;
             SaveSystem.SaveApplied += ApplyEnemyState;
+            SaveSystem.SaveCaptured += CaptureAnswers;
+            SaveSystem.SaveApplied += ApplyAnswers;
             if (config == null)
             {
                 // So the game still runs if the asset was never assigned.
@@ -79,6 +82,8 @@ namespace LightShadow.Core
         {
             SaveSystem.SaveCaptured -= CaptureEnemyState;
             SaveSystem.SaveApplied -= ApplyEnemyState;
+            SaveSystem.SaveCaptured -= CaptureAnswers;
+            SaveSystem.SaveApplied -= ApplyAnswers;
             if (Instance == this) Instance = null;
         }
 
@@ -91,6 +96,42 @@ namespace LightShadow.Core
             MenaceDirector menace = MenaceDirector.Instance;
             SaveSystem.SetContrib(data, EnemySaveState.Key, EnemySaveState.ToJson(
                 enemy.transform.position, menace != null ? menace.Gauge : 0f, enemy.IsAggressive));
+        }
+
+        // Study recap and question history in saves: without them a loaded run
+        // repeated questions and the recap lost everything answered before the save.
+        [Serializable]
+        class AnswerSave { public string q; public int chosen; public bool correct; }
+        [Serializable]
+        class AnswersBlob { public List<AnswerSave> answers = new List<AnswerSave>(); }
+        const string AnswersKey = "answers";
+
+        void CaptureAnswers(SaveSystem.SaveData data)
+        {
+            AnswersBlob blob = new AnswersBlob();
+            for (int i = 0; i < answers.Count; i++)
+            {
+                if (answers[i].question == null) continue;
+                blob.answers.Add(new AnswerSave { q = answers[i].question.name, chosen = answers[i].chosenIndex, correct = answers[i].correct });
+            }
+            SaveSystem.SetContrib(data, AnswersKey, JsonUtility.ToJson(blob));
+        }
+
+        void ApplyAnswers(SaveSystem.SaveData data)
+        {
+            string json = SaveSystem.GetContrib(data, AnswersKey);
+            if (string.IsNullOrEmpty(json) || database == null) return;
+            AnswersBlob blob = null;
+            try { blob = JsonUtility.FromJson<AnswersBlob>(json); } catch (Exception) { blob = null; }
+            if (blob == null || blob.answers == null) return;
+            answers.Clear();
+            for (int i = 0; i < blob.answers.Count; i++)
+            {
+                QuestionData question = database.FindByName(blob.answers[i].q);
+                if (question == null) continue;
+                database.MarkAsked(question.name);
+                answers.Add(new AnswerRecord { question = question, chosenIndex = blob.answers[i].chosen, correct = blob.answers[i].correct });
+            }
         }
 
         void ApplyEnemyState(SaveSystem.SaveData data)
@@ -120,14 +161,15 @@ namespace LightShadow.Core
             if (AudioManager.Instance != null) AudioManager.Instance.StopMusic();
             // A previous run may have been paused or slowed when the scene ended.
             Time.timeScale = 1f;
-            if (database != null) database.ResetBag();
+            // A restore applies before Start: keep the questions it marked as asked.
+            bool restoring = SaveSystem.RestorePending | SaveSystem.ConsumeRestoredFlag();
+            if (database != null && !restoring) database.ResetBag();
             if (hud != null) hud.RefreshObjectives();
             Debug.Log("[LightShadow] The night begins: Nour entered the school.");
 
             // Opening story beat: the stakes on the HUD while the narrator sets
             // the tone over the speakers. Only on a new night: loading a
             // save must not replay the intro.
-            bool restoring = SaveSystem.RestorePending | SaveSystem.ConsumeRestoredFlag();
             if (!restoring)
             {
                 ShowMessage("The demolition crew comes at dawn. Restore the light. Carry her memories home.", 6f);
