@@ -42,3 +42,4 @@ Written by the execution agent for the user (Ag). Nothing here was seen in the e
 - Mobile: TouchInput used Input.touches (allocates every frame); now touchCount/GetTouch. TouchJoystick re-resolves a lost player reference.
 - Audited with no change needed: movement and camera (input lock, pitch clamp, crouch, stamina), pause (overlay token, quiz gate, Esc order), puzzle cursor restore (CursorGuard is the net), catch and respawn reset, exit gate.
 - Not verified in the editor or on a device: all of the above (CI compile and tests only).
+- Speech worker (peer static audit, verified in source): a startup failure no longer disables the worker for the session (same 3-failure bound as writes); a 60 s timeout or an unexpected worker exit now returns false so the line gets the per-line fallback (an interrupt still counts as handled); plain text is XML-escaped before the break markup is added. Windows only, not run on a Windows machine.

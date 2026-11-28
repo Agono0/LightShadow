@@ -54,7 +54,8 @@ while ($true) {
       if ($envoice) { $s.SelectVoice($envoice.VoiceInfo.Name) }; $s.Rate = -1; $lang = 'en-us'
     }
     if (-not $skip) {
-      $ssml = ""<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='$lang'>"" + ($plain -replace '([.!?…])(\s|$)', '$1<break time=""280ms""/>$2' -replace ',', ',<break time=""140ms""/>') + '</speak>';
+      $safe = [System.Security.SecurityElement]::Escape($plain);
+      $ssml = ""<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='$lang'>"" + ($safe -replace '([.!?…])(\s|$)', '$1<break time=""280ms""/>$2' -replace ',', ',<break time=""140ms""/>') + '</speak>';
       try { $s.SpeakSsml($ssml) } catch { $s.Rate = 0; $s.Speak($plain) }
     }
   } catch { }
@@ -74,7 +75,14 @@ while ($true) {
                 if (broken) return false;
                 if (proc == null || proc.HasExited)
                 {
-                    if (!StartWorker()) { broken = true; return false; }
+                    if (!StartWorker())
+                    {
+                        // One transient spawn failure must not disable the worker for
+                        // the session: same bounded count as a failed write.
+                        failures++;
+                        if (failures >= MaxFailures) broken = true;
+                        return false;
+                    }
                 }
                 p = proc;
                 q = lines;
@@ -102,16 +110,38 @@ while ($true) {
             string line;
             while (q.TryTake(out line, SpeakMillis))
             {
-                if (line == "done" || line == "eof")
+                if (line == "done")
                 {
-                    if (line == "done") failures = 0;
+                    lock (gate) { failures = 0; }
                     return true;
+                }
+                if (line == "eof")
+                {
+                    // The worker ended: an interrupt did it on purpose (handled),
+                    // otherwise it crashed and the line needs the fallback.
+                    lock (gate)
+                    {
+                        if (epoch != interruptEpoch) return true;
+                        failures++;
+                        if (failures >= MaxFailures) broken = true;
+                        KillLocked();
+                    }
+                    return false;
                 }
             }
 
-            // No answer in a minute: drop this worker, the next line restarts it.
-            lock (gate) { KillLocked(); }
-            return true;
+            // No answer in a minute: drop this worker (the next line restarts it)
+            // and let the caller speak the line through the per-line fallback,
+            // unless an interrupt is what ended the wait.
+            lock (gate)
+            {
+                bool interrupted = epoch != interruptEpoch;
+                KillLocked();
+                if (interrupted) return true;
+                failures++;
+                if (failures >= MaxFailures) broken = true;
+            }
+            return false;
         }
 
         public static void Interrupt()
