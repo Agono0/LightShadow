@@ -65,9 +65,36 @@ namespace LightShadow.Gameplay
             Play(ProceduralSfx.Pickup);
         }
 
+        // Audit T1: a deliberate drop (E) is a placing-down. The prop leaves
+        // from the camera hold point (~1.3 m up), so its first impact would
+        // otherwise be loud enough to shatter it. The first contact within the
+        // grace window is quiet; a throw (F) and later collisions are normal.
+        public const float GentleGraceSeconds = 3f;
+        bool gentleDrop;
+        float gentleUntil;
+
+        public enum ImpactKind { None, Soft, Hard, Shatter }
+
+        // Pure policy: what an impact at `speed` does.
+        public static ImpactKind Classify(float speed, bool breakable, bool gentle)
+        {
+            if (gentle) return speed < 1.5f ? ImpactKind.None : ImpactKind.Soft;
+            if (speed < 1.5f) return ImpactKind.None;
+            if (breakable && speed > 3.5f) return ImpactKind.Shatter;
+            return speed > 4f ? ImpactKind.Hard : ImpactKind.Soft;
+        }
+
+        // Gentle applies while armed and inside the grace window.
+        public static bool IsGentleActive(bool armed, float now, float until)
+        {
+            return armed && now <= until;
+        }
+
         void Drop()
         {
             Release(Vector3.zero);
+            gentleDrop = true;
+            gentleUntil = Time.time + GentleGraceSeconds;
         }
 
         // ThrowCarried backs the F key and the THROW touch button.
@@ -100,6 +127,7 @@ namespace LightShadow.Gameplay
                 body.angularVelocity = Random.insideUnitSphere * 3f;
             }
             landedSinceRelease = false;
+            gentleDrop = false;
             if (impulse != Vector3.zero) LightShadow.Audio.Sfx.PlayAt("SFX_ThrowWhoosh", transform.position);
         }
 
@@ -117,7 +145,21 @@ namespace LightShadow.Gameplay
         void OnCollisionEnter(Collision collision)
         {
             if (landedSinceRelease) return;
-            if (collision.relativeVelocity.magnitude < 1.5f) return;
+            float speed = collision.relativeVelocity.magnitude;
+            bool gentle = IsGentleActive(gentleDrop, Time.time, gentleUntil);
+            if (gentleDrop)
+            {
+                // The first contact of a deliberate drop consumes the grace;
+                // it makes no noise and cannot shatter the prop.
+                gentleDrop = false;
+                landedSinceRelease = true;
+                if (gentle)
+                {
+                    LightShadow.Audio.Sfx.PlayAt("SFX_ThrowImpactSoft", transform.position, ProceduralSfx.Click);
+                    return;
+                }
+            }
+            if (Classify(speed, breakable, false) == ImpactKind.None) return;
             landedSinceRelease = true;
 
             // The landing clatter is what pulls the wraith - at the prop, not
@@ -170,6 +212,7 @@ namespace LightShadow.Gameplay
         public void ResetHome()
         {
             if (Carried == this) Carried = null;
+            gentleDrop = false;
             SetCollidersEnabled(true);
             gameObject.SetActive(true);
             transform.SetParent(homeParent, false);
