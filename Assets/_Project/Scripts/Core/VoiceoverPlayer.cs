@@ -28,8 +28,14 @@ namespace LightShadow.Core
             Resources.UnloadUnusedAssets();
         }
 
+        // Length in seconds of the clip the last Play() started; 0 when no clip
+        // played (missing clip, narrator off, empty id). Lets timed sequences
+        // wait for the voice instead of cutting it (audit: ending VO overruns).
+        public static float LastPlayedSeconds { get; private set; }
+
         public static bool Play(string lineId)
         {
+            LastPlayedSeconds = 0f;
             if (string.IsNullOrEmpty(lineId)) return false;
             if (!GameSettings.NarratorEnabled) return true; // narrator off: no VO, no SAPI fallback
             EnsureLocale();
@@ -51,6 +57,7 @@ namespace LightShadow.Core
 
             if (AudioManager.Instance == null) return false;
             AudioManager.Instance.PlayVoice(clip);
+            LastPlayedSeconds = clip.length;
             return true;
         }
 
