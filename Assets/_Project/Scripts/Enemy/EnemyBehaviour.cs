@@ -170,6 +170,9 @@ namespace LightShadow.Enemy
             if (shadowMotion == null) shadowMotion = GetComponent<ShadowMotion>();
             if (cameraShake == null && playerCamera != null) cameraShake = playerCamera.GetComponent<CameraShake>();
             if (sight != null && sight.target == null && playerCamera != null) sight.target = playerCamera.transform;
+            // E3: the config is the one source of truth for sight range;
+            // HidingSystem and MenaceDirector read sight.range.
+            if (sight != null) sight.range = ResolveSightRange(config != null, config != null ? config.sightRange : 0f, sight.range);
 
             if (breathingSource != null)
             {
@@ -420,11 +423,38 @@ namespace LightShadow.Enemy
             EnterState(State.Search);
         }
 
+        // E3 seam: config wins over the EnemySight field when there is one.
+        public static float ResolveSightRange(bool hasConfig, float configRange, float fieldRange)
+        {
+            return hasConfig && configRange > 0f ? configRange : fieldRange;
+        }
+
+        // E1 seam: a hidden target counts as sight-lost for Chase, even when
+        // the Shadow watched her duck in (witnessed hiders do not blind it).
+        public static bool ChaseSightLost(bool sighted, bool hidden)
+        {
+            return !sighted || hidden;
+        }
+
+        public static bool ShouldExitChase(bool escaped, float sightLostTimer, float grace)
+        {
+            return escaped || sightLostTimer > grace;
+        }
+
+        // E1 seam: a search stop on the occupied spot forces the extraction
+        // only for a hider the Shadow watched enter. Unwitnessed stays safe.
+        public static bool ShouldExtractHider(int searchStage, bool atStop, bool hidden, bool enteredUnderWatch)
+        {
+            return searchStage == 0 && atStop && hidden && enteredUnderWatch;
+        }
+
         void UpdateSearch(float dt, Vector3 playerPosition, bool sighted)
         {
             searchTimer += dt;
 
-            if (sighted && !MenaceDirector.ChaseBlocked)
+            // A hider the Shadow can still "see" must not bounce Search back to
+            // Chase: the stop at her spot decides it (E1).
+            if (sighted && !HidingSystem.IsHidden && !MenaceDirector.ChaseBlocked)
             {
                 EnterState(State.Chase);
                 return;
@@ -443,6 +473,13 @@ namespace LightShadow.Enemy
                 // Dwell at the stop and look it over, then move to the next.
                 agent.isStopped = true;
                 FaceTowards(searchStageIndex == 0 ? playerPosition : target);
+                if (ShouldExtractHider(searchStageIndex, true, HidingSystem.IsHidden, HidingSystem.EnteredUnderWatch)
+                    && !catching && catchCooldownTimer <= 0f && !LitZone.PlayerInLitZone)
+                {
+                    HidingSystem.ExitCurrent();
+                    StartCoroutine(CatchSequence());
+                    return;
+                }
                 searchDwell += dt;
                 if (searchDwell >= SearchSpotDwellSeconds)
                 {
@@ -533,7 +570,7 @@ namespace LightShadow.Enemy
         // straight patrol (plan 4.12).
         void UpdateChase(float dt, Vector3 playerPosition, float distance, bool sighted)
         {
-            if (sighted)
+            if (!ChaseSightLost(sighted, HidingSystem.IsHidden))
             {
                 sightLostTimer = 0f;
                 SetDestination(playerPosition);
@@ -544,8 +581,7 @@ namespace LightShadow.Enemy
             }
 
             bool escaped = distance > ChaseExitDistance;
-            bool lost = sightLostTimer > SightLostGrace;
-            if (escaped || lost)
+            if (ShouldExitChase(escaped, sightLostTimer, SightLostGrace))
             {
                 BeginSearch(playerPosition);
             }
