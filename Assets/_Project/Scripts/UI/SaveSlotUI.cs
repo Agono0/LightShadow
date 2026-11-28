@@ -79,6 +79,11 @@ namespace LightShadow.UI
         {
             if (panel != null) panel.SetActive(true);
             Refresh();
+            SelectFirst();
+        }
+
+        public void SelectFirst()
+        {
             if (EventSystem.current != null && rows.Length > 0 && rows[0] != null
                 && rows[0].loadButton != null)
             {
