@@ -32,6 +32,17 @@ namespace LightShadow.Contrib.Abdelraouf.Tests.Editor
         static readonly MethodInfo AwakeMethod =
             typeof(HUDController).GetMethod("Awake", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
+        static readonly MethodInfo DestroyMethod =
+            typeof(HUDController).GetMethod("OnDestroy", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        // CI showed EditMode DestroyImmediate does not run OnDestroy on this
+        // component, so the unsubscribe is invoked by hand (idempotent: -=).
+        void RunOnDestroy()
+        {
+            Assert.NotNull(DestroyMethod, "HUDController.OnDestroy missing");
+            if (hud != null) DestroyMethod.Invoke(hud, null);
+        }
+
         GameObject host;
         HUDController hud;
         int itemAddedBefore, itemRemovedBefore, puzzleSolvedBefore;
@@ -79,7 +90,8 @@ namespace LightShadow.Contrib.Abdelraouf.Tests.Editor
         [TearDown]
         public void TearDown()
         {
-            if (host != null) UnityEngine.Object.DestroyImmediate(host); // OnDestroy unsubscribes
+            RunOnDestroy();
+            if (host != null) UnityEngine.Object.DestroyImmediate(host);
             host = null;
             InstanceProperty.GetSetMethod(true).Invoke(null, new object[] { instanceBefore }); // Awake sets Instance
             Assert.AreEqual(itemAddedBefore, Count(EventField(typeof(Inventory), "ItemAdded")), "ItemAdded handler leaked");
@@ -101,8 +113,7 @@ namespace LightShadow.Contrib.Abdelraouf.Tests.Editor
         public void OnDestroy_RemovesEveryObjectiveSubscription()
         {
             EnsureAwake();
-            UnityEngine.Object.DestroyImmediate(host);
-            host = null;
+            RunOnDestroy();
 
             Assert.AreEqual(itemAddedBefore, Count(EventField(typeof(Inventory), "ItemAdded")));
             Assert.AreEqual(itemRemovedBefore, Count(EventField(typeof(Inventory), "ItemRemoved")));
