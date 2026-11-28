@@ -46,10 +46,21 @@ namespace LightShadow.Tools
             Write("UI_Button.png", ButtonTexture(), 256);
             Write("UI_Glow.png", GlowTexture(), 256);
             Write("UI_Backdrop.png", BackdropTexture(), 960);
+            // Horror glass kit (owner brief 2026-11-28: glassmorphism, matching
+            // the horror style). Menus, quiz, pause, saves and settings use these
+            // first (SceneBuilderUI.LoadUiSprite).
+            Write("T_UI_Glass_Panel.png", GlassPanelTexture(), GlassPanelSize, GlassPanelBorder);
+            Write("T_UI_Glass_Button.png", GlassButtonTexture(), GlassButtonWidth, GlassButtonBorder);
             AssetDatabase.Refresh();
         }
 
         static void Write(string fileName, Color[] pixels, int width)
+        {
+            int border = fileName.StartsWith("UI_Panel") || fileName.StartsWith("UI_Button") ? Border : 0;
+            Write(fileName, pixels, width, border);
+        }
+
+        static void Write(string fileName, Color[] pixels, int width, int border)
         {
             var texture = new Texture2D(width, pixels.Length / width, TextureFormat.RGBA32, false);
             texture.SetPixels(pixels);
@@ -68,11 +79,117 @@ namespace LightShadow.Tools
             importer.alphaIsTransparency = true;
             importer.maxTextureSize = 2048;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
-            if (fileName.StartsWith("UI_Panel") || fileName.StartsWith("UI_Button"))
-            {
-                importer.spriteBorder = new Vector4(Border, Border, Border, Border);
-            }
+            if (border > 0) importer.spriteBorder = new Vector4(border, border, border, border);
             importer.SaveAndReimport();
+        }
+
+        // ------------------------------------------------------ glass kit --
+
+        const int GlassPanelSize = 256;
+        const int GlassPanelBorder = 44;
+        const int GlassButtonWidth = 256;
+        const int GlassButtonHeight = 112;
+        const int GlassButtonBorder = 40;
+
+        // Signed distance in pixels to a rounded rectangle filling the texture
+        // (negative inside), for anti-aliased edges and rim bands.
+        static float RoundedRectSdf(float x, float y, int width, int height, float radius)
+        {
+            float cx = (width - 1) * 0.5f;
+            float cy = (height - 1) * 0.5f;
+            float qx = Mathf.Abs(x - cx) - (cx - radius - 1f);
+            float qy = Mathf.Abs(y - cy) - (cy - radius - 1f);
+            float outside = new Vector2(Mathf.Max(qx, 0f), Mathf.Max(qy, 0f)).magnitude;
+            return outside + Mathf.Min(Mathf.Max(qx, qy), 0f) - radius;
+        }
+
+        // Deterministic frost grain in [-1, 1] so every machine bakes the same file.
+        static float Grain(int x, int y)
+        {
+            uint h = (uint)(x * 374761393 + y * 668265263);
+            h = (h ^ (h >> 13)) * 1274126177u;
+            return ((h ^ (h >> 16)) & 0xFFFF) / 32767.5f - 1f;
+        }
+
+        // Smoked glass: dark translucent body, faint frost grain, a cold rim light
+        // along the top that turns blood-red toward the bottom, and a low crimson
+        // glow pooled inside the bottom edge. Rows run bottom (y 0) to top.
+        static Color[] GlassPanelTexture()
+        {
+            int size = GlassPanelSize;
+            var pixels = new Color[size * size];
+            var bodyTop = new Color(0.050f, 0.054f, 0.070f);
+            var bodyBottom = new Color(0.020f, 0.019f, 0.027f);
+            var rimTop = new Color(0.78f, 0.82f, 0.92f);
+            var rimBottom = new Color(0.55f, 0.08f, 0.10f);
+            var blood = new Color(0.42f, 0.03f, 0.05f);
+            for (int y = 0; y < size; y++)
+            {
+                float v = (float)y / (size - 1); // 0 bottom, 1 top
+                for (int x = 0; x < size; x++)
+                {
+                    float d = RoundedRectSdf(x, y, size, size, 26f);
+                    float coverage = Mathf.Clamp01(0.5f - d);
+                    if (coverage <= 0f) { pixels[y * size + x] = Color.clear; continue; }
+
+                    Color c = Color.Lerp(bodyBottom, bodyTop, v);
+                    float alpha = 0.80f;
+                    c += new Color(1f, 1f, 1f) * (Grain(x, y) * 0.010f);
+                    // Upper sheen: light caught on the glass face.
+                    float sheen = Mathf.Clamp01((v - 0.62f) / 0.38f);
+                    c = Color.Lerp(c, new Color(0.75f, 0.80f, 0.90f), sheen * sheen * 0.06f);
+                    // Crimson pooled along the inner bottom edge.
+                    float pool = Mathf.Clamp01(1f - y / 34f);
+                    c = Color.Lerp(c, blood, pool * pool * 0.45f);
+                    // Rim: a 2 px band inside the edge.
+                    float rim = Mathf.Clamp01(1f - Mathf.Abs(d + 1.5f) / 1.5f);
+                    if (rim > 0f)
+                    {
+                        Color rimColor = Color.Lerp(rimBottom, rimTop, Mathf.SmoothStep(0f, 1f, v));
+                        c = Color.Lerp(c, rimColor, rim * Mathf.Lerp(0.55f, 0.38f, v));
+                        alpha = Mathf.Lerp(alpha, 0.95f, rim);
+                    }
+                    pixels[y * size + x] = new Color(c.r, c.g, c.b, alpha * coverage);
+                }
+            }
+            return pixels;
+        }
+
+        // Glass pill: translucent body, a top sheen band, a thin cold rim and a
+        // crimson underline that glows strongest at the centre - no ornament
+        // over the label (the old bracket caps covered quiz answers).
+        static Color[] GlassButtonTexture()
+        {
+            int width = GlassButtonWidth, height = GlassButtonHeight;
+            var pixels = new Color[width * height];
+            var body = new Color(0.058f, 0.062f, 0.078f);
+            var rim = new Color(0.80f, 0.84f, 0.94f);
+            var ember = new Color(0.78f, 0.11f, 0.12f);
+            for (int y = 0; y < height; y++)
+            {
+                float v = (float)y / (height - 1);
+                for (int x = 0; x < width; x++)
+                {
+                    float d = RoundedRectSdf(x, y, width, height, 30f);
+                    float coverage = Mathf.Clamp01(0.5f - d);
+                    if (coverage <= 0f) { pixels[y * width + x] = Color.clear; continue; }
+
+                    float u = (float)x / (width - 1);
+                    Color c = body + new Color(1f, 1f, 1f) * (Grain(x, y) * 0.008f);
+                    float alpha = 0.72f;
+                    float sheen = Mathf.Clamp01((v - 0.55f) / 0.45f);
+                    c = Color.Lerp(c, new Color(0.85f, 0.88f, 0.96f), sheen * 0.09f);
+                    // Underline ember: 9 px above the bottom edge, fading at the ends.
+                    float line = Mathf.Exp(-Mathf.Pow((y - 9f) / 3.2f, 2f));
+                    float ends = Mathf.Sin(Mathf.PI * Mathf.Clamp01((u - 0.08f) / 0.84f));
+                    c = Color.Lerp(c, ember, line * ends * 0.75f);
+                    alpha = Mathf.Lerp(alpha, 0.95f, line * ends * 0.6f);
+                    float edge = Mathf.Clamp01(1f - Mathf.Abs(d + 1.2f) / 1.2f);
+                    c = Color.Lerp(c, rim, edge * Mathf.Lerp(0.20f, 0.42f, v));
+                    pixels[y * width + x] = new Color(c.r, c.g, c.b, alpha * coverage);
+                }
+            }
+            return pixels;
         }
 
         // ------------------------------------------------------------ panel --

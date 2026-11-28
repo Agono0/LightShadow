@@ -732,6 +732,11 @@ namespace LightShadow.Tools
 
         // ================================================== dialogue box UI --
 
+        // Body text and timer stop short of the skip/auto buttons in the box's
+        // top-right corner (x 974..1224 of 1240); full width ran the end of each
+        // line under AUTO-ADVANCE (seen in the editor 2026-11-28).
+        const float DialogueTextWidth = 930f;
+
         static DialogueUIController BuildDialogueUI(Transform canvas)
         {
             // Bottom-anchored box; the world stays visible behind it (the story
@@ -757,15 +762,23 @@ namespace LightShadow.Tools
             hitRect.offsetMin = Vector2.zero;
             hitRect.offsetMax = Vector2.zero;
             Image hit = hitGo.AddComponent<Image>();
-            hit.sprite = StoryBackground;
             hit.type = Image.Type.Sliced;
-            hit.color = new Color(0.045f, 0.045f, 0.06f, 0.94f);
             hit.raycastTarget = true;
             dialogue.hitPanel = hitGo;
-
-            Outline hitOutline = hitGo.AddComponent<Outline>();
-            hitOutline.effectColor = new Color(1f, 0.86f, 0.62f, 0.28f);
-            hitOutline.effectDistance = new Vector2(2f, -2f);
+            if (SceneBuilderUI.PanelSprite != SceneBuilderUI.BackgroundSprite)
+            {
+                // Horror glass box, as on every other menu (owner brief 2026-11-28).
+                hit.sprite = SceneBuilderUI.PanelSprite;
+                hit.color = new Color(1f, 1f, 1f, 0.97f);
+            }
+            else
+            {
+                hit.sprite = StoryBackground;
+                hit.color = new Color(0.045f, 0.045f, 0.06f, 0.94f);
+                Outline hitOutline = hitGo.AddComponent<Outline>();
+                hitOutline.effectColor = new Color(1f, 0.86f, 0.62f, 0.28f);
+                hitOutline.effectDistance = new Vector2(2f, -2f);
+            }
 
             dialogue.speakerText = MakeStoryText(root, "Speaker", "", 24, StoryWarm,
                 TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
@@ -774,7 +787,7 @@ namespace LightShadow.Tools
             // Timed-choice shrinking bar (hidden unless the node is timed).
             RectTransform timerTrack = MakeStoryRect(root, "TimerTrack",
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(28f, -62f), new Vector2(1184f, 8f));
+                new Vector2(28f, -62f), new Vector2(DialogueTextWidth, 8f));
             Image timerBack = timerTrack.gameObject.AddComponent<Image>();
             timerBack.sprite = StoryUi;
             timerBack.color = new Color(0.06f, 0.06f, 0.07f, 0.9f);
@@ -792,7 +805,7 @@ namespace LightShadow.Tools
 
             dialogue.bodyText = MakeStoryText(root, "Body", "", 24, StoryPaper,
                 TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(28f, -78f), new Vector2(1184f, 180f));
+                new Vector2(28f, -78f), new Vector2(DialogueTextWidth, 180f));
 
             // 2-4 choice rows; 58 px high on a 64 px pitch (touch friendly),
             // keyboard/controller navigable top-down.
@@ -1060,10 +1073,20 @@ namespace LightShadow.Tools
         {
             RectTransform rect = MakeStoryRect(parent, name, anchorMin, anchorMax, pivot, position, size);
             Image image = rect.gameObject.AddComponent<Image>();
-            image.sprite = StoryBackground;
             image.type = Image.Type.Sliced;
-            image.color = background;
             image.raycastTarget = true;
+            if (SceneBuilderUI.ButtonSprite != SceneBuilderUI.BackgroundSprite)
+            {
+                // Same horror glass pill as every other menu button; the caller's
+                // colour only keeps its opacity.
+                image.sprite = SceneBuilderUI.ButtonSprite;
+                image.color = new Color(1f, 1f, 1f, background.a);
+            }
+            else
+            {
+                image.sprite = StoryBackground;
+                image.color = background;
+            }
 
             Button button = rect.gameObject.AddComponent<Button>();
             button.targetGraphic = image;
