@@ -65,3 +65,7 @@ product decision.
 - SfxRegistry.RegisterMany now stores at the compacted index (sparse array no longer leaves holes ClipVariant can pick); SfxRegistrySparseTests pins it.
 - Comments: Footsteps source is registered as SFX (not Ambience); VoiceoverPlayer comment and log now say story nodes may use SAPI while the ending shows subtitles only.
 - DangerModel (pre-burst danger vs near-breath suppression): read, left unchanged, design question.
+- Peer (Yusuf, peer-prepared, uncompiled): 24 enemy pacing, catch and hearing tests applied from his format-patch under Contrib/Yusuf. Fixtures reviewed: MenaceDirector singleton is asserted free in SetUp and cleared in TearDown; GameConfig.asset path checked.
+- Dawn-chase survived strike: forced cool-down is refused there, so the wraith stayed in Chase beside her for the 6 s re-arm. It now recoils 6 m away and holds in Repelled for 5 s (catch-exempt), via EnterDawnEscapeWindow. Chase is not removed, one hit is already spent. Yusuf's characterization test pins the gate (CanForceCooldown), which is unchanged, so it still holds.
+- Post-chase grace: Investigate and Search walk-ins no longer catch while ChaseBlocked (non-dawn). Stalk, Chase and Ambush keep their catch, so a stalker beside her is still a threat. Narrower than Yusuf's proposed hunk on purpose.
+- Left alone: hiding-noise Investigate reset (safe for the player, design), ambush cover and dawn radius (design). Tests: EnemyDawnEscapeTests.
