@@ -42,3 +42,12 @@ Not done / reasons: 2.7 StoryTeller already cancels in-flight speech; a
 persistent PowerShell process is a rewrite that cannot be verified here. NavMesh
 projection on restore, F2, F6 and enemy state in saves need a device or a
 product decision.
+
+## Later folds and the user's second playtest list (same PR)
+
+- Peer inputs folded as peer-prepared, uncompiled: Abdelraouf inventory blank-id test, Ziad H3 navmesh gate, Ahmed builder-story Arabic coverage test. Nine Arabic rows added for the builder story strings (not native-verified).
+- Footsteps: root cause found in source. Footsteps and AmbientDrone both took the first AudioSource on the player root, and the drone rewrites its volume every frame, so PlayOneShot steps came out near zero. Steps now own a dedicated source, registered as SFX. The category scan no longer files every source on the drone's object under Ambience. Not heard on a device.
+- Voice-over: all 44 story nodes have EN and AR clips in Resources/VO and the ids match. No code fault found. The earlier duplicate-GUID copies in Audio/VO (removed in this PR) are the leading suspect; unverified. VoiceoverPlayer now logs a warning when a clip is missing or cannot be played, so a device log shows the cause.
+- Main gate is now a double gate: two leaves, one per pillar, covering the full opening; wing doors now cover the full 2 m doorway. Both rebuild with the scene builder. Not seen in the editor.
+- Objectives: pure ObjectiveLines chain (fuses, key, wire console, crank, escape), fragments marked optional, panel peeks at start and after each fuse. Arabic rows added.
+- Touch: joystick has a dead zone, an eased response and a floating origin; held thumb keeps steering. Mobile canvases use a 1600x900 reference (1.2x). Quiz card is a flat opaque panel with larger text, best-fit for long questions. Mobile button labels are larger.

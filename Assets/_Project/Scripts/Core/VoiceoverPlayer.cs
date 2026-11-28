@@ -52,10 +52,15 @@ namespace LightShadow.Core
                 // Cache misses too: a line without a clip should not rescan
                 // the dictionary every time it shows.
                 missing.Add(lineId);
+                Debug.LogWarning("[LightShadow] No voice clip for " + lineId + " (" + loadedLocale + ", Resources/VO/" + loadedLocale + "). Falling back to speech.");
                 return false;
             }
 
-            if (AudioManager.Instance == null) return false;
+            if (AudioManager.Instance == null)
+            {
+                Debug.LogWarning("[LightShadow] Voice clip " + lineId + " loaded but there is no AudioManager to play it.");
+                return false;
+            }
             AudioManager.Instance.PlayVoice(clip);
             LastPlayedSeconds = clip.length;
             return true;

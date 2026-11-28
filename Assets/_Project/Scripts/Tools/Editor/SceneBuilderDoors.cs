@@ -81,10 +81,10 @@ namespace LightShadow.Tools
             // Layer 0, NOT LevelLayer: the NavMesh bake collects LevelLayer
             // colliders, and a baked-in panel would seal the doorway forever -
             // runtime passage is the DoorController's carving obstacle alone.
-            Box(hinge.transform, "Panel", new Vector3(0f, 1.025f, 0.475f),
-                new Vector3(0.08f, 2.05f, 0.95f), palette.wood, true, 0);
+            Box(hinge.transform, "Panel", new Vector3(0f, 1.025f, 0.98f),
+                new Vector3(0.08f, 2.05f, 1.96f), palette.wood, true, 0);
             float handleSide = x < 0f ? 0.07f : -0.07f;
-            Box(hinge.transform, "Handle", new Vector3(handleSide, 1.0f, 0.82f),
+            Box(hinge.transform, "Handle", new Vector3(handleSide, 1.0f, 1.75f),
                 new Vector3(0.05f, 0.05f, 0.14f), palette.metal, false, 0);
 
             DoorController door = root.AddComponent<DoorController>();
@@ -95,8 +95,8 @@ namespace LightShadow.Tools
 
             NavMeshObstacle obstacle = root.AddComponent<NavMeshObstacle>();
             obstacle.carving = true;
-            obstacle.center = new Vector3(0f, 1.0f, 0.475f);
-            obstacle.size = new Vector3(0.5f, 2.0f, 1.1f);
+            obstacle.center = new Vector3(0f, 1.0f, 1.0f);
+            obstacle.size = new Vector3(0.5f, 2.0f, 2.0f);
         }
 
         // A small key prop on the master-key pattern: collider under the

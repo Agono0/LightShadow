@@ -188,7 +188,7 @@ namespace LightShadow.Core
                 int beat = Mathf.Clamp(FusesRestored - 1, 0, FuseBeats.Length - 1);
                 if (hud != null) hud.QueueMessage(FuseBeats[beat], 4.5f);
             }
-            if (hud != null) hud.RefreshObjectives();
+            if (hud != null) { hud.RefreshObjectives(); hud.PeekObjectives(8f); } // show the next step
             GameEvents.RaiseFuseRestored(FusesRestored, FuseTarget);
         }
 

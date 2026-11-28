@@ -616,6 +616,26 @@ namespace LightShadow.Tools
 
         // ------------------------------------------------------------------- gate
 
+        // One leaf of the double gate. side = +1 hinges on the left pillar
+        // (panel extends +x), -1 on the right pillar (panel extends -x).
+        static Transform BuildGateLeaf(Transform parent, string name, float hingeX, float side, Palette palette)
+        {
+            var pivot = new GameObject(name);
+            pivot.transform.SetParent(parent, false);
+            pivot.transform.localPosition = new Vector3(hingeX, 0f, 0f);
+
+            var leaf = new GameObject("Leaf");
+            leaf.transform.SetParent(pivot.transform, false);
+            leaf.transform.localPosition = new Vector3(side * 0.95f, 1.55f, 0f);
+            Box(leaf.transform, "Panel", Vector3.zero, new Vector3(1.9f, 3.0f, 0.15f), palette.gate);
+            for (int i = 0; i < 3; i++)
+            {
+                Box(leaf.transform, "Bar" + i, new Vector3(-0.6f + i * 0.6f, 0f, -0.1f),
+                    new Vector3(0.07f, 2.9f, 0.07f), palette.metal, false);
+            }
+            return pivot.transform;
+        }
+
         static GameObject BuildGatePrefab(Palette palette)
         {
             var root = new GameObject("ExitGate");
@@ -625,19 +645,12 @@ namespace LightShadow.Tools
             Box(root.transform, "PillarR", new Vector3(2.1f, 1.6f, 0f), new Vector3(0.4f, 3.2f, 0.6f), palette.gate);
             Box(root.transform, "Crossbar", new Vector3(0f, 3.35f, 0f), new Vector3(4.6f, 0.4f, 0.6f), palette.gate);
 
-            var pivot = new GameObject("GateLeafPivot");
-            pivot.transform.SetParent(root.transform, false);
-            pivot.transform.localPosition = new Vector3(-1.85f, 0f, 0f);
-
-            var leaf = new GameObject("Leaf");
-            leaf.transform.SetParent(pivot.transform, false);
-            leaf.transform.localPosition = new Vector3(1.85f, 1.55f, 0f);
-            Box(leaf.transform, "Panel", Vector3.zero, new Vector3(3.7f, 3.0f, 0.15f), palette.gate);
-            for (int i = 0; i < 5; i++)
-            {
-                Box(leaf.transform, "Bar" + i, new Vector3(-1.45f + i * 0.72f, 0f, -0.1f),
-                    new Vector3(0.07f, 2.9f, 0.07f), palette.metal, false);
-            }
+            // Double gate: two leaves, one hinged on each pillar, together
+            // covering the whole 3.8 m opening between the pillars (the old
+            // single 3.7 m leaf read as a half-closed door in the middle).
+            // Left swings +90, right -90, both outward (-z) when powered.
+            Transform pivotLeft = BuildGateLeaf(root.transform, "GateLeafPivotL", -1.9f, 1f, palette);
+            Transform pivotRight = BuildGateLeaf(root.transform, "GateLeafPivotR", 1.9f, -1f, palette);
 
             Box(root.transform, "Console", new Vector3(2.75f, 1.2f, 0.3f), new Vector3(0.8f, 1.0f, 0.4f), palette.metal);
             Box(root.transform, "Screen", new Vector3(2.75f, 1.45f, 0.52f), new Vector3(0.45f, 0.22f, 0.03f),
@@ -658,7 +671,8 @@ namespace LightShadow.Tools
             escape.enabled = false;
 
             ExitGate gate = root.AddComponent<ExitGate>();
-            gate.gateLeaf = pivot.transform;
+            gate.gateLeaf = pivotLeft;
+            gate.gateLeafRight = pivotRight;
             gate.escapeZone = escape;
 
             return SavePrefab(root, PrefabsFolder + "/Interactables", "ExitGate");

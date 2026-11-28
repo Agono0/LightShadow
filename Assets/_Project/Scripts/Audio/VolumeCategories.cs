@@ -257,7 +257,8 @@ namespace LightShadow.Audio
             if (manager != null && manager.voiceSource == source) return Category.Voice;
 
             if (source.GetComponentInParent<LightShadow.Enemy.EnemyBehaviour>() != null) return Category.Shadow;
-            if (source.GetComponent<LightShadow.Core.AmbientDrone>() != null) return Category.Ambience;
+            LightShadow.Core.AmbientDrone drone = source.GetComponent<LightShadow.Core.AmbientDrone>();
+            if (drone != null && drone.Source == source) return Category.Ambience; // only the drone's own source, not its siblings
 
             string name = source.gameObject.name;
             if (!string.IsNullOrEmpty(name) && name.ToLowerInvariant().Contains("whisper")) return Category.Shadow;
