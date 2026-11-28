@@ -43,6 +43,9 @@ namespace LightShadow.UI
         {
             if (Instance == this) Instance = null;
             OverlayStack.Release(ref pauseLock);
+            // Destroyed while paused (scene change to the ending): never leave
+            // the game frozen with a free cursor.
+            if (IsOpen) Time.timeScale = 1f;
             IsOpen = false;
         }
 
@@ -102,6 +105,13 @@ namespace LightShadow.UI
         public static void RequestToggle()
         {
             if (Instance == null) return;
+            // Settings sits above the pause card: Start or the pause button
+            // closes it first, like Esc does (never resume behind the card).
+            if (Instance.settings != null && Instance.settings.IsOpen)
+            {
+                Instance.settings.Hide();
+                return;
+            }
             if (!IsOpen && OverlayStack.TryCloseTop()) return;
             Instance.Toggle();
         }

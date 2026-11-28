@@ -561,11 +561,18 @@ namespace LightShadow.Enemy
 
         // ------------------------- State plumbing -------------------------
 
+        // Pure policy, no NavMesh or AudioSource needed, so tests can pin it.
+        public static bool BreathingFor(State target)
+        {
+            return target == State.Stalk || target == State.Investigate || target == State.Search;
+        }
+
         void EnterState(State next)
         {
-            if (state == State.Stalk && next != State.Stalk) SetBreathing(false);
-
             state = next;
+            // One central rule for the breathing loop (policy: on while the
+            // Shadow stalks, investigates or searches; off otherwise).
+            SetBreathing(BreathingFor(next));
             // Audio snapshot driving (AudioSnapshotController) follows the FSM
             // through this single raise: every transition enters here.
             GameEvents.RaiseEnemyStateChanged((int)next);
@@ -582,7 +589,6 @@ namespace LightShadow.Enemy
                     break;
                 case State.Stalk:
                     agent.speed = StalkSpeed;
-                    SetBreathing(true);
                     break;
                 case State.Chase:
                     agent.speed = ChaseSpeed;
@@ -598,7 +604,6 @@ namespace LightShadow.Enemy
                     agent.speed = StalkSpeed;
                     agent.isStopped = false;
                     investigateTimer = 0f;
-                    SetBreathing(true);
                     break;
                 case State.Ambush:
                     // Slip into cover: stop, go quiet, wait for her.
@@ -609,7 +614,6 @@ namespace LightShadow.Enemy
                     }
                     ambushTimer = 18f;
                     ambushCooldown = 45f;
-                    SetBreathing(false);
                     break;
                 case State.ForcedCooldown:
                     // Leaving the wing: patrol pace, quiet, no target fixes
@@ -618,7 +622,6 @@ namespace LightShadow.Enemy
                     agent.isStopped = false;
                     forcedCooldownTimer = 0f;
                     PickFarWaypoint();
-                    SetBreathing(false);
                     break;
                 case State.Search:
                     // Check the picked spots with a stalker's pace.
@@ -626,7 +629,6 @@ namespace LightShadow.Enemy
                     agent.isStopped = false;
                     searchStageIndex = 0;
                     searchDwell = 0f;
-                    SetBreathing(true);
                     break;
             }
         }
