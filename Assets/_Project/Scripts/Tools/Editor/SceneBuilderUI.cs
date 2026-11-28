@@ -790,8 +790,8 @@ namespace LightShadow.Tools
                 "and keeps the dark away. Hold the focused beam on the Shadow long enough and it recoils and backs off: hold right mouse, hold Y on a gamepad, or long-press the flashlight button on touch. Focus only works while the beam is on, and it drains the battery faster. Wrong answers and timeouts dim the beam.\n\n" +
                 "Lit rooms are safe until the gate is powered: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is " +
                 "fuel and runs out; batteries are scattered through the school.\n\n" +
-                "Restore <b>three fuse boxes</b>, collect <b>six Knowledge Fragments</b>, power the gate, and walk out. " +
-                "You cannot die - being caught only costs light and sends you back to the last checkpoint.";
+                "Restore <b>three fuse boxes</b>, find the master key in the staff room locker, wire the gate console, turn the crank and walk out through the main gate. " +
+                "Knowledge Fragments are optional. You have two hits of health: medkits heal, and waking at a checkpoint refills it. Being caught costs light and sends you back to the last checkpoint.";
 
             string arabicBody =
                 "أنت نور. المدرسة مظلمة، وفريق الهدم يأتي عند الفجر، والظل يطارد في العتمة.\n\n" +
@@ -801,7 +801,7 @@ namespace LightShadow.Tools
                 "الإجابة: 1 2 3 4          المهام: Tab      الإيقاف: Esc\n\n" +
                 "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد ويبقي العتمة بعيدة. أبقِ الشعاع المركّز على الظل مدة كافية فيرتدّ ويبتعد: اضغط مطولًا على زر الفأرة الأيمن، أو Y في يد التحكم، أو اضغط مطولًا على زر المصباح في اللمس. التركيز يعمل فقط والشعاع مضاء، ويستهلك البطارية أسرع. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع.\n\n" +
                 "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة.\n\n" +
-                "أعد تشغيل ثلاثة صناديق مصاهر، واجمع ست شذرات معرفة، وشغّل البوابة، واخرج. لا يمكنك الموت — الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ.";
+                "أعد تشغيل ثلاثة صناديق مصاهر، ثم جد المفتاح الرئيسي في خزانة غرفة المعلمين، ووصّل لوحة القواطع، وأدر المقبض، واخرج من البوابة الرئيسية. شذرات المعرفة اختيارية. لديك ضربتان من الصحة: الإسعافات تعالجك، والاستيقاظ عند نقطة حفظ يعيدها. الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ.";
 
             Text bodyText = MakeText(card, "Body", body, 21, Paper, TextAnchor.UpperLeft,
                 new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),

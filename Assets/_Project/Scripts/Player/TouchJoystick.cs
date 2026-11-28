@@ -79,6 +79,7 @@ namespace LightShadow.Player
                 origin = Vector2.ClampMagnitude(local, radius * 0.6f);
             }
             else origin = Vector2.zero;
+            if (PlayerController.ExternalInputLocked) { ResetStick(); return; }
             pressed = true;
             OnDrag(eventData);
         }
@@ -86,6 +87,10 @@ namespace LightShadow.Player
         public void OnDrag(PointerEventData eventData)
         {
             if (background == null) return;
+            // A lock (dialogue, catch) ends this touch: the thumb must lift and
+            // press again, so a held thumb never resumes movement on wake (R3).
+            if (PlayerController.ExternalInputLocked) { ResetStick(); return; }
+            if (!pressed) return;
 
             Vector2 local;
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -97,7 +102,7 @@ namespace LightShadow.Player
             Vector2 offset = local - origin;
             Vector2 direction = Shape(offset, radius, deadZone);
             current = direction;
-            handleTarget = origin + Vector2.ClampMagnitude(offset, radius);
+            handleTarget = Vector2.ClampMagnitude(origin + Vector2.ClampMagnitude(offset, radius), radius);
             if (player != null) player.Move(direction);
         }
 
@@ -106,6 +111,7 @@ namespace LightShadow.Player
             // Visual only: the handle eases to the thumb, the move vector does not wait for it.
             // A held thumb keeps steering even when no drag event arrives (still thumb,
             // or the dialogue lock cleared the vector and then released).
+            if (pressed && PlayerController.ExternalInputLocked) ResetStick();
             if (pressed && player != null) player.Move(current);
             if (handle == null) return;
             handle.localPosition = Vector2.Lerp(handle.localPosition, handleTarget,

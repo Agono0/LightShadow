@@ -55,6 +55,11 @@ namespace LightShadow.UI
             SetFadeAlpha(0f);
 
             Localization.LanguageChanged += ApplyLanguageUI;
+            // The objective chain depends on the master key and on puzzle
+            // solves, which the HUD otherwise never hears about (review R1).
+            Inventory.ItemAdded += OnObjectiveInputChanged;
+            Inventory.ItemRemoved += OnObjectiveInputChanged;
+            GameEvents.PuzzleSolved += OnObjectiveInputChanged;
             ApplyLanguageUI();
         }
 
@@ -102,6 +107,9 @@ namespace LightShadow.UI
         void OnDestroy()
         {
             Localization.LanguageChanged -= ApplyLanguageUI;
+            Inventory.ItemAdded -= OnObjectiveInputChanged;
+            Inventory.ItemRemoved -= OnObjectiveInputChanged;
+            GameEvents.PuzzleSolved -= OnObjectiveInputChanged;
 
             if (Instance == this) Instance = null;
 
@@ -314,6 +322,8 @@ namespace LightShadow.UI
                 gatePowered ? "Escape through the main gate  (go now)" : "Escape through the main gate",
             };
         }
+
+        void OnObjectiveInputChanged(string id) { RefreshObjectives(); }
 
         public void RefreshObjectives()
         {

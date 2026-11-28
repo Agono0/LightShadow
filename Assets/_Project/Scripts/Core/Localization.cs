@@ -252,8 +252,8 @@ namespace LightShadow.Core
               "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد ويبقي العتمة بعيدة. أبقِ الشعاع المركّز على الظل مدة كافية فيرتدّ ويبتعد: اضغط مطولًا على زر الفأرة الأيمن، أو Y في يد التحكم، أو اضغط مطولًا على زر المصباح في اللمس. التركيز يعمل فقط والشعاع مضاء، ويستهلك البطارية أسرع. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع." },
             { "Lit rooms are safe until the gate is powered: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is fuel and runs out; batteries are scattered through the school.",
               "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة." },
-            { "Restore three fuse boxes, collect six Knowledge Fragments, power the gate, and walk out. You cannot die - being caught only costs light and sends you back to the last checkpoint.",
-              "أعد تشغيل ثلاثة صناديق مصاهر، واجمع ست شذرات معرفة، وشغّل البوابة، واخرج. لا يمكنك الموت — الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ." },
+            { "Restore three fuse boxes, find the master key in the staff room locker, wire the gate console, turn the crank and walk out through the main gate. Knowledge Fragments are optional. You have two hits of health: medkits heal, and waking at a checkpoint refills it. Being caught costs light and sends you back to the last checkpoint.",
+              "أعد تشغيل ثلاثة صناديق مصاهر، ثم جد المفتاح الرئيسي في خزانة غرفة المعلمين، ووصّل لوحة القواطع، وأدر المقبض، واخرج من البوابة الرئيسية. شذرات المعرفة اختيارية. لديك ضربتان من الصحة: الإسعافات تعالجك، والاستيقاظ عند نقطة حفظ يعيدها. الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ." },
 
             // ---- HUD ------------------------------------------------------
             { "BRIGHT IDEA", "الفكرة المضيئة" },
@@ -270,7 +270,7 @@ namespace LightShadow.Core
             { "Escape at dawn  (go now)", "اهرب عند الفجر  (اذهب الآن)" },
             { "Collect Knowledge Fragments: {0}/{1}  (optional)", "اجمع شذرات المعرفة: {0}/{1}  (اختياري)" },
             { "Find the master key (staff room locker)", "ابحث عن المفتاح الرئيسي (خزانة غرفة المعلمين)" },
-            { "Wire the gate console", "أعد توصيل لوحة البوابة" },
+            { "Wire the gate console", "وصّل لوحة القواطع" },
             { "Power the main gate  (done)", "شغّل البوابة الرئيسية  (تم)" },
             { "Escape through the main gate", "اهرب عبر البوابة الرئيسية" },
             { "Escape through the main gate  (go now)", "اهرب عبر البوابة الرئيسية  (اذهب الآن)" },
