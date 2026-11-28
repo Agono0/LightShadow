@@ -86,8 +86,8 @@ namespace LightShadow.Gameplay
             {
                 GameManager.Instance.ShowMessage(
                     Localization.Current == GameLanguage.Arabic
-                        ? "انزلق درج الخزانة مفتوحًا. بداخله مصهر."
-                        : "The cabinet drawer slides open. Inside, a fuse.",
+                        ? "انزلق درج الخزانة مفتوحًا. بداخله حقيبة إسعاف."
+                        : "The cabinet drawer slides open. Inside, a medkit.",
                     4f);
             }
         }

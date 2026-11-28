@@ -76,8 +76,35 @@ namespace LightShadow.Gameplay
         static void OnItemRemoved(string itemId)
         {
             if (!pendingMedkit || itemId != MedkitPickup.ItemId) return;
-            pendingMedkit = false;
-            Grant(MedkitPickup.ItemId);
+            // Not here: ItemRemoved fires inside the caller's own use (the health
+            // code, then the inventory screen removes the same item again once the
+            // handler returns). Granting now would let that second Remove delete the
+            // new kit. Wait for the call stack to unwind.
+            GrantRunner.Schedule();
+        }
+
+        sealed class GrantRunner : MonoBehaviour
+        {
+            static GrantRunner instance;
+
+            public static void Schedule()
+            {
+                if (instance == null)
+                {
+                    GameObject host = new GameObject("PuzzleRewardRunner");
+                    DontDestroyOnLoad(host);
+                    instance = host.AddComponent<GrantRunner>();
+                }
+                instance.StartCoroutine(instance.GrantNextFrame());
+            }
+
+            System.Collections.IEnumerator GrantNextFrame()
+            {
+                yield return null;
+                if (!pendingMedkit || Inventory.Has(MedkitPickup.ItemId)) yield break;
+                pendingMedkit = false;
+                Grant(MedkitPickup.ItemId);
+            }
         }
 
         static void OnSaveCaptured(SaveSystem.SaveData data)

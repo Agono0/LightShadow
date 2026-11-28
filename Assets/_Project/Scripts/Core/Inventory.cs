@@ -81,6 +81,8 @@ namespace LightShadow.Core
         // New run: nothing carried over from the previous run (audit F2).
         public static void ResetForNewRun()
         {
+            // Every new-run path comes through here: an owed puzzle medkit must not leak.
+            LightShadow.Gameplay.PuzzleKeyRewards.ResetPending();
             if (items.Count == 0) return;
             var gone = new List<string>(items);
             items.Clear();
