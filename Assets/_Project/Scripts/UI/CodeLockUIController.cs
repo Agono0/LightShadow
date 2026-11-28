@@ -77,6 +77,11 @@ namespace LightShadow.UI
             string code, Func<string> hintProvider, Action onSolved, Action onWrongAttempt)
         {
             if (string.IsNullOrEmpty(code) || code.Length != digits.Length) return;
+            if (!ValidCode(code, digits.Length))
+            {
+                Debug.LogWarning("[CodeLockUI] Show refused: code must be exactly " + digits.Length + " digits 0-9.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -217,6 +222,16 @@ namespace LightShadow.UI
                     ? TextAnchor.MiddleRight
                     : TextAnchor.MiddleCenter;
             }
+        }
+
+        // P1: the expected code must be all digits; anything else can never
+        // be entered on the +/- lock and soft-locks the overlay.
+        public static bool ValidCode(string code, int digitCount)
+        {
+            if (string.IsNullOrEmpty(code) || code.Length != digitCount) return false;
+            for (int i = 0; i < code.Length; i++)
+                if (code[i] < '0' || code[i] > '9') return false;
+            return true;
         }
 
         IEnumerator CloseAfterFeedback(float seconds)

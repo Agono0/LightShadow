@@ -73,6 +73,11 @@ namespace LightShadow.UI
         {
             if (elementsEn == null || solution == null) return;
             if (elementsEn.Length != 3 || solution.Length != 3) return;
+            if (!ValidSolution(solution, elementsEn.Length))
+            {
+                Debug.LogWarning("[OpticsUI] Show refused: every solution entry must be a rotation step 0..3.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -190,6 +195,16 @@ namespace LightShadow.UI
             hintText.alignment = Localization.Current == GameLanguage.Arabic
                 ? TextAnchor.MiddleRight
                 : TextAnchor.MiddleCenter;
+        }
+
+        // P1: each rotor's target must be a legal quarter-turn (0..3); an
+        // out-of-range target can never be matched and soft-locks the overlay.
+        public static bool ValidSolution(int[] solution, int elementCount)
+        {
+            if (solution == null || solution.Length != elementCount) return false;
+            for (int i = 0; i < solution.Length; i++)
+                if (solution[i] < 0 || solution[i] > 3) return false;
+            return true;
         }
 
         IEnumerator CloseAfterFeedback(float seconds)

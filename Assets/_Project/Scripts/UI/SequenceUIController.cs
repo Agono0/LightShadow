@@ -78,6 +78,11 @@ namespace LightShadow.UI
         {
             if (colorsEn == null || sequence == null) return;
             if (colorsEn.Length == 0 || sequence.Length == 0) return;
+            if (!ValidSequence(sequence, swatches.Length))
+            {
+                Debug.LogWarning("[SequenceUI] Show refused: every sequence entry must index a swatch switch.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -234,6 +239,17 @@ namespace LightShadow.UI
             hintText.alignment = Localization.Current == GameLanguage.Arabic
                 ? TextAnchor.MiddleRight
                 : TextAnchor.MiddleCenter;
+        }
+
+        // P1: every programmed step must name a real switch. PlaySequence
+        // clamps entries for display, but Press compares the raw entry, so an
+        // out-of-range step can never be tapped and the overlay soft-locks.
+        public static bool ValidSequence(int[] sequence, int switchCount)
+        {
+            if (sequence == null || sequence.Length == 0) return false;
+            for (int i = 0; i < sequence.Length; i++)
+                if (sequence[i] < 0 || sequence[i] >= switchCount) return false;
+            return true;
         }
 
         IEnumerator CloseAfterFeedback(float seconds)

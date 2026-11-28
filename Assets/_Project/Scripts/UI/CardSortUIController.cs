@@ -74,6 +74,11 @@ namespace LightShadow.UI
         {
             if (cluesEn == null || correctDrawers == null) return;
             if (cluesEn.Length == 0 || cluesEn.Length != correctDrawers.Length) return;
+            if (!ValidDrawers(correctDrawers, drawerButtons.Length))
+            {
+                Debug.LogWarning("[CardSortUI] Show refused: every correctDrawers entry must index drawerButtons.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -179,6 +184,16 @@ namespace LightShadow.UI
             hintText.alignment = Localization.Current == GameLanguage.Arabic
                 ? TextAnchor.MiddleRight
                 : TextAnchor.MiddleCenter;
+        }
+
+        // P1: every clue's drawer must be a real button, or the last card
+        // can never file and the overlay soft-locks. Pure, so tests pin it.
+        public static bool ValidDrawers(int[] correctDrawers, int drawerCount)
+        {
+            if (correctDrawers == null || correctDrawers.Length == 0) return false;
+            for (int i = 0; i < correctDrawers.Length; i++)
+                if (correctDrawers[i] < 0 || correctDrawers[i] >= drawerCount) return false;
+            return true;
         }
 
         IEnumerator CloseAfterFeedback(float seconds)

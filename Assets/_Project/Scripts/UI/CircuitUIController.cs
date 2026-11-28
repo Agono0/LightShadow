@@ -78,6 +78,11 @@ namespace LightShadow.UI
         {
             if (feedsEn == null || terminalsEn == null || mapping == null) return;
             if (feedsEn.Length != 3 || terminalsEn.Length != 3 || mapping.Length != 3) return;
+            if (!ValidMapping(mapping, feedsEn.Length, terminalsEn.Length))
+            {
+                Debug.LogWarning("[CircuitUI] Show refused: mapping must pair each feed with a distinct terminal.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -229,6 +234,22 @@ namespace LightShadow.UI
             hintText.alignment = Localization.Current == GameLanguage.Arabic
                 ? TextAnchor.MiddleRight
                 : TextAnchor.MiddleCenter;
+        }
+
+        // P1: every feed must map to a DISTINCT in-range terminal; a shared
+        // terminal locks once, so the last feed can never pair and the
+        // overlay soft-locks.
+        public static bool ValidMapping(int[] mapping, int feedCount, int terminalCount)
+        {
+            if (mapping == null || mapping.Length != feedCount) return false;
+            bool[] used = new bool[terminalCount];
+            for (int i = 0; i < mapping.Length; i++)
+            {
+                int terminal = mapping[i];
+                if (terminal < 0 || terminal >= terminalCount || used[terminal]) return false;
+                used[terminal] = true;
+            }
+            return true;
         }
 
         IEnumerator CloseAfterFeedback(float seconds)

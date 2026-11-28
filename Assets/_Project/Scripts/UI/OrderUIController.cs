@@ -71,6 +71,11 @@ namespace LightShadow.UI
         {
             if (stepsEn == null || displayOrder == null) return;
             if (stepsEn.Length == 0 || stepsEn.Length != displayOrder.Length) return;
+            if (!ValidDisplayOrder(displayOrder, stepsEn.Length))
+            {
+                Debug.LogWarning("[OrderUI] Show refused: displayOrder must be a permutation of the step indices.");
+                return;
+            }
 
             StopAllCoroutines();
 
@@ -192,6 +197,22 @@ namespace LightShadow.UI
             hintText.alignment = Localization.Current == GameLanguage.Arabic
                 ? TextAnchor.MiddleRight
                 : TextAnchor.MiddleCenter;
+        }
+
+        // P1: the display order must be a true permutation of the step
+        // indices; a duplicate or out-of-range entry leaves a step untappable
+        // and the overlay soft-locks.
+        public static bool ValidDisplayOrder(int[] displayOrder, int stepCount)
+        {
+            if (displayOrder == null || displayOrder.Length != stepCount) return false;
+            bool[] seen = new bool[stepCount];
+            for (int i = 0; i < displayOrder.Length; i++)
+            {
+                int step = displayOrder[i];
+                if (step < 0 || step >= stepCount || seen[step]) return false;
+                seen[step] = true;
+            }
+            return true;
         }
 
         IEnumerator CloseAfterFeedback(float seconds)
