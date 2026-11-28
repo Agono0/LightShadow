@@ -12,11 +12,8 @@ namespace LightShadow.Contrib.Ahmed.Tests.Editor
     // itself. Footsteps, ShadowAudio, AmbientDrone and ProceduralSfx all read
     // through here, and a miscounted family is a silent sound.
     //
-    // Known gap deliberately NOT locked in: RegisterMany counts non-null
-    // entries but stores under the array's original indexes, so a sparse
-    // array leaves holes ClipVariant can pick (reported separately; no
-    // expected-red without a contract). Only the packed-path contract is
-    // pinned here.
+    // The sparse-array gap he reported is fixed in SfxRegistry (compacted
+    // indices) and pinned by SfxRegistrySparseTests.
     //
     // Isolation: reflective snapshot/restore of the registry's two static
     // dictionaries; created clips are destroyed in TearDown. No scene, no

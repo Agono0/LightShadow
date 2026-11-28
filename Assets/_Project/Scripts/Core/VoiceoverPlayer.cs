@@ -7,8 +7,9 @@ namespace LightShadow.Core
     // live under Resources/VO/<locale>/<lineId> where lineId is the line
     // sheet's canonical VO_<nodeId>[_Cn] id and locale follows the current
     // language. A missing clip (a line with no recording, or clips not
-    // shipped) returns false so the caller can fall back to StoryTeller's
-    // SAPI narration; the narrator toggle gates both paths.
+    // shipped) returns false. Story nodes then fall back to StoryTeller's
+    // SAPI narration; the ending cinematic only shows its subtitle (no
+    // speech). The narrator toggle gates the voice and the SAPI path.
     public static class VoiceoverPlayer
     {
         static readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
@@ -52,7 +53,7 @@ namespace LightShadow.Core
                 // Cache misses too: a line without a clip should not rescan
                 // the dictionary every time it shows.
                 missing.Add(lineId);
-                Debug.LogWarning("[LightShadow] No voice clip for " + lineId + " (" + loadedLocale + ", Resources/VO/" + loadedLocale + "). Falling back to speech.");
+                Debug.LogWarning("[LightShadow] No voice clip for " + lineId + " (" + loadedLocale + ", Resources/VO/" + loadedLocale + "). Caller decides: story nodes may use SAPI, the ending shows subtitles only.");
                 return false;
             }
 

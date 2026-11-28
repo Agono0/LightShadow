@@ -61,3 +61,7 @@ product decision.
 - Scene regeneration: build.yml runs SceneBuilder.BuildAndroidArm64Batch, BuildAndroidArmV7Batch and BuildWindowsBatch; each calls BuildAll() before packaging, so builder changes (CardFit, MobileUiScale) reach CI builds. The release job needs both build jobs and runs on v* tags, so tagged builds carry them too.
 - Peer (Abdelraouf, peer-prepared, uncompiled): HUDObjectiveSubscriptionTests cherry-picked from mirror/abdelraouf-hud-objective-subscription-test @ 127141b.
 - Verified his LOW finding: ApplyLoadedState refreshed the HUD before SaveApplied handlers (Inventory, PuzzleManager) restored, and those raise no item or puzzle events. New `SaveSystem.NotifySaveApplied` runs the handlers, then refreshes the HUD (null-checked); both restore paths use it. Test: handlers run and no HUD is fine. The refresh itself is not asserted (needs a scene).
+- Peer (Ahmed, peer-prepared, uncompiled): SfxRegistryContractTests cherry-picked from mirror/ahmed-sfx-registry-contract-tests @ ad0bc32. His header note about the sparse gap is updated.
+- SfxRegistry.RegisterMany now stores at the compacted index (sparse array no longer leaves holes ClipVariant can pick); SfxRegistrySparseTests pins it.
+- Comments: Footsteps source is registered as SFX (not Ambience); VoiceoverPlayer comment and log now say story nodes may use SAPI while the ending shows subtitles only.
+- DangerModel (pre-burst danger vs near-breath suppression): read, left unchanged, design question.

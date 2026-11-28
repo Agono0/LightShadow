@@ -34,8 +34,9 @@ namespace LightShadow.Player
         void Awake()
         {
             source = CreateDedicatedSource(gameObject);
-            // Explicit SFX category: the name scan files every source on the
-            // player root under Ambience (the drone lives there).
+            // Explicit SFX category: without it the name scan would file this
+            // source (it sits on the player root next to the drone) under
+            // Ambience. It is registered as SFX, not Ambience.
             LightShadow.Audio.VolumeCategories.Register(source, LightShadow.Audio.VolumeCategories.Category.Sfx, 1f);
         }
 
