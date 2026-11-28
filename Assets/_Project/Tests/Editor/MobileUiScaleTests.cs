@@ -74,10 +74,12 @@ namespace LightShadow.Tests.Editor
         [Test]
         public void HowToBody_EstimatedHeightFitsItsBox()
         {
-            // Builder texts: English 1198 chars, Arabic 1016, 11 hard breaks each.
-            // Body box is 1104 x 640 at 22 px; best fit shrinks to 17 at worst.
-            Assert.LessOrEqual(CardFit.EstimateTextHeight(1198, 11, 1104f, 22f), 640f);
-            Assert.LessOrEqual(CardFit.EstimateTextHeight(1198 * 12 / 10, 11, 1104f, 17f), 640f);
+            // Builder texts without tags: English 1198 chars, Arabic 1016, 11
+            // hard breaks each. Body box 1104 x 640 at 21 px, line spacing 1.08
+            // (MakeText); best fit may shrink to 17.
+            Assert.LessOrEqual(CardFit.EstimateTextHeight(1198, 11, 1104f, 21f, 1.08f), 640f);
+            Assert.LessOrEqual(CardFit.EstimateTextHeight(1016, 11, 1104f, 21f, 1.08f), 640f);
+            Assert.LessOrEqual(CardFit.EstimateTextHeight(1198 * 12 / 10, 11, 1104f, 17f, 1.08f), 640f);
         }
 }
 }

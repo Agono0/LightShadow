@@ -805,14 +805,14 @@ namespace LightShadow.Tools
                 "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة.\n\n" +
                 "أعد تشغيل ثلاثة صناديق مصاهر، ثم جد المفتاح الرئيسي في خزانة غرفة المعلمين، ووصّل لوحة القواطع، وأدر المقبض، واخرج من البوابة الرئيسية. شذرات المعرفة اختيارية. لديك ضربتان من الصحة: الإسعافات تعالجك، والاستيقاظ عند نقطة حفظ يعيدها. الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ.";
 
-            Text bodyText = MakeText(card, "Body", body, 22, Paper, TextAnchor.UpperLeft,
+            Text bodyText = MakeText(card, "Body", body, 21, Paper, TextAnchor.UpperLeft,
                 new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, -108f), new Vector2(-96f, 640f));
             // Best fit is the safety net for long or Arabic text; the
-            // estimate in CardFit.EstimateTextHeight keeps 22 px the norm.
+            // estimate in CardFit.EstimateTextHeight keeps 21 px the norm.
             bodyText.resizeTextForBestFit = true;
             bodyText.resizeTextMinSize = 17;
-            bodyText.resizeTextMaxSize = 22;
+            bodyText.resizeTextMaxSize = 21;
             Localize(bodyText, arabicBody, true);
 
             Text closeLabel;

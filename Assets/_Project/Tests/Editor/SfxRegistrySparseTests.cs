@@ -6,6 +6,19 @@ namespace LightShadow.Tests.Editor
 {
     public class SfxRegistrySparseTests
     {
+        [TearDown]
+        public void TearDown()
+        {
+            // Drop the keys this fixture registered from the static registry.
+            System.Type t = typeof(SfxRegistry);
+            var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
+            var clips = (System.Collections.Generic.Dictionary<string, AudioClip>)t.GetField("clips", flags).GetValue(null);
+            var counts = (System.Collections.Generic.Dictionary<string, int>)t.GetField("familyCounts", flags).GetValue(null);
+            clips.Remove("SFX_SparseTest_0");
+            clips.Remove("SFX_SparseTest_1");
+            counts.Remove("SFX_SparseTest");
+        }
+
         [Test]
         public void RegisterMany_SparseArray_CompactsIndices()
         {

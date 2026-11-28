@@ -429,7 +429,6 @@ namespace LightShadow.Core
             ApplyPending();
         }
 
-        // S3: one throwing subscriber must not skip the others or lose the save.
         // Inventory and PuzzleManager restore inside SaveApplied and raise no
         // item or puzzle events, and ApplyLoadedState refreshes the HUD before
         // they run, so the objective line could stay stale after a deferred
@@ -438,9 +437,12 @@ namespace LightShadow.Core
         {
             InvokeEach(SaveApplied, data, "SaveApplied");
             LightShadow.UI.HUDController hud = LightShadow.UI.HUDController.Instance;
-            if (hud != null) hud.RefreshObjectives();
+            if (hud == null) return;
+            try { hud.RefreshObjectives(); }
+            catch (Exception e) { Debug.LogException(e); }
         }
 
+        // S3: one throwing subscriber must not skip the others or lose the save.
         static void InvokeEach(Action<SaveData> handlers, SaveData data, string label)
         {
             if (handlers == null) return;

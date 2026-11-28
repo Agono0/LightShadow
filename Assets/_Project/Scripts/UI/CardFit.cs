@@ -24,12 +24,12 @@ namespace LightShadow.UI
         }
 
         // Rough height of wrapped text: 0.55 em average glyph width, 1.15 line
-        // height, one extra line per hard break at worst. For tests and sizing.
-        public static float EstimateTextHeight(int chars, int hardBreaks, float width, float font)
+        // height times Text.lineSpacing, one extra line per hard break at worst. For tests and sizing.
+        public static float EstimateTextHeight(int chars, int hardBreaks, float width, float font, float lineSpacing = 1f)
         {
             float perLine = Mathf.Max(1f, width / (font * 0.55f));
             float lines = Mathf.Ceil(chars / perLine) + hardBreaks;
-            return lines * font * 1.15f;
+            return lines * font * 1.15f * lineSpacing;
         }
 
         void LateUpdate()

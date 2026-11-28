@@ -446,10 +446,24 @@ namespace LightShadow.Enemy
         // A survived strike in the dawn chase: forced cool-down is refused
         // there (it would park the wraith for 45 to 60 s and kill the finale),
         // so the wraith recoils away and holds still for a short window.
-        // Catch-exempt while repelled, and the 6 s catch re-arm still runs
-        // after it, so the player gets a real gap without the chase going
+        // Catch-exempt while repelled. The 6 s catch re-arm runs at the same
+        // time (about 1 s of extra cover after the 5 s window), so the player
+        // gets a real gap without the chase going
         // away: one hit is already spent.
         public const float DawnEscapeSeconds = 5f;
+
+        public enum RetreatRoute { ForceCooldown, DawnEscape }
+
+        // Pure seams so tests do not need an agent or a NavMesh.
+        public static RetreatRoute RetreatRouteFor(bool dawnChase)
+        {
+            return CanForceCooldown(dawnChase) ? RetreatRoute.ForceCooldown : RetreatRoute.DawnEscape;
+        }
+
+        public static float NextCatchCooldown(float current, float planned)
+        {
+            return Mathf.Max(current, planned);
+        }
 
         void EnterDawnEscapeWindow()
         {
@@ -806,10 +820,10 @@ namespace LightShadow.Enemy
         {
             catchingSeconds = 0f;
             if (plan.ClearCatching) catching = false;
-            catchCooldownTimer = Mathf.Max(catchCooldownTimer, plan.CatchCooldownSeconds);
+            catchCooldownTimer = NextCatchCooldown(catchCooldownTimer, plan.CatchCooldownSeconds);
             if (plan.Retreat)
             {
-                if (CanForceCooldown(aggressive)) ForceCooldown(plan.RetreatSeconds);
+                if (RetreatRouteFor(aggressive) == RetreatRoute.ForceCooldown) ForceCooldown(plan.RetreatSeconds);
                 else EnterDawnEscapeWindow();
             }
             else if (plan.ResetToPatrol && !catching)

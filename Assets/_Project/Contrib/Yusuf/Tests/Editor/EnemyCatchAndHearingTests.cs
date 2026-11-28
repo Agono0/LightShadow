@@ -86,31 +86,22 @@ namespace LightShadow.Contrib.Yusuf.Tests.Editor
         }
 
         [Test]
-        public void DawnSurvivedStrike_KeepsTheChaseStateAndOnlyRearms()
+        public void DawnSurvivedStrike_RoutesToTheEscapeWindow_NotForceCooldown()
         {
-            enemy.SetAggressive(true);
-            Field("catching").SetValue(enemy, true);
-            Field("state").SetValue(enemy, EnemyBehaviour.State.Chase);
-
-            ApplyPlan(CatchRecovery.AfterStrike(true));
-
-            Assert.IsFalse((bool)Field("catching").GetValue(enemy), "the freeze flag is cleared");
-            Assert.AreEqual(EnemyBehaviour.State.Chase, enemy.CurrentState,
-                "characterization: no withdrawal happens in the dawn chase");
-            Assert.AreEqual(CatchRecovery.RearmSeconds, (float)Field("catchCooldownTimer").GetValue(enemy),
-                "only the rearm timer protects Nour from the next strike");
+            // The escape window (recoil + Repelled for DawnEscapeSeconds) needs an
+            // agent and a NavMesh, so the EditMode test pins the pure routing and
+            // timers instead of running it on an inactive host.
+            Assert.AreEqual(EnemyBehaviour.RetreatRoute.DawnEscape, EnemyBehaviour.RetreatRouteFor(true));
+            Assert.AreEqual(EnemyBehaviour.RetreatRoute.ForceCooldown, EnemyBehaviour.RetreatRouteFor(false));
+            Assert.Greater(EnemyBehaviour.DawnEscapeSeconds, 0f);
+            Assert.AreEqual(CatchRecovery.RearmSeconds,
+                EnemyBehaviour.NextCatchCooldown(0f, CatchRecovery.AfterStrike(true).CatchCooldownSeconds));
         }
 
         [Test]
         public void SurvivedStrike_NeverShortensAnExistingCatchCooldown()
         {
-            enemy.SetAggressive(true);
-            Field("catching").SetValue(enemy, true);
-            Field("catchCooldownTimer").SetValue(enemy, 20f);
-
-            ApplyPlan(CatchRecovery.AfterStrike(true));
-
-            Assert.AreEqual(20f, (float)Field("catchCooldownTimer").GetValue(enemy));
+            Assert.AreEqual(20f, EnemyBehaviour.NextCatchCooldown(20f, CatchRecovery.AfterStrike(true).CatchCooldownSeconds));
         }
 
         // ---- hearing gate ----

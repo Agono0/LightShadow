@@ -56,11 +56,15 @@ namespace LightShadow.Enemy
 
             // Library-first: the imported CC0 moans (qubodup) give the Shadow a
             // real voice; the synthesised growl/stinger stay as fallback.
-            patrolClip = LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_0");
+            // Roles are fixed by index (0 patrol, 1 chase, 2 stinger). The
+            // registry compacts null gaps, so use the library moans only when
+            // all three are present; otherwise keep the synthesised voices.
+            bool moansComplete = LightShadow.Audio.SfxRegistry.VariantCount("SFX_ShadowMoan") >= 3;
+            patrolClip = moansComplete ? LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_0") : null;
             if (patrolClip == null) patrolClip = BuildGrowl("SFX_Shadow_Patrol", 48f, 72f, 0.12f, 0.55f);
-            chaseClip = LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_1");
+            chaseClip = moansComplete ? LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_1") : null;
             if (chaseClip == null) chaseClip = BuildGrowl("SFX_Shadow_Chase", 84f, 126f, 0.22f, 0.75f);
-            stingerClip = LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_2");
+            stingerClip = moansComplete ? LightShadow.Audio.SfxRegistry.Clip("SFX_ShadowMoan_2") : null;
             if (stingerClip == null) stingerClip = BuildStinger("SFX_Shadow_Stinger");
 
             // Wraith-specific CC0 clips (P0 group 4) win over the generic moans.
