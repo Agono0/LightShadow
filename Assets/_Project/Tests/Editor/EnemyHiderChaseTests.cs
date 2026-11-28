@@ -54,5 +54,12 @@ namespace LightShadow.Tests
             Assert.IsFalse(EnemyBehaviour.LitZoneProtects(false, false));
             Assert.IsFalse(EnemyBehaviour.LitZoneProtects(true, true), "dawn chase catches inside lit rooms, entrance included");
         }
+
+        [Test]
+        public void ForceCooldown_allowedBeforeDawn_blockedDuringDawnChase()
+        {
+            Assert.IsTrue(EnemyBehaviour.CanForceCooldown(false));
+            Assert.IsFalse(EnemyBehaviour.CanForceCooldown(true));
+        }
     }
 }

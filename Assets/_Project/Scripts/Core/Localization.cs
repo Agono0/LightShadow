@@ -248,10 +248,10 @@ namespace LightShadow.Core
             // ---- how to play ----------------------------------------------
             { "You are Nour. The school is dark, the demolition crew comes at dawn, and the Shadow hunts in the dark.",
               "أنت نور. المدرسة مظلمة، وفريق الهدم يأتي عند الفجر، والظل يطارد في العتمة." },
-            { "Answer chalkboard questions to charge the Bright Idea Meter. A brighter beam reaches further, repels the Shadow above 30, and keeps the dark away. Wrong answers and timeouts dim it.",
-              "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد، ويطرد الظل فوق 30، ويبقي العتمة بعيدة. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع." },
-            { "Lit rooms are safe: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is fuel and runs out; batteries are scattered through the school.",
-              "الغرف المضاءة آمنة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة." },
+            { "Answer chalkboard questions to charge the Bright Idea Meter. A brighter beam reaches further and keeps the dark away. Hold the focused beam on the Shadow for two seconds with the meter at 25 or more and it recoils and backs off. Wrong answers and timeouts dim the beam.",
+              "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد ويبقي العتمة بعيدة. وجّه الشعاع المركّز نحو الظل لمدة ثانيتين والمؤشر 25 أو أكثر فيرتدّ ويبتعد. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع." },
+            { "Lit rooms are safe until the gate is powered: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is fuel and runs out; batteries are scattered through the school.",
+              "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة." },
             { "Restore three fuse boxes, collect six Knowledge Fragments, power the gate, and walk out. You cannot die - being caught only costs light and sends you back to the last checkpoint.",
               "أعد تشغيل ثلاثة صناديق مصاهر، واجمع ست شذرات معرفة، وشغّل البوابة، واخرج. لا يمكنك الموت — الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ." },
 

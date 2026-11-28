@@ -301,7 +301,7 @@ namespace LightShadow.Enemy
         // when the director sees ForcedCooldown exit.
         public void ForceCooldown(float seconds)
         {
-            if (catching) return;
+            if (catching || !CanForceCooldown(aggressive)) return;
             forcedCooldownSeconds = Mathf.Max(1f, seconds);
             EnterState(State.ForcedCooldown);
         }
@@ -429,6 +429,10 @@ namespace LightShadow.Enemy
         // rooms stay safe (destinations clamped, no catch inside).
         public static bool ClampsToLitZones(bool dawnChase) { return !dawnChase; }
         public static bool LitZoneProtects(bool dawnChase, bool playerInLitZone) { return playerInLitZone && !dawnChase; }
+
+        // N1: in the dawn chase the menace gauge climbs fast, and parking the
+        // Shadow for 45-60s right after the gate powers would kill the finale.
+        public static bool CanForceCooldown(bool dawnChase) { return !dawnChase; }
 
         // E3 seam: config wins over the EnemySight field when there is one.
         public static float ResolveSightRange(bool hasConfig, float configRange, float fieldRange)

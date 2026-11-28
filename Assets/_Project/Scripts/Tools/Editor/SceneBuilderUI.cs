@@ -751,9 +751,9 @@ namespace LightShadow.Tools
                 "<b>Sprint</b>  hold Left Shift    <b>Crouch</b>  hold Left Ctrl\n" +
                 "<b>Flashlight</b>  F            <b>Interact</b>  E\n" +
                 "<b>Answer</b>  1 2 3 4          <b>Objectives</b>  Tab      <b>Pause</b>  Esc\n\n" +
-                "Answer chalkboard questions to charge the <b>Bright Idea Meter</b>. A brighter beam reaches further, " +
-                "repels the Shadow above 30, and keeps the dark away. Wrong answers and timeouts dim it.\n\n" +
-                "Lit rooms are safe: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is " +
+                "Answer chalkboard questions to charge the <b>Bright Idea Meter</b>. A brighter beam reaches further " +
+                "and keeps the dark away. Hold the focused beam on the Shadow for two seconds with the meter at 25 or more and it recoils and backs off. Wrong answers and timeouts dim the beam.\n\n" +
+                "Lit rooms are safe until the gate is powered: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is " +
                 "fuel and runs out; batteries are scattered through the school.\n\n" +
                 "Restore <b>three fuse boxes</b>, collect <b>six Knowledge Fragments</b>, power the gate, and walk out. " +
                 "You cannot die - being caught only costs light and sends you back to the last checkpoint.";
@@ -764,8 +764,8 @@ namespace LightShadow.Tools
                 "الجري: استمر بالضغط على Shift الأيسر    الانخفاض: Ctrl الأيسر\n" +
                 "المصباح: F            التفاعل: E\n" +
                 "الإجابة: 1 2 3 4          المهام: Tab      الإيقاف: Esc\n\n" +
-                "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد، ويطرد الظل فوق 30، ويبقي العتمة بعيدة. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع.\n\n" +
-                "الغرف المضاءة آمنة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة.\n\n" +
+                "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد ويبقي العتمة بعيدة. وجّه الشعاع المركّز نحو الظل لمدة ثانيتين والمؤشر 25 أو أكثر فيرتدّ ويبتعد. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع.\n\n" +
+                "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة.\n\n" +
                 "أعد تشغيل ثلاثة صناديق مصاهر، واجمع ست شذرات معرفة، وشغّل البوابة، واخرج. لا يمكنك الموت — الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ.";
 
             Text bodyText = MakeText(card, "Body", body, 21, Paper, TextAnchor.UpperLeft,
