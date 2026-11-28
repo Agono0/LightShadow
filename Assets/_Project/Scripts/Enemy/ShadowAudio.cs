@@ -118,8 +118,8 @@ namespace LightShadow.Enemy
             float distance = player != null
                 ? Vector3.Distance(transform.position, player.position)
                 : maxHearDistance;
-            if (breathClip != null && distance < 5f && Time.time >= nextBreathTime
-                && state != EnemyBehaviour.State.Repelled)
+            if (breathClip != null && Time.time >= nextBreathTime
+                && NearBreathAllowed(state, distance))
             {
                 stingerSource.PlayOneShot(breathClip, 0.6f * Mathf.Max(0.3f, LightShadow.Audio.AudioDirector.Mix.WraithVoice));
                 nextBreathTime = Time.time + Mathf.Max(4f, breathClip.length + 1.5f);
@@ -134,6 +134,16 @@ namespace LightShadow.Enemy
             smoothedVolume = Mathf.Lerp(smoothedVolume, target, Time.deltaTime * 2.5f);
             growlSource.volume = smoothedVolume;
             growlSource.pitch = state == EnemyBehaviour.State.Chase ? 1.08f : 0.92f;
+        }
+
+        // Pure policy: the close breath is skipped while repelled and while
+        // ambushing (the ambusher stays silent until its burst, ~4.5 m).
+        public const float NearBreathDistance = 5f;
+
+        public static bool NearBreathAllowed(EnemyBehaviour.State state, float distance)
+        {
+            if (distance >= NearBreathDistance) return false;
+            return state != EnemyBehaviour.State.Repelled && state != EnemyBehaviour.State.Ambush;
         }
 
         static AudioClip BuildGrowl(string name, float baseFrequency, float harmonic, float noiseAmount, float volume)
