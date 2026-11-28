@@ -310,6 +310,7 @@ namespace LightShadow.Core
         {
             if (respawning || escaped) return;
             respawning = true;
+            if (quizUI != null) quizUI.Cancel(); // no post-mortem wrong answer
             GameEvents.RaisePlayerCaught();
             if (escaped) { respawning = false; return; }
 
@@ -331,6 +332,7 @@ namespace LightShadow.Core
 
         void WakeAtCheckpoint()
         {
+            if (quizUI != null) quizUI.Cancel();
             // Recovery: clear any hiding state the catch interrupted. A stale
             // IsHidden would blind the Shadow (EnemySight) and make the next E
             // hop teleport Nour back into the spot; idempotent with the

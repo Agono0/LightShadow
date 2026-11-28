@@ -38,6 +38,7 @@ namespace LightShadow.UI
             asking = true;
             gm.quizUI.ShowQuestion(question, (correct, chosenIndex) =>
             {
+                if (QuizUIController.IsCancel(chosenIndex)) { asking = false; return; } // displaced or cancelled: neutral
                 // Doc 4.1: the meter responds immediately; the recap remembers everything.
                 BrightIdeaMeter target = meter != null ? meter : gm.GetMeter();
                 if (target != null)

@@ -134,6 +134,14 @@ namespace LightShadow.UI
                 inspectText.font = font;
             }
 
+            // I1: the CLOSE label was cached at build time; refresh per open.
+            Text closeLabel = closeButton != null ? closeButton.GetComponentInChildren<Text>() : null;
+            if (closeLabel != null)
+            {
+                closeLabel.text = Localization.TrPresent("CLOSE");
+                closeLabel.font = font;
+            }
+
             autoCloseClock = AutoSeconds;
             root.SetActive(true);
 
