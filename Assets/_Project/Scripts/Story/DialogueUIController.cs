@@ -85,6 +85,10 @@ namespace LightShadow.Story
 
             if (hitPanel != null)
             {
+                // The committed scene can carry the old flat box; the glass kit wins at runtime.
+                UnityEngine.UI.Image hitImage = hitPanel.GetComponent<UnityEngine.UI.Image>();
+                if (hitImage != null) LightShadow.UI.GlassSkin.ApplyPanel(hitImage, 0.97f);
+
                 EventTrigger panelTrigger = hitPanel.gameObject.AddComponent<EventTrigger>();
                 var click = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
                 click.callback.AddListener(_ => NotifyPanelPressed());

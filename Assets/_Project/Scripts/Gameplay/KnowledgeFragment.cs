@@ -50,14 +50,17 @@ namespace LightShadow.Gameplay
             LightShadow.Platform.HapticsService.Light();
 
             GameManager gm = GameManager.Instance;
-            if (gm != null) gm.ShowMessage(fragmentText, memorySeconds);
-
             // The narrator reads the memory aloud when a voice is available.
             StoryTeller.Speak(Localization.Tr(fragmentText));
 
             // P3 inspect view: a 360 close-up of the fragment while the memory
             // plays; the quiz waits until the player closes it.
             UI.InspectViewController.ShowFrom(this);
+
+            // The close-up already prints the memory text; the HUD line on top of it
+            // doubled the text and ran under the CLOSE button. Only use the HUD line
+            // when there is no close-up.
+            if (gm != null && !UI.InspectViewController.IsOpen) gm.ShowMessage(fragmentText, memorySeconds);
 
             // With the close-up open, its own close (button, Esc or auto) ends
             // the wait and the question follows at once. Without it, the memory

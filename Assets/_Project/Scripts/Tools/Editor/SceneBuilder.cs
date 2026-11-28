@@ -832,7 +832,7 @@ namespace LightShadow.Tools
                 AssetDatabase.LoadAssetAtPath<Material>(MaterialsFolder + "/Mat_Lamp.mat"), false);
             fixture.transform.localPosition = new Vector3(0f, 0.08f, 0f);
 
-            Light light = CreatePointLight(go.transform, "Light", new Vector3(0f, -0.15f, 0f), color, intensity, range, true);
+            Light light = CreatePointLight(go.transform, "Light", new Vector3(0f, -0.15f, 0f), color, intensity, range, false);
             if (flicker && light != null) light.gameObject.AddComponent<LightFlicker>();
             return go;
         }
