@@ -251,7 +251,7 @@ namespace LightShadow.Enemy
             // and a hidden Nour - the Shadow cannot grab through the spot wall;
             // Search still FINDS a witnessed hider through sight (UpdateSearch).
             if (state != State.Repelled && state != State.ForcedCooldown && catchCooldownTimer <= 0f
-                && distance <= CatchDistance && !LitZone.PlayerInLitZone
+                && distance <= CatchDistance && !LitZoneProtects(aggressive, LitZone.PlayerInLitZone)
                 && !HidingSystem.IsHidden)
             {
                 // No cinematic close-up here any more: it swapped the camera
@@ -422,6 +422,13 @@ namespace LightShadow.Enemy
 
             EnterState(State.Search);
         }
+
+        // Dawn chase (Doc 4.4, story: "the Shadow is right behind you"): once the
+        // gate is powered the lit rooms stop protecting Nour, the entrance
+        // included, so the run to the gate is a real finale. Before dawn the lit
+        // rooms stay safe (destinations clamped, no catch inside).
+        public static bool ClampsToLitZones(bool dawnChase) { return !dawnChase; }
+        public static bool LitZoneProtects(bool dawnChase, bool playerInLitZone) { return playerInLitZone && !dawnChase; }
 
         // E3 seam: config wins over the EnemySight field when there is one.
         public static float ResolveSightRange(bool hasConfig, float configRange, float fieldRange)
@@ -831,11 +838,11 @@ namespace LightShadow.Enemy
             if (waypoint != null) SetDestination(waypoint.position);
         }
 
-        // All destinations are clamped out of lit zones (Doc 4.3: the Shadow
+        // Before dawn all destinations are clamped out of lit zones (Doc 4.3: the Shadow
         // genuinely cannot enter lit rooms, not merely "avoids" them).
         void SetDestination(Vector3 position)
         {
-            agent.SetDestination(LitZone.ClampPoint(position, 0.8f));
+            agent.SetDestination(ClampsToLitZones(aggressive) ? LitZone.ClampPoint(position, 0.8f) : position);
         }
 
         void FaceTowards(Vector3 position)

@@ -44,5 +44,15 @@ namespace LightShadow.Tests
             Assert.IsTrue(EnemyBehaviour.BreathingFor(EnemyBehaviour.State.Investigate));
             Assert.IsFalse(EnemyBehaviour.BreathingFor(EnemyBehaviour.State.Chase));
         }
+
+        [Test]
+        public void LitZones_protectBeforeDawn_butNotDuringTheDawnChase()
+        {
+            Assert.IsTrue(EnemyBehaviour.ClampsToLitZones(false));
+            Assert.IsFalse(EnemyBehaviour.ClampsToLitZones(true));
+            Assert.IsTrue(EnemyBehaviour.LitZoneProtects(false, true));
+            Assert.IsFalse(EnemyBehaviour.LitZoneProtects(false, false));
+            Assert.IsFalse(EnemyBehaviour.LitZoneProtects(true, true), "dawn chase catches inside lit rooms, entrance included");
+        }
     }
 }
