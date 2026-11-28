@@ -71,6 +71,7 @@ namespace LightShadow.Tools
             controller.stepOffset = 0.35f;
             controller.skinWidth = 0.02f;
             controller.minMoveDistance = 0f;
+            PlayerRigFit.ConfigureBody(root, controller.height, controller.radius);
 
             var pivot = new GameObject("CameraPivot");
             pivot.transform.SetParent(root.transform, false);
@@ -261,6 +262,8 @@ namespace LightShadow.Tools
             flashlightGo.transform.SetParent(handRootGo.transform, false);
             flashlightGo.transform.localPosition = new Vector3(0.01f, 0.035f, 0.13f);
             flashlightGo.transform.localRotation = Quaternion.Inverse(handRootGo.transform.localRotation);
+
+            ApplyPlayerRigModels(root, handRootGo, flashlightGo, torch);
 
             FirstPersonHands hands = handRootGo.AddComponent<FirstPersonHands>();
             hands.handRoot = handRootGo.transform;

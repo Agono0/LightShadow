@@ -767,7 +767,8 @@ namespace LightShadow.Tools
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 string fileName = path.Substring(path.LastIndexOf('/') + 1);
-                if (!fileName.Equals(modelName + ".fbx", StringComparison.OrdinalIgnoreCase)) continue;
+                if (!fileName.Equals(modelName + ".fbx", StringComparison.OrdinalIgnoreCase)
+                    && !fileName.Equals(modelName + ".obj", StringComparison.OrdinalIgnoreCase)) continue;
                 GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 if (asset != null)
                 {

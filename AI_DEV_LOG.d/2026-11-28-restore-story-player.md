@@ -12,3 +12,10 @@ Written by the execution agent for the user (Ag). Nothing here was seen in the e
 
 ## Deliberately left
 - DangerModel weight and ambush design: not clearly wrong, left.
+
+## Player/torch rig
+- `SceneBuilderPlayerRig.ApplyPlayerRigModels` looks in Models/Hero for SM_Torch, SM_Player_Hand_R/L, SM_Player_Body (OBJ or FBX; `LoadModelAsset` now accepts both). Each is optional; when missing, the primitive hand and torch stay as built. Markers named "Grip" and "Muzzle" inside the torch mesh set where it sits in the hand and where the beam starts (`PlayerRigFit`, tested). Bad markers are ignored. The body is shadow-only in first person.
+- Walk bob, breathing, crouch dip and torch sway already exist (FirstPersonHands, TorchSway) and carry whatever model is attached.
+- Physics: the player keeps its CharacterController as the mover and now also has a kinematic, rotation-frozen Rigidbody (`PlayerRigFit.ConfigureBody`), independent of the model.
+- No model files are in the repo yet. Nothing in this section has been seen in the editor.
+- F2 (120 Hz frame rate) needed no change: `PerformanceManager` already handles it.
