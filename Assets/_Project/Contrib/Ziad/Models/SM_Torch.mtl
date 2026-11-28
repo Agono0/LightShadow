@@ -1,4 +1,4 @@
-# SM_Torch material (no textures). Original content.
+# SM_Torch (no textures). Original content.
 newmtl MAT_Torch
 Ka 0.02 0.02 0.02
 Kd 0.10 0.10 0.11

@@ -1,157 +1,943 @@
-import math, sys, os
-OUT = sys.argv[1]
+"""generate_models.py - builds SM_Player_Body, SM_Player_Hand_L/R and SM_Torch.
+
+Usage:  python3 generate_models.py <outdir>
+
+Original content, generated procedurally. Python 3 stdlib only, no third-party assets.
+Space: 1 unit = 1 m, Y up, character faces +Z, +X = character left, right-handed file space.
+"""
+import math
+import os
+import sys
+
+
+import math
+
+def add(a, b): return (a[0] + b[0], a[1] + b[1], a[2] + b[2])
+def sub(a, b): return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+def mul(a, s): return (a[0] * s, a[1] * s, a[2] * s)
+def dot(a, b): return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+def cross(a, b): return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
+def length(a): return math.sqrt(dot(a, a))
+
+def norm(a):
+    l = length(a)
+    return (a[0] / l, a[1] / l, a[2] / l) if l > 1e-12 else (0.0, 0.0, 1.0)
+
+def lerp(a, b, t): return (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t)
+
+def axis_angle(axis, ang):
+    x, y, z = norm(axis)
+    c, s = math.cos(ang), math.sin(ang)
+    C = 1 - c
+    return ((c + x * x * C, x * y * C - z * s, x * z * C + y * s),
+            (y * x * C + z * s, c + y * y * C, y * z * C - x * s),
+            (z * x * C - y * s, z * y * C + x * s, c + z * z * C))
+
+def apply(m, v):
+    return (m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2],
+            m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2],
+            m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2])
+
+def rot_between(u, v):
+    c = max(-1.0, min(1.0, dot(u, v)))
+    if c > 1 - 1e-12:
+        return ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
+    if c < -1 + 1e-9:
+        axis = norm(cross(u, (1.0, 0.0, 0.0) if abs(u[0]) < 0.9 else (0.0, 1.0, 0.0)))
+        return axis_angle(axis, math.pi)
+    axis = norm(cross(u, v))
+    return axis_angle(axis, math.atan2(math.sqrt(max(0.0, 1 - c * c)), c))
+
+
 class Mesh:
-    def __init__(s,name): s.name=name; s.v=[]; s.f=[]
-    def add(s,verts,faces):
-        b=len(s.v); s.v+=verts; s.f+=[tuple(i+b for i in f) for f in faces]
-    def vol(s):
-        t=0
-        for a,b,c in s.f:
-            A,B,C=s.v[a],s.v[b],s.v[c]
-            t+=(A[0]*(B[1]*C[2]-B[2]*C[1])-A[1]*(B[0]*C[2]-B[2]*C[0])+A[2]*(B[0]*C[1]-B[1]*C[0]))/6
+    def __init__(self, name, crease=60.0, uv_axis=None):
+        self.name = name
+        self.v = []
+        self.f = []
+        self.crease = crease
+        self.uv_axis = uv_axis
+
+    def add(self, verts, faces):
+        b = len(self.v)
+        self.v.extend(verts)
+        self.f.extend((a + b, c + b, d + b) for a, c, d in faces)
+        return self
+
+    def bbox(self):
+        xs = [p[0] for p in self.v]; ys = [p[1] for p in self.v]; zs = [p[2] for p in self.v]
+        return (min(xs), min(ys), min(zs)), (max(xs), max(ys), max(zs))
+
+    def volume(self):
+        t = 0.0
+        for a, b, c in self.f:
+            t += dot(self.v[a], cross(self.v[b], self.v[c])) / 6.0
         return t
-    def fix(s):
-        if s.vol()<0: s.f=[(a,c,b) for a,b,c in s.f]
-        return s
-import itertools
-def closed(f):
-    e=set()
-    for a,b,c in f:
-        for x in((a,b),(b,c),(c,a)):
-            if x in e: return False
-            e.add(x)
-    return all((y,x) in e for x,y in e)
-def flipf(f): return [(a,c,b) for a,b,c in f]
-def loft(name,axis,st,n=8,c=(0,0),rot=0):
-    """st: list of (t, ra, rb, ca, cb) stations along axis; capped both ends."""
-    m=Mesh(name); rings=[]
-    for (t,ra,rb,ca,cb) in st:
-        r=[]
-        for i in range(n):
-            a=2*math.pi*i/n+rot
-            p=(ca+ra*math.cos(a), cb+rb*math.sin(a))
-            r.append((p[0],t,p[1]) if axis=='y' else (p[0],p[1],t))
-        rings.append(r)
-    verts=[p for r in rings for p in r]; faces=[]
-    for k in range(len(rings)-1):
-        for i in range(n):
-            j=(i+1)%n
-            a,b,c2,d=k*n+i,k*n+j,(k+1)*n+j,(k+1)*n+i
-            faces+= [(a,b,c2),(a,c2,d)]
-    side=faces; faces=[]
-    for k,top in ((0,False),(len(rings)-1,True)):
-        verts.append((sum(p[0] for p in rings[k])/n,sum(p[1] for p in rings[k])/n,sum(p[2] for p in rings[k])/n))
-        ci=len(verts)-1
-        for i in range(n):
-            j=(i+1)%n
-            faces.append((ci,k*n+i,k*n+j))
-    capb=faces[:n]; capt=faces[n:]
-    for fs,fb,ft in itertools.product((0,1),repeat=3):
-        cand=(flipf(side) if fs else side)+(flipf(capb) if fb else capb)+(flipf(capt) if ft else capt)
-        if closed(cand): faces=cand; break
-    else: raise Exception('loft not closable')
-    m.add(verts,faces); return m.fix()
-def box(name,x0,x1,y0,y1,z0,z1):
-    m=Mesh(name)
-    v=[(x,y,z) for x in(x0,x1) for y in(y0,y1) for z in(z0,z1)]
-    q=[(0,1,3,2),(4,6,7,5),(0,4,5,1),(2,3,7,6),(0,2,6,4),(1,5,7,3)]
-    f=[]
-    for a,b,c,d in q: f+=[(a,b,c),(a,c,d)]
-    m.add(v,f); return m.fix()
-def ell(name,cx,cy,cz,rx,ry,rz,seg=8,rings=5):
-    m=Mesh(name); v=[(cx,cy+ry,cz)]; f=[]
-    for k in range(1,rings):
-        th=math.pi*k/rings
-        for i in range(seg):
-            a=2*math.pi*i/seg
-            v.append((cx+rx*math.sin(th)*math.cos(a),cy+ry*math.cos(th),cz+rz*math.sin(th)*math.sin(a)))
-    v.append((cx,cy-ry,cz)); bot=len(v)-1
-    for i in range(seg):
-        j=(i+1)%seg; f.append((0,1+i,1+j))
-    for k in range(rings-2):
-        for i in range(seg):
-            j=(i+1)%seg
-            a,b,c,d=1+k*seg+i,1+k*seg+j,1+(k+1)*seg+j,1+(k+1)*seg+i
-            f+=[(a,b,c),(a,c,d)]
-    base=1+(rings-2)*seg
-    f2=[]
-    for i in range(seg):
-        j=(i+1)%seg; f2.append((bot,base+j,base+i))
-    top=f[:seg]; mid=f[seg:]
-    for ft,fm,fb in itertools.product((0,1),repeat=3):
-        cand=(flipf(top) if ft else top)+(flipf(mid) if fm else mid)+(flipf(f2) if fb else f2)
-        if closed(cand): f=cand; break
-    else: raise Exception('ell')
-    m.add(v,f); return m.fix()
-def marker(name,x,y,z,h=0.004):
-    return box(name,x-h,x+h,y-h,y+h,z-h,z+h)
-def mirror(m,name):
-    r=Mesh(name); r.v=[(-x,y,z) for x,y,z in m.v]; r.f=[(a,c,b) for a,b,c in m.f]; return r
-def write(fn,mats,objs):
-    base=os.path.join(OUT,fn)
-    with open(base+'.mtl','w') as f:
-        f.write(f"# {fn} material (no textures). Original content.\n")
-        f.write(f"newmtl {mats[0]}\nKa 0.02 0.02 0.02\nKd {mats[1]}\nKs 0.03 0.03 0.03\nNs 8\nd 1\nillum 1\n")
-    with open(base+'.obj','w') as f:
-        f.write(f"# {fn}: units=metres, Y-up, +Z forward, right-handed file convention, scale 1\nmtllib {fn}.mtl\n")
-        off=1
-        for m in objs:
-            f.write(f"o {m.name}\nusemtl {mats[0]}\n")
-            for v in m.v: f.write("v %.5f %.5f %.5f\n"%v)
-            for a,b,c in m.f: f.write(f"f {a+off} {b+off} {c+off}\n")
-            off+=len(m.v)
-# ---------- BODY (+X = character left, +Z forward, feet at y=0)
-body=[]
-body.append(ell("Head",0,1.49,0.01,0.085,0.11,0.10))
-body.append(loft("Neck",'y',[(1.37,0.045,0.045,0,0),(1.43,0.040,0.040,0,0.005)]))
-body.append(loft("Torso",'y',[(0.80,0.17,0.10,0,0),(0.97,0.14,0.09,0,0),(1.20,0.17,0.105,0,0),(1.34,0.19,0.10,0,0)]))
-def side(sx,suf):
-    p=[]
-    p.append(loft("UpperArm_"+suf,'y',[(1.05,0.04,0.04,sx*0.235,0),(1.31,0.050,0.050,sx*0.235,0)],6))
-    p.append(loft("Forearm_"+suf,'y',[(0.80,0.028,0.028,sx*0.235,0),(1.05,0.040,0.040,sx*0.235,0)],6))
-    p.append(box("Hand_"+suf,sx*0.235-0.03,sx*0.235+0.03,0.68,0.80,-0.02,0.03) if False else box("Hand_"+suf,min(sx*0.205,sx*0.265),max(sx*0.205,sx*0.265),0.69,0.80,-0.025,0.025))
-    p.append(loft("Thigh_"+suf,'y',[(0.47,0.060,0.065,sx*0.09,0),(0.84,0.085,0.09,sx*0.09,0)],6))
-    p.append(loft("Shin_"+suf,'y',[(0.08,0.040,0.045,sx*0.09,0),(0.47,0.058,0.062,sx*0.09,0)],6))
-    p.append(box("Foot_"+suf,min(sx*0.055,sx*0.125),max(sx*0.055,sx*0.125),0.0,0.08,-0.06,0.20))
-    return p
-body+=side(+1,"L")+side(-1,"R")
-write("SM_Player_Body","MAT_Player_Body 0.14 0.13 0.13".split(' ',1)[::1] and ["MAT_Player_Body","0.14 0.13 0.13"],body)
-# ---------- HANDS: wrist origin, forearm back along -Z, fingers forward +Z, palm faces midline.
-def hand(side_sign,suf):
-    s=side_sign  # +1 left file +X ; inward (palm side) = -s in x
-    inw=-s
-    o=[]
-    o.append(loft("Forearm",'z',[(-0.28,0.040,0.040,0,0),(-0.10,0.032,0.032,0,0),(0,0.027,0.025,0,0)],6))
-    o.append(box("Palm",-0.032,0.032,-0.022,0.022,0.0,0.09))
-    # fingers: 4 bars curled toward palm side, stacked along Y
-    fm=Mesh("Fingers")
-    for k,y in enumerate((-0.0165,-0.0055,0.0055,0.0165)):
-        L=0.075-0.006*abs(k-1.5)
-        b=box("f",inw*0.0+ -0.030*(1) if False else -0.030, 0.030,y-0.005,y+0.005,0.09,0.09+L*0.0+0.0 + 0.0) if False else None
-        x0,x1=(0.0,0.036) if inw>0 else (-0.036,0.0)
-        # curled finger: slab on palm side, base then tip
-        a=box("f",x0,x1,y-0.0052,y+0.0052,0.09,0.09+L*0.55)
-        fm.add(a.v,a.f)
-        xt0,xt1=(0.028,0.062) if inw>0 else (-0.062,-0.028)
-        t=box("f",xt0,xt1,y-0.0048,y+0.0048,0.09+L*0.35,0.09+L*0.55)
-        fm.add(t.v,t.f)
-    o.append(fm)
-    xt0,xt1=(0.028,0.056) if inw>0 else (-0.056,-0.028)
-    # thumb: wraps on top (+Y)
-    th=Mesh("Thumb"); a=box("t",-0.02,0.03,0.022,0.036,0.01,0.075) if True else None
-    th.add(a.v,a.f); o.append(th)
-    gx=inw*0.034
-    o.append(marker("Grip",gx,0.0,0.05))
-    return o
-for s,suf in((1,"L"),(-1,"R")):
-    write(f"SM_Player_Hand_{suf}",["MAT_Player_Hand","0.17 0.15 0.14"],hand(s,suf))
-# ---------- TORCH: grip origin, axis +Z, lens forward, length z in [-0.10, 0.20]
-t=[]
-t.append(loft("Handle",'z',[(-0.10,0.014,0.014,0,0),(-0.06,0.016,0.016,0,0),(0.05,0.016,0.016,0,0)],8))
-t.append(loft("Body",'z',[(0.05,0.022,0.022,0,0),(0.10,0.030,0.030,0,0),(0.17,0.036,0.036,0,0)],8))
-t.append(loft("Reflector",'z',[(0.17,0.040,0.040,0,0),(0.195,0.040,0.040,0,0)],8))
-t.append(loft("Lens",'z',[(0.195,0.030,0.030,0,0),(0.200,0.030,0.030,0,0)],8))
-t.append(box("Switch",-0.006,0.006,0.016,0.022,0.0,0.02))
-t.append(marker("Grip",0,0,0))
-t.append(marker("Muzzle",0,0,0.200))
-write("SM_Torch",["MAT_Torch","0.10 0.10 0.11"],t)
+
+    def flip(self):
+        self.f = [(a, c, b) for a, c, b in self.f]
+        return self
+
+
+def _triangulate(stations, seg):
+    """stations: list of ('ring',[pts]) or ('pole',pt). Returns verts, faces.
+
+    Rings are ordered along the sweep direction; ring points are ordered
+    counter-clockwise in the local frame (U, V) with V = cross(T, U), which makes
+    (ring[k], ring[k2], next_ring[k2]) / (ring[k], next_ring[k2], next_ring[k]) outward.
+    """
+    verts = []
+    faces = []
+    idxs = []
+    for kind, data in stations:
+        if kind == 'ring':
+            idxs.append(('ring', list(range(len(verts), len(verts) + seg))))
+            verts.extend(data)
+        else:
+            i = len(verts)
+            verts.append(data)
+            idxs.append(('pole', [i]))
+    for s in range(len(idxs) - 1):
+        ka, ia = idxs[s]
+        kb, ib = idxs[s + 1]
+        if ka == 'ring' and kb == 'ring':
+            for k in range(seg):
+                k2 = (k + 1) % seg
+                faces.append((ia[k], ia[k2], ib[k2]))
+                faces.append((ia[k], ib[k2], ib[k]))
+        elif ka == 'pole':
+            for k in range(seg):
+                k2 = (k + 1) % seg
+                faces.append((ia[0], ib[k2], ib[k]))
+        else:
+            for k in range(seg):
+                k2 = (k + 1) % seg
+                faces.append((ia[k], ia[k2], ib[0]))
+    return verts, faces
+
+
+def sweep(name, path, radii, seg=12, up=(0, 0, 1), cap_start='dome', cap_end='dome',
+          cap_rings=3, profile=None, crease=60.0, uv_axis=None, twist=0.0, roll=0.0):
+    """Sweep an ellipse along a polyline using rotation-minimising frames."""
+    n = len(path)
+    tang = []
+    for i in range(n):
+        if i == 0:
+            t = sub(path[1], path[0])
+        elif i == n - 1:
+            t = sub(path[-1], path[-2])
+        else:
+            t = add(norm(sub(path[i], path[i - 1])), norm(sub(path[i + 1], path[i])))
+        tang.append(norm(t))
+    ref = (up[0], up[1], up[2])
+    if abs(dot(norm(ref), tang[0])) > 0.95:
+        ref = (1.0, 0.0, 0.0)
+    U0 = norm(sub(ref, mul(tang[0], dot(ref, tang[0]))))
+    if roll:
+        U0 = norm(apply(axis_angle(tang[0], roll), U0))
+    Us = [U0]
+    for i in range(1, n):
+        Us.append(norm(apply(rot_between(tang[i - 1], tang[i]), Us[-1])))
+    Vs = [cross(tang[i], Us[i]) for i in range(n)]
+
+    def make_ring(center, U, Vv, rx, ry, t, extra_ang=0.0):
+        pts = []
+        for k in range(seg):
+            a = 2 * math.pi * k / seg + extra_ang
+            mx, my = profile(a, t) if profile else (1.0, 1.0)
+            pts.append(add(center, add(mul(U, rx * math.cos(a) * mx), mul(Vv, ry * math.sin(a) * my))))
+        return pts
+
+    stations = []
+    # start cap (behind path[0])
+    if cap_start:
+        rr = radii[0]
+        if cap_start == 'dome':
+            stations.append(('pole', add(path[0], mul(tang[0], -0.5 * (rr[0] + rr[1])))))
+            for j in range(cap_rings - 1, 0, -1):
+                phi = (math.pi / 2) * j / cap_rings
+                depth = math.sin(phi) * 0.5 * (rr[0] + rr[1])
+                stations.append(('ring', make_ring(add(path[0], mul(tang[0], -depth)), Us[0], Vs[0],
+                                                    rr[0] * math.cos(phi), rr[1] * math.cos(phi), 0.0)))
+        else:
+            stations.append(('pole', path[0]))
+    for i in range(n):
+        stations.append(('ring', make_ring(path[i], Us[i], Vs[i], radii[i][0], radii[i][1],
+                                           i / max(1, n - 1), twist * (i / max(1, n - 1)))))
+    if cap_end:
+        rr = radii[-1]
+        if cap_end == 'dome':
+            for j in range(1, cap_rings):
+                phi = (math.pi / 2) * j / cap_rings
+                depth = math.sin(phi) * 0.5 * (rr[0] + rr[1])
+                stations.append(('ring', make_ring(add(path[-1], mul(tang[-1], depth)), Us[-1], Vs[-1],
+                                                    rr[0] * math.cos(phi), rr[1] * math.cos(phi), 1.0)))
+            stations.append(('pole', add(path[-1], mul(tang[-1], 0.5 * (rr[0] + rr[1])))))
+        else:
+            stations.append(('pole', path[-1]))
+    verts, faces = _triangulate(stations, seg)
+    m = Mesh(name, crease, uv_axis)
+    m.add(verts, faces)
+    return m
+
+
+def revolve(name, profile_rz, seg=16, axis='z', crease=35.0, uv_axis=None, center=(0, 0, 0)):
+    """Revolve a (radius, axial) profile. Radius 0 entries become poles."""
+    stations = []
+    for (r, h) in profile_rz:
+        if r <= 1e-9:
+            p = (0.0, 0.0, h) if axis == 'z' else ((0.0, h, 0.0) if axis == 'y' else (h, 0.0, 0.0))
+            stations.append(('pole', add(p, center)))
+        else:
+            pts = []
+            for k in range(seg):
+                a = 2 * math.pi * k / seg
+                p = (r * math.cos(a), r * math.sin(a), h) if axis == 'z' else (r * math.cos(a), h, r * math.sin(a))
+                pts.append(add(p, center))
+            stations.append(('ring', pts))
+    verts, faces = _triangulate(stations, seg)
+    m = Mesh(name, crease, uv_axis)
+    m.add(verts, faces)
+    return m
+
+
+def revolve_closed(name, profile_loop, seg=16, axis='z', crease=35.0, uv_axis=None):
+    """Revolve a closed (radius, axial) loop around an axis: annuli, rims, conical shells."""
+    rings = []
+    for (r, h) in profile_loop:
+        pts = []
+        for k in range(seg):
+            a = 2 * math.pi * k / seg
+            p = (r * math.cos(a), r * math.sin(a), h) if axis == 'z' else (r * math.cos(a), h, r * math.sin(a))
+            pts.append(p)
+        rings.append(pts)
+    verts = []
+    idx = []
+    for r in rings:
+        idx.append(list(range(len(verts), len(verts) + seg)))
+        verts.extend(r)
+    faces = []
+    n = len(rings)
+    for s in range(n):
+        s2 = (s + 1) % n
+        for k in range(seg):
+            k2 = (k + 1) % seg
+            a, b, c, d = idx[s][k], idx[s][k2], idx[s2][k2], idx[s2][k]
+            faces.append((a, b, c))
+            faces.append((a, c, d))
+    mm = Mesh(name, crease, uv_axis)
+    mm.add(verts, faces)
+    return mm
+
+
+def sphere(name, rings=14, seg=18, radius=(1, 1, 1), center=(0, 0, 0), deform=None,
+           crease=60.0, uv_axis=None):
+    verts = []
+    faces = []
+    def place(u):
+        if deform:
+            u = deform(u)
+        return (center[0] + u[0] * radius[0], center[1] + u[1] * radius[1], center[2] + u[2] * radius[2])
+    verts.append(place((0.0, 1.0, 0.0)))
+    ringidx = []
+    for i in range(1, rings):
+        th = math.pi * i / rings
+        y, s = math.cos(th), math.sin(th)
+        ring = []
+        for k in range(seg):
+            a = 2 * math.pi * k / seg
+            ring.append(place((s * math.cos(a), y, s * math.sin(a))))
+        ringidx.append(list(range(len(verts), len(verts) + seg)))
+        verts.extend(ring)
+    bi = len(verts); verts.append(place((0.0, -1.0, 0.0)))
+    for k in range(seg):
+        k2 = (k + 1) % seg
+        faces.append((0, ringidx[0][k2], ringidx[0][k]))
+    for i in range(len(ringidx) - 1):
+        for k in range(seg):
+            k2 = (k + 1) % seg
+            a, b, c, d = ringidx[i][k], ringidx[i][k2], ringidx[i + 1][k2], ringidx[i + 1][k]
+            faces.append((a, b, c))
+            faces.append((a, c, d))
+    for k in range(seg):
+        k2 = (k + 1) % seg
+        faces.append((ringidx[-1][k], ringidx[-1][k2], bi))
+    m = Mesh(name, crease, uv_axis)
+    m.add(verts, faces)
+    return m
+
+
+def cube(name, lo, hi, crease=30.0):
+    (x0, y0, z0), (x1, y1, z1) = lo, hi
+    v = [(x0, y0, z0), (x0, y0, z1), (x0, y1, z0), (x0, y1, z1),
+         (x1, y0, z0), (x1, y0, z1), (x1, y1, z0), (x1, y1, z1)]
+    q = [(0, 1, 3, 2), (5, 4, 6, 7), (4, 0, 2, 6), (1, 5, 7, 3), (2, 3, 7, 6), (4, 5, 1, 0)]
+    f = []
+    for a, b, c, d in q:
+        f += [(a, b, c), (a, c, d)]
+    m = Mesh(name, crease)
+    m.add(v, f)
+    return m
+
+
+# ---------------- normals, UVs, OBJ ----------------
+def face_normal(v, f):
+    a, b, c = v[f[0]], v[f[1]], v[f[2]]
+    n = cross(sub(b, a), sub(c, a))
+    l = length(n)
+    return (0.0, 0.0, 0.0) if l < 1e-18 else (n[0] / l, n[1] / l, n[2] / l)
+
+
+def build_normals(m):
+    """Crease-aware smooth normals; returns (positions, normals, faces) with split vertices."""
+    v, f = m.v, m.f
+    fn = [face_normal(v, t) for t in f]
+    farea = [0.5 * length(cross(sub(v[t[1]], v[t[0]]), sub(v[t[2]], v[t[0]]))) for t in f]
+    edge_faces = {}
+    for fi, t in enumerate(f):
+        for e in ((t[0], t[1]), (t[1], t[2]), (t[2], t[0])):
+            edge_faces.setdefault((min(e), max(e)), []).append(fi)
+    cos_crease = math.cos(math.radians(m.crease))
+    visited = set()
+    corner_map = {}
+    out_v, out_n, out_f = [], [], []
+    for fi, t in enumerate(f):
+        for ci in range(3):
+            if (fi, ci) in visited:
+                continue
+            vi = t[ci]
+            stack = [(fi, ci)]
+            grp = []
+            while stack:
+                cf = stack.pop()
+                if cf in visited:
+                    continue
+                visited.add(cf)
+                grp.append(cf[0])
+                ff = f[cf[0]]
+                for ei in (cf[1], (cf[1] - 1) % 3):
+                    a, b = ff[ei], ff[(ei + 1) % 3]
+                    if vi != a and vi != b:
+                        continue
+                    for nf in edge_faces.get((min(a, b), max(a, b)), []):
+                        if nf == cf[0] or dot(fn[nf], fn[cf[0]]) < cos_crease:
+                            continue
+                        nt = f[nf]
+                        for ci2 in range(3):
+                            if nt[ci2] == vi and (nf, ci2) not in visited:
+                                stack.append((nf, ci2))
+            n = (0.0, 0.0, 0.0)
+            for g in grp:
+                n = add(n, mul(fn[g], max(farea[g], 1e-12)))
+            n = norm(n) if length(n) > 1e-15 else fn[grp[0]]
+            idx = len(out_v)
+            out_v.append(v[vi])
+            out_n.append(n)
+            for g in grp:
+                tg = f[g]
+                for ci2 in range(3):
+                    if tg[ci2] == vi:
+                        corner_map[(g, ci2)] = idx
+    for fi, t in enumerate(f):
+        out_f.append((corner_map[(fi, 0)], corner_map[(fi, 1)], corner_map[(fi, 2)]))
+    return out_v, out_n, out_f
+
+
+def planar_uv(pts, axis=None, inset=0.002):
+    xs = [p[0] for p in pts]; ys = [p[1] for p in pts]; zs = [p[2] for p in pts]
+    ext = {'x': max(xs) - min(xs), 'y': max(ys) - min(ys), 'z': max(zs) - min(zs)}
+    if axis is None:
+        axis = min(ext, key=lambda k: ext[k])
+    a0, a1 = {'x': (1, 2), 'y': (0, 2), 'z': (0, 1)}[axis]
+    lo = {0: min(xs), 1: min(ys), 2: min(zs)}
+    hi = {0: max(xs), 1: max(ys), 2: max(zs)}
+    s0 = max(hi[a0] - lo[a0], 1e-6)
+    s1 = max(hi[a1] - lo[a1], 1e-6)
+    out = []
+    for p in pts:
+        u = (p[a0] - lo[a0]) / s0
+        w = (p[a1] - lo[a1]) / s1
+        out.append((inset + u * (1 - 2 * inset), inset + w * (1 - 2 * inset)))
+    return out
+
+
+def write_obj(path, mtl_name, objects, header_lines, digits=5):
+    vlines, vtlines, vnlines = [], [], []
+    blocks = []
+    voff = vtoff = vnoff = 0
+    stats = []
+    for m in objects:
+        if m.volume() < 0:
+            m.flip()
+        vv, nn, ff = build_normals(m)
+        uvs = planar_uv(vv, m.uv_axis)
+        for p in vv:
+            vlines.append('v %.*f %.*f %.*f' % (digits, p[0], digits, p[1], digits, p[2]))
+        for t in uvs:
+            vtlines.append('vt %.*f %.*f' % (digits, t[0], digits, t[1]))
+        for n in nn:
+            vnlines.append('vn %.*f %.*f %.*f' % (digits, n[0], digits, n[1], digits, n[2]))
+        fl = []
+        for a, b, c in ff:
+            fl.append('f %d/%d/%d %d/%d/%d %d/%d/%d' % (
+                a + 1 + voff, a + 1 + vtoff, a + 1 + vnoff,
+                b + 1 + voff, b + 1 + vtoff, b + 1 + vnoff,
+                c + 1 + voff, c + 1 + vtoff, c + 1 + vnoff))
+        blocks.append((m.name, fl))
+        stats.append((m.name, len(vv), len(ff)))
+        voff += len(vv); vtoff += len(uvs); vnoff += len(nn)
+    with open(path, 'w') as fh:
+        for h in header_lines:
+            fh.write('# %s\n' % h)
+        fh.write('mtllib %s\n' % mtl_name)
+        fh.write('\n'.join(vlines) + '\n')
+        fh.write('\n'.join(vtlines) + '\n')
+        fh.write('\n'.join(vnlines) + '\n')
+        for name, fl in blocks:
+            fh.write('o %s\nusemtl %s\n' % (name, mtl_name))
+            fh.write('\n'.join(fl) + '\n')
+    return stats
+
+
+def loft_rings(name, rings, crease=60.0, uv_axis=None, cap_start=True, cap_end=True):
+    """Loft through explicit rings (each a list of the same length), capped with centroid poles."""
+    stations = []
+    def centroid(r):
+        n = float(len(r))
+        return (sum(p[0] for p in r) / n, sum(p[1] for p in r) / n, sum(p[2] for p in r) / n)
+    if cap_start:
+        stations.append(('pole', centroid(rings[0])))
+    for r in rings:
+        stations.append(('ring', r))
+    if cap_end:
+        stations.append(('pole', centroid(rings[-1])))
+    verts, faces = _triangulate(stations, len(rings[0]))
+    m = Mesh(name, crease, uv_axis)
+    m.add(verts, faces)
+    return m
+
+
+def deform_mesh(m, fn):
+    m.v = [fn(p) for p in m.v]
+    return m
+
+
+def write_mtl(path, mat_name, kd, comment):
+    with open(path, 'w') as fh:
+        fh.write('# %s (no textures). Original content.\n' % comment)
+        fh.write('newmtl %s\nKa 0.02 0.02 0.02\nKd %s\nKs 0.03 0.03 0.03\nNs 8\nd 1\nillum 1\n'
+                 % (mat_name, kd))
+
+
+import math
+
+H = 1.60
+
+
+def g(x, y, z, cx, cy, cz, sx, sy, sz):
+    return math.exp(-(((x - cx) / sx) ** 2 + ((y - cy) / sy) ** 2 + ((z - cz) / sz) ** 2))
+
+
+def folds(a, t, amp=0.010, k=7, phase=0.0):
+    return (1.0 + amp * math.cos(k * a + 6.0 * t + phase),
+            1.0 + amp * 0.7 * math.cos(k * a + 5.0 * t + phase + 1.1))
+
+
+# ---------------------------------------------------------------- torso / jacket
+TORSO = [
+    # (y, rx, rz, z_offset)
+    (0.700, 0.181, 0.127, 0.000),   # jacket hem, flared
+    (0.745, 0.174, 0.121, 0.000),
+    (0.800, 0.168, 0.116, 0.001),
+    (0.860, 0.162, 0.111, 0.003),
+    (0.910, 0.156, 0.106, 0.004),   # hips
+    (0.980, 0.147, 0.099, 0.004),   # waist
+    (1.045, 0.154, 0.104, 0.002),
+    (1.120, 0.173, 0.112, 0.000),
+    (1.190, 0.187, 0.118, -0.002),  # chest
+    (1.250, 0.197, 0.117, -0.004),
+    (1.300, 0.201, 0.109, -0.006),  # shoulder line
+    (1.335, 0.171, 0.097, -0.008),
+    (1.362, 0.121, 0.083, -0.010),  # trapezius
+    (1.382, 0.086, 0.073, -0.011),  # collar base
+    (1.402, 0.075, 0.068, -0.012),  # standing collar
+]
+
+
+def torso():
+    path = [(0.0, s[0], s[3]) for s in TORSO]
+    radii = [(s[1], s[2]) for s in TORSO]
+    m = M.sweep('Torso', path, radii, seg=28, up=(1, 0, 0), cap_start='flat', cap_end='flat',
+                profile=lambda a, t: folds(a, t, amp=0.011 if t < 0.75 else 0.004), crease=70.0,
+                uv_axis='z')
+    # open the hem slightly at the front (jacket sits open over the hips)
+    def d(p):
+        x, y, z = p
+        if y < 0.86 and z > 0.02:
+            k = max(0.0, (0.86 - y) / 0.16) * max(0.0, z - 0.02) / 0.10
+            return (x, y, z - 0.010 * k)
+        return p
+    return M.deform_mesh(m, d)
+
+
+# ---------------------------------------------------------------- head
+HEAD = [
+    (1.3720, 0.013, 0.020, 0.026),
+    (1.3880, 0.031, 0.042, 0.022),
+    (1.4030, 0.045, 0.056, 0.017),
+    (1.4230, 0.055, 0.068, 0.010),
+    (1.4480, 0.066, 0.079, 0.003),
+    (1.4730, 0.071, 0.087, -0.002),
+    (1.4980, 0.073, 0.091, -0.005),
+    (1.5230, 0.072, 0.090, -0.007),
+    (1.5480, 0.066, 0.084, -0.009),
+    (1.5730, 0.053, 0.070, -0.011),
+    (1.5910, 0.033, 0.046, -0.013),
+    (1.6000, 0.011, 0.016, -0.015),
+]
+
+
+def head():
+    rings = []
+    SEG = 22
+    for (y, rx, rz, zo) in HEAD:
+        ring = []
+        for k in range(SEG):
+            a = 2 * math.pi * k / SEG
+            x = rx * math.cos(a)
+            z = rz * math.sin(a) + zo
+            # flatten the face plane a little
+            if z > zo:
+                z = zo + (z - zo) * 0.94
+            ring.append((x, y, z))
+        rings.append(ring)
+    m = M.loft_rings('Head', rings, crease=75.0, uv_axis='x')
+
+    def d(p):
+        x, y, z = p
+        front = max(0.0, min(1.0, (z - 0.010) / 0.040))
+        bridge = 0.0055 * g(x, y, z, 0.0, 1.4860, 0.084, 0.009, 0.016, 0.03) * front
+        nose = 0.0180 * g(x, y, z, 0.0, 1.4685, 0.074, 0.0130, 0.024, 0.05) * front
+        nose_tip = 0.007 * g(x, y, z, 0.0, 1.4600, 0.082, 0.011, 0.010, 0.03) * front
+        brow = 0.0105 * g(x, y, z, 0.0, 1.4990, 0.082, 0.031, 0.011, 0.04) * front
+        socket = -0.0105 * (g(x, y, z, 0.030, 1.4820, 0.078, 0.018, 0.012, 0.03) +
+                            g(x, y, z, -0.030, 1.4820, 0.078, 0.018, 0.012, 0.03)) * front
+        cheek = 0.0055 * (g(x, y, z, 0.050, 1.4600, 0.066, 0.017, 0.016, 0.04) +
+                          g(x, y, z, -0.050, 1.4600, 0.066, 0.017, 0.016, 0.04)) * front
+        mouth = -0.0035 * g(x, y, z, 0.0, 1.4270, 0.078, 0.016, 0.006, 0.03) * front
+        chin = 0.0060 * g(x, y, z, 0.0, 1.3830, 0.068, 0.016, 0.011, 0.04) * front
+        temple = -0.0040 * (g(x, y, z, 0.068, 1.5120, 0.010, 0.016, 0.020, 0.05) +
+                            g(x, y, z, -0.068, 1.5120, 0.010, 0.016, 0.020, 0.05))
+        occ = -0.0060 * g(x, y, z, 0.0, 1.5150, -0.085, 0.045, 0.035, 0.04)
+        mand = -0.0045 * (g(x, y, z, 0.043, 1.4090, 0.040, 0.010, 0.007, 0.05) +
+                          g(x, y, z, -0.043, 1.4090, 0.040, 0.010, 0.007, 0.05))
+        jaww = 0.0040 * (g(x, y, z, 0.052, 1.4090, 0.010, 0.014, 0.012, 0.04) +
+                         g(x, y, z, -0.052, 1.4090, 0.010, 0.014, 0.012, 0.04))
+        return (x + jaww, y, z + bridge + nose + nose_tip + brow + socket + cheek + mouth + chin + temple + occ + mand)
+    return M.deform_mesh(m, d)
+
+
+def head_radius(y):
+    for i in range(len(HEAD) - 1):
+        y0, rx0, rz0, zo0 = HEAD[i]
+        y1, rx1, rz1, zo1 = HEAD[i + 1]
+        if y0 <= y <= y1:
+            t = (y - y0) / max(1e-6, y1 - y0)
+            return (rx0 + (rx1 - rx0) * t, rz0 + (rz1 - rz0) * t, zo0 + (zo1 - zo0) * t)
+    return (HEAD[-1][1], HEAD[-1][2], HEAD[-1][3])
+
+
+def hair():
+    """Short hair shell: fringe over the brow, clumped, sits on the skull."""
+    ys = [1.5060, 1.5180, 1.5320, 1.5480, 1.5630, 1.5770, 1.5880, 1.5950, 1.6000]
+    SEG = 24
+    rings = []
+    for i, y in enumerate(ys):
+        rx, rz, zo = head_radius(min(y, 1.5999))
+        off = 0.0044
+        ring = []
+        for k in range(SEG):
+            a = 2 * math.pi * k / SEG
+            clump = 1.0 + 0.035 * math.cos(5 * a + 0.7) + 0.02 * math.cos(9 * a)
+            # fringe: rim dips at the front, lifts at the sides
+            yy = y
+            if i == 0:
+                fr = max(0.0, math.sin(a))
+                bk = max(0.0, -math.sin(a))
+                yy = (y + 0.004 * fr - 0.020 * bk - 0.010 * abs(math.cos(a))
+                      + 0.0035 * math.cos(9 * a + 0.4))
+            ring.append(((rx + off) * clump * math.cos(a),
+                         yy,
+                         (rz + off) * clump * math.sin(a) + zo - 0.002))
+        rings.append(ring)
+    m = M.loft_rings('Hair', rings, crease=75.0, uv_axis='x', cap_start=True, cap_end=True)
+    return m
+
+
+def ears():
+    out = []
+    for sx, suf in ((1, 'L'), (-1, 'R')):
+        out.append(M.sphere('Ear_' + suf, rings=8, seg=12, radius=(0.005, 0.017, 0.011),
+                            center=(sx * 0.0700, 1.4740, -0.006), crease=75.0, uv_axis='x'))
+    return out
+
+
+def neck():
+    return M.sweep('Neck', [(0.0, 1.278, -0.004), (0.0, 1.330, -0.002), (0.0, 1.375, 0.002),
+                            (0.0, 1.400, 0.004)],
+                   [(0.052, 0.049), (0.049, 0.046), (0.046, 0.043), (0.044, 0.041)],
+                   seg=16, up=(1, 0, 0), cap_start='flat', cap_end='flat', crease=70.0, uv_axis='z')
+
+
+def hood():
+    """Hood pushed back: a bunched roll across the shoulders behind the neck."""
+    path = [(-0.168, 1.238, -0.040), (-0.140, 1.290, -0.086), (-0.086, 1.330, -0.118),
+            (-0.028, 1.348, -0.130), (0.028, 1.348, -0.130), (0.086, 1.330, -0.118),
+            (0.140, 1.290, -0.086), (0.168, 1.238, -0.040)]
+    radii = [(0.026, 0.022), (0.044, 0.036), (0.058, 0.046), (0.062, 0.050),
+             (0.062, 0.050), (0.058, 0.046), (0.044, 0.036), (0.026, 0.022)]
+    m = M.sweep('Hood', path, radii, seg=18, up=(0, 1, 0), cap_start='dome', cap_end='dome',
+                cap_rings=3, profile=lambda a, t: folds(a, t, amp=0.022, k=5), crease=70.0,
+                uv_axis='y')
+    def d(p):
+        x, y, z = p
+        # lift the middle of the roll into a peak
+        peak = g(x, y, z, 0.0, 1.350, -0.120, 0.070, 0.040, 0.060)
+        return (x, y + 0.030 * peak, z - 0.012 * peak)
+    return M.deform_mesh(m, d)
+
+
+# ---------------------------------------------------------------- limbs
+def deltoid(sx, suf):
+    return M.sphere('Shoulder_' + suf, rings=10, seg=14, radius=(0.058, 0.062, 0.057),
+                    center=(sx * 0.170, 1.292, -0.004), crease=75.0, uv_axis='x')
+
+
+def upper_arm(sx, suf):
+    path = [(sx * 0.176, 1.272, -0.004), (sx * 0.186, 1.230, -0.002), (sx * 0.194, 1.160, 0.000),
+            (sx * 0.199, 1.100, 0.002), (sx * 0.201, 1.078, 0.002)]
+    radii = [(0.050, 0.047), (0.048, 0.045), (0.043, 0.040), (0.039, 0.037), (0.038, 0.036)]
+    return M.sweep('UpperArm_' + suf, path, radii, seg=16, up=(0, 0, 1), cap_start='flat',
+                   cap_end='flat', crease=70.0, uv_axis='x')
+
+
+def forearm(sx, suf):
+    path = [(sx * 0.201, 1.080, 0.002), (sx * 0.203, 1.020, 0.002), (sx * 0.204, 0.955, 0.002),
+            (sx * 0.205, 0.912, 0.002), (sx * 0.205, 0.888, 0.002), (sx * 0.205, 0.850, 0.002)]
+    radii = [(0.040, 0.038), (0.038, 0.036), (0.034, 0.032), (0.037, 0.035),
+             (0.040, 0.038), (0.030, 0.029)]
+    return M.sweep('Forearm_' + suf, path, radii, seg=16, up=(0, 0, 1), cap_start='flat',
+                   cap_end='dome', cap_rings=3, crease=70.0, uv_axis='x')
+
+
+def hand_stub(sx, suf):
+    """Relaxed hand on the body; the separate SM_Player_Hand_* assets are the grip hands."""
+    path = [(sx * 0.205, 0.852, 0.004), (sx * 0.205, 0.812, 0.010), (sx * 0.204, 0.772, 0.018),
+            (sx * 0.202, 0.742, 0.024)]
+    radii = [(0.026, 0.033), (0.029, 0.039), (0.027, 0.037), (0.018, 0.026)]
+    return M.sweep('Hand_' + suf, path, radii, seg=14, up=(1, 0, 0), cap_start='flat',
+                   cap_end='dome', cap_rings=3, crease=70.0, uv_axis='z')
+
+
+def thigh(sx, suf):
+    path = [(sx * 0.086, 0.905, 0.000), (sx * 0.086, 0.810, 0.002), (sx * 0.086, 0.660, 0.004),
+            (sx * 0.086, 0.520, 0.004), (sx * 0.086, 0.462, 0.004)]
+    radii = [(0.088, 0.084), (0.083, 0.079), (0.071, 0.068), (0.059, 0.057), (0.056, 0.054)]
+    return M.sweep('Thigh_' + suf, path, radii, seg=16, up=(1, 0, 0), cap_start='flat',
+                   cap_end='flat', crease=70.0, uv_axis='z')
+
+
+def shin(sx, suf):
+    path = [(sx * 0.086, 0.470, 0.004), (sx * 0.086, 0.400, 0.002), (sx * 0.086, 0.320, 0.000),
+            (sx * 0.086, 0.300, 0.000), (sx * 0.086, 0.200, -0.004), (sx * 0.086, 0.150, -0.008)]
+    radii = [(0.057, 0.055), (0.056, 0.054), (0.049, 0.047), (0.054, 0.052),
+             (0.043, 0.041), (0.037, 0.035)]
+    return M.sweep('Shin_' + suf, path, radii, seg=16, up=(1, 0, 0), cap_start='flat',
+                   cap_end='flat', profile=lambda a, t: folds(a, t, amp=0.012, k=6), crease=70.0,
+                   uv_axis='z')
+
+
+def boot(sx, suf):
+    path = [(sx * 0.086, 0.150, -0.012), (sx * 0.086, 0.098, -0.006), (sx * 0.086, 0.062, 0.002),
+            (sx * 0.086, 0.046, 0.048), (sx * 0.086, 0.042, 0.105), (sx * 0.086, 0.046, 0.150),
+            (sx * 0.086, 0.050, 0.178)]
+    radii = [(0.037, 0.041), (0.040, 0.048), (0.043, 0.055), (0.043, 0.053),
+             (0.041, 0.049), (0.035, 0.041), (0.023, 0.027)]
+    m = M.sweep('Foot_' + suf, path, radii, seg=16, up=(0, 1, 0), cap_start='flat',
+                cap_end='dome', cap_rings=3, crease=70.0, uv_axis='x')
+
+    def d(p):
+        x, y, z = p
+        if y < 0.011:            # flat sole
+            y = 0.0
+        return (x, y, z)
+    return M.deform_mesh(m, d)
+
+
+def build_body():
+    objs = [torso(), head(), hair(), neck(), hood()] + ears()
+    for sx, suf in ((1, 'L'), (-1, 'R')):
+        objs += [deltoid(sx, suf), upper_arm(sx, suf), forearm(sx, suf), hand_stub(sx, suf),
+                 thigh(sx, suf), shin(sx, suf), boot(sx, suf)]
+    lo = [1e9, 1e9, 1e9]
+    hi = [-1e9, -1e9, -1e9]
+    for m in objs:
+        a, b = m.bbox()
+        for i in range(3):
+            lo[i] = min(lo[i], a[i])
+            hi[i] = max(hi[i], b[i])
+    dy = -lo[1]
+    dx = -(lo[0] + hi[0]) / 2.0
+    for m in objs:
+        m.v = [(p[0] + dx, p[1] + dy, p[2]) for p in m.v]
+    return objs
+
+
+import math
+
+R_CONTACT = 0.0212      # torch handle contact radius (0.0200 barrel + 1.2 mm rib crest)
+GRIP_X = 0.034          # |x| of the handle axis, i.e. the Grip marker position (unchanged)
+GRIP_Z = 0.050          # z of the Grip marker (unchanged)
+
+FINGERS = [
+    # name,          z,     width,  thick,  wrap_deg, knuckle_r, len_scale
+    ('Finger_Index', 0.0850, 0.0162, 0.0082, 202.0, 0.0400, 1.00),
+    ('Finger_Middle', 0.0665, 0.0168, 0.0086, 208.0, 0.0405, 1.05),
+    ('Finger_Ring', 0.0480, 0.0158, 0.0080, 200.0, 0.0395, 0.99),
+    ('Finger_Pinky', 0.0300, 0.0136, 0.0068, 188.0, 0.0375, 0.90),
+]
+THETA0 = math.radians(56.0)   # knuckle angle: upper palm edge, wraps over the top
+
+
+def smooth(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3 - 2 * t)
+
+
+def spiral_path(sign, z0, wrap_deg, knuckle_r, thick_base, thick_tip, stations=17,
+                theta0=THETA0, z1=None, contact=R_CONTACT):
+    """Centreline of one digit wrapping the handle.
+
+    Returns (points, (rx, ry) per point) where rx is the half-width along the handle axis
+    and ry the half-thickness radially. Ring radius carries the chord-sag correction so the
+    flat-sided tube never cuts inside the handle between stations.
+    """
+    dz = (z1 - z0) if z1 is not None else 0.0
+    dtheta = math.radians(wrap_deg)
+    pts = []
+    rad = []
+    for i in range(stations):
+        s = i / (stations - 1.0)
+        th = theta0 + dtheta * s
+        taper = smooth(min(1.0, s / 0.30))
+        th_t = thick_base + (thick_tip - thick_base) * s
+        r_ring = knuckle_r + (contact + 0.0004 + th_t - knuckle_r) * taper
+        d = abs(dtheta) / (stations - 1.0)
+        r_ring = r_ring / math.cos(d / 2.0)
+        z = z0 + dz * s
+        pts.append((sign * (GRIP_X - r_ring * math.cos(th)), r_ring * math.sin(th), z))
+        w = 1.0 - 0.18 * s
+        rad.append((0.5 * 0.0165 * w * 1.0, th_t))
+    return pts, rad
+
+
+def hand_digit(name, sign, z0, width, thick, wrap_deg, knuckle_r, len_scale, theta0=THETA0,
+          z1=None, seg=10, stations=17):
+    pts, _ = spiral_path(sign, z0, wrap_deg, knuckle_r, thick, thick * 0.70, stations=stations,
+                         theta0=theta0, z1=z1)
+    radii = []
+    for i in range(stations):
+        s = i / (stations - 1.0)
+        t = thick * (1.0 - 0.22 * s ** 1.3)
+        w = 0.5 * width * (1.0 - 0.20 * s ** 1.3) * len_scale
+        for jc in (0.40, 0.70):
+            t *= 1.0 - 0.10 * math.exp(-((s - jc) ** 2) / 0.0016)
+            w *= 1.0 - 0.07 * math.exp(-((s - jc) ** 2) / 0.0016)
+        radii.append((w, t))
+    return M.sweep(name, pts, radii, seg=seg, up=(0, 0, 1), cap_start='dome', cap_end='dome',
+                   cap_rings=3, crease=70.0, uv_axis='z')
+
+
+def hand_thumb(sign):
+    """Thumb: comes off the palm base, wraps the underside, tip meets the index finger."""
+    stations = 15
+    theta_a = math.radians(-34.0)
+    theta_b = math.radians(-168.0)
+    pts = []
+    radii = []
+    for i in range(stations):
+        s = i / (stations - 1.0)
+        th = theta_a + (theta_b - theta_a) * s
+        taper = smooth(min(1.0, s / 0.34))
+        t = 0.0086 + (0.0068 - 0.0086) * s
+        r_ring = 0.0405 + (R_CONTACT + 0.0018 + t - 0.0405) * taper
+        d = abs(theta_b - theta_a) / (stations - 1.0)
+        r_ring = r_ring / math.cos(d / 2.0)
+        z = 0.002 + 0.052 * smooth(s)
+        pts.append((sign * (GRIP_X - r_ring * math.cos(th)), r_ring * math.sin(th), z))
+        radii.append((0.5 * 0.0205 * (1.0 - 0.14 * s), t))
+    return M.sweep('Thumb', pts, radii, seg=10, up=(0, 0, 1), cap_start='dome', cap_end='dome',
+                   cap_rings=3, crease=70.0, uv_axis='z')
+
+
+def palm(sign):
+    """Palm: rounded slab, palmar face tangent to the handle, widening at the knuckles."""
+    st = [(-0.022, 0.0125, 0.0295), (0.004, 0.0135, 0.0360), (0.034, 0.0140, 0.0402),
+          (0.064, 0.0140, 0.0410), (0.086, 0.0126, 0.0382), (0.097, 0.0088, 0.0296)]
+    face = sign * (GRIP_X - R_CONTACT)
+    path = [(face - sign * rx, 0.0015, z) for (z, rx, ry) in st]
+    radii = [(rx, ry) for (z, rx, ry) in st]
+    n = 3.0
+
+    def se(a, t):
+        c, s_ = abs(math.cos(a)), abs(math.sin(a))
+        k = (c ** n + s_ ** n) ** (1.0 / n)
+        return (1.0 / k, 1.0 / k)
+    return M.sweep('Palm', path, radii, seg=20, up=(1, 0, 0), cap_start='flat', cap_end='flat',
+                   profile=se, crease=70.0, uv_axis='z')
+
+
+def hand_forearm(sign):
+    path = [(sign * 0.002, 0.001, -0.185), (sign * 0.002, 0.001, -0.130),
+            (sign * 0.002, 0.001, -0.070), (sign * 0.001, 0.001, -0.030),
+            (sign * 0.001, 0.000, -0.008)]
+    radii = [(0.0365, 0.0335), (0.0345, 0.0320), (0.0325, 0.0300), (0.0315, 0.0295),
+             (0.0300, 0.0285)]
+    return M.sweep('Forearm', path, radii, seg=14, up=(1, 0, 0), cap_start='flat', cap_end='flat',
+                   crease=70.0, uv_axis='x')
+
+
+def hand_cuff(sign):
+    """Sleeve cuff over the wrist end of the forearm, with cloth folds."""
+    path = [(sign * 0.002, 0.001, -0.170), (sign * 0.002, 0.001, -0.120),
+            (sign * 0.002, 0.001, -0.075), (sign * 0.002, 0.001, -0.048),
+            (sign * 0.002, 0.001, -0.040), (sign * 0.001, 0.001, -0.014)]
+    radii = [(0.0425, 0.0395), (0.0435, 0.0405), (0.0420, 0.0390), (0.0455, 0.0425),
+             (0.0450, 0.0420), (0.0380, 0.0355)]
+    return M.sweep('Cuff', path, radii, seg=18, up=(1, 0, 0), cap_start='flat', cap_end='flat',
+                   profile=lambda a, t: (1.0 + 0.007 * math.cos(6 * a + 7 * t),
+                                         1.0 + 0.006 * math.cos(6 * a + 6 * t + 1.2)),
+                   crease=70.0, uv_axis='x')
+
+
+def build_hand(sign):
+    """sign = -1 for the L file (palm faces -X), +1 for the R file."""
+    objs = [palm(sign), hand_forearm(sign), hand_cuff(sign), hand_thumb(sign)]
+    for name, z, w, t, wrap, kr, ls in FINGERS:
+        objs.append(hand_digit(name, sign, z, w, t, wrap, kr, ls))
+    gx = sign * GRIP_X
+    objs.append(M.cube('Grip', (gx - 0.004, -0.004, GRIP_Z - 0.004),
+                       (gx + 0.004, 0.004, GRIP_Z + 0.004)))
+    return objs
+
+
+import math
+
+R_BARREL = 0.0200
+RIB = 0.0012
+R_CONTACT = R_BARREL + RIB     # 0.0212
+
+
+def handle():
+    prof = [(0.0, -0.1040), (0.0075, -0.1020), (0.0135, -0.0985), (0.0182, -0.0930),
+            (0.0198, -0.0880)]
+    z = -0.088
+    while z < 0.0425:
+        prof.append((R_BARREL + RIB * math.cos(2 * math.pi * (z + 0.088) / 0.0110), z))
+        z += 0.0040
+    prof += [(0.0202, 0.0445), (0.0202, 0.0455), (0.0, 0.0455)]
+    return M.revolve('Handle', prof, seg=18, axis='z', crease=40.0, uv_axis='x')
+
+
+def torch_body():
+    prof = [(0.0, 0.0450), (0.0206, 0.0450), (0.0212, 0.0560), (0.0226, 0.0720),
+            (0.0242, 0.0900), (0.0255, 0.1080), (0.0262, 0.1240), (0.0264, 0.1330),
+            (0.0, 0.1330)]
+    return M.revolve('Body', prof, seg=20, axis='z', crease=45.0, uv_axis='x')
+
+
+def head_ring():
+    loop = [(0.0262, 0.1328), (0.0300, 0.1352), (0.0322, 0.1420), (0.0328, 0.1560),
+            (0.0326, 0.1760), (0.0318, 0.1930), (0.0296, 0.1996), (0.0262, 0.1996),
+            (0.0258, 0.1880)]
+    return M.revolve_closed('HeadRing', loop, seg=24, axis='z', crease=32.0, uv_axis='x')
+
+
+def reflector():
+    """Recessed cone bowl behind the front rim; inner surface faces the beam."""
+    loop = [(0.0256, 0.1984), (0.0254, 0.1800), (0.0110, 0.1660), (0.0094, 0.1662),
+            (0.0234, 0.1812), (0.0238, 0.1978)]
+    return M.revolve_closed('Reflector', loop, seg=24, axis='z', crease=40.0, uv_axis='x')
+
+
+def lens():
+    prof = [(0.0, 0.1648), (0.0080, 0.1652), (0.0092, 0.1666), (0.0090, 0.1694),
+            (0.0, 0.1702)]
+    return M.revolve('Lens', prof, seg=20, axis='z', crease=40.0, uv_axis='x')
+
+
+def switch():
+    m = M.cube('Switch', (-0.0055, 0.0182, -0.0060), (0.0055, 0.0238, 0.0120), crease=30.0)
+    return m
+
+
+def build_torch():
+    objs = [handle(), torch_body(), head_ring(), reflector(), lens(), switch()]
+    objs.append(M.cube('Grip', (-0.004, -0.004, -0.004), (0.004, 0.004, 0.004)))
+    objs.append(M.cube('Muzzle', (-0.004, -0.004, 0.196), (0.004, 0.004, 0.204)))
+    return objs
+
+
+M = sys.modules[__name__]
+
+
+import json
+import math
+import os
+import sys
+
+
+OUT = sys.argv[1] if len(sys.argv) > 1 else 'out'
+os.makedirs(OUT, exist_ok=True)
+
+HEADER = [
+    'units=metres, Y-up, character faces +Z, +X = character left, right-handed file space, scale 1',
+    'procedural original content, generated by generate_models.py (LightShadow contrib, Ziad)',
+    'smooth vertex normals (crease-aware), per-part planar UVs in 0..1, one material, no textures',
+    'triangulated; CCW winding = front face',
+]
+
+
+def write(fname, mat_name, kd, objs, extra):
+    stats = M.write_obj(os.path.join(OUT, fname + '.obj'), fname + '.mtl', objs,
+                        HEADER + extra)
+    M.write_mtl(os.path.join(OUT, fname + '.mtl'), mat_name, kd, fname)
+    return stats
+
+
+res = {}
+body = build_body()
+res['SM_Player_Body'] = write('SM_Player_Body', 'MAT_Player_Body', '0.14 0.13 0.13', body, [
+    'origin = feet centre on the floor (y = 0), 1.60 m tall, character faces +Z',
+    'Grip/Muzzle markers do not exist in this file; see SM_Torch',
+])
+for sign, suf in ((-1, 'L'), (1, 'R')):
+    hand = build_hand(sign)
+    res['SM_Player_Hand_' + suf] = write('SM_Player_Hand_' + suf, 'MAT_Player_Hand',
+                                         '0.17 0.15 0.14', hand, [
+        'origin = wrist centre; forearm back along -Z, fingers forward +Z',
+        'handle axis parallel to +Z at x = %s0.034, y = 0 (Grip marker); torch handle r = 0.0212'
+        % ('-' if sign < 0 else '+'),
+        'Grip marker: 8 mm cube at the handle axis - disable its renderer, use its transform only',
+    ])
+torch = build_torch()
+res['SM_Torch'] = write('SM_Torch', 'MAT_Torch', '0.10 0.10 0.11', torch, [
+    'origin = grip point; beam along +Z; length 0.30 m (z -0.10 .. 0.20)',
+    'Grip marker at the origin, Muzzle marker at (0, 0, 0.200) - disable their renderers',
+])
+
+print(json.dumps({k: [(n, v, f) for n, v, f in s] for k, s in res.items()}, indent=1))
+tot = {}
+for k, s in res.items():
+    tot[k] = (sum(v for _, v, _ in s), sum(f for _, _, f in s), len(s))
+for k, v in tot.items():
+    print('%-20s objects=%2d verts=%5d tris=%5d' % (k, v[2], v[0], v[1]))
