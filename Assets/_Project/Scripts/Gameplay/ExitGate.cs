@@ -105,5 +105,50 @@ namespace LightShadow.Gameplay
 
             if (GameManager.Instance != null) GameManager.Instance.Escape();
         }
+
+        // F5 restore support: is the player capsule inside the escape zone
+        // right now? Bounded, non-allocating overlap query:
+        //   - abs(lossyScale) per axis, so a mirrored gate (negative scale)
+        //     still measures the box correctly;
+        //   - returns false when no player collider is among the hits;
+        //   - SATURATION: at most 16 colliders are inspected. If more than 16
+        //     overlap the zone, colliders past the first 16 are invisible to
+        //     the query and a player among them is missed (false negative).
+        //     Acceptable for a one-shot restore check: the gate zone holds
+        //     the player capsule plus a handful of set dressing, never 16+;
+        //   - the query spans every layer and includes trigger colliders, so
+        //     the escapeZone layer setup cannot exclude the player capsule.
+        public bool PlayerInsideEscapeZone()
+        {
+            if (escapeZone == null) return false;
+
+            Vector3 scale = escapeZone.transform.lossyScale;
+            Vector3 half = new Vector3(
+                Mathf.Abs(scale.x) * escapeZone.size.x * 0.5f,
+                Mathf.Abs(scale.y) * escapeZone.size.y * 0.5f,
+                Mathf.Abs(scale.z) * escapeZone.size.z * 0.5f);
+            int hitCount = Physics.OverlapBoxNonAlloc(
+                escapeZone.transform.TransformPoint(escapeZone.center), half,
+                overlapBuffer, escapeZone.transform.rotation, ~0,
+                QueryTriggerInteraction.Collide);
+            return ContainsPlayer(overlapBuffer, hitCount);
+        }
+
+        // Pure scan seam for tests: true when any of the first count entries
+        // belongs to a PlayerController. Tolerates a null array, null entries
+        // and a count past the buffer length.
+        public static bool ContainsPlayer(Collider[] hits, int count)
+        {
+            if (hits == null) return false;
+            if (count > hits.Length) count = hits.Length;
+            for (int i = 0; i < count; i++)
+            {
+                if (hits[i] != null && hits[i].GetComponentInParent<PlayerController>() != null)
+                    return true;
+            }
+            return false;
+        }
+
+        static readonly Collider[] overlapBuffer = new Collider[16];
     }
 }
