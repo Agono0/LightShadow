@@ -148,6 +148,14 @@ namespace LightShadow.UI
 
         void Update()
         {
+            // A respawn clears every overlay token (OverlayStack.ResetAll) but a busy
+            // success panel refuses Close(false) and stayed on screen unlocked.
+            if (IsOpen && (lockToken == null || !lockToken.IsActive))
+            {
+                busy = false;
+                Close(false);
+                return;
+            }
             if (!IsOpen || busy) return;
 
             for (int i = 0; i <= 9; i++)
@@ -184,14 +192,24 @@ namespace LightShadow.UI
         void Nudge(int index, int delta)
         {
             if (busy || index < 0 || index >= digits.Length) return;
+            ClearButtonFocus();
             digits[index] = (digits[index] + delta + 10) % 10;
             selected = index;
             RenderDigits();
         }
 
+        // A clicked +/- button stays selected, and Enter then also "submits" it
+        // through the EventSystem on top of our own Enter = Confirm.
+        static void ClearButtonFocus()
+        {
+            if (UnityEngine.EventSystems.EventSystem.current != null)
+                UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+        }
+
         void Confirm()
         {
             if (busy) return;
+            ClearButtonFocus();
 
             string entered = "";
             for (int i = 0; i < digits.Length; i++) entered += digits[i].ToString();
