@@ -43,8 +43,9 @@ namespace LightShadow.UI
         public bool IsOpen => panel != null && panel.activeSelf;
 
         // What happens after the panel picks a slot.
-        enum Intent { None, Load, NewGame }
+        enum Intent { None, Load, NewGame, Delete, Notice }
         Intent pendingIntent;
+        int pendingSlot = -1; // the slot the open confirmation belongs to
 
         void Awake()
         {
@@ -225,22 +226,46 @@ namespace LightShadow.UI
         void AskDelete(int slot)
         {
             if (!SaveSystem.HasSave(slot)) return;
-            ShowConfirm(slot, StoryStrings.Tr("Delete this save?"), Intent.None);
+            ShowConfirm(slot, StoryStrings.Tr("Delete this save?"), Intent.Delete);
         }
 
+        void CloseAllConfirms()
+        {
+            if (rows != null)
+            {
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    if (rows[i] != null && rows[i].confirmRoot != null) rows[i].confirmRoot.SetActive(false);
+                }
+            }
+            pendingIntent = Intent.None;
+            pendingSlot = -1;
+        }
+
+        // One confirmation at a time: opening one closes the rest, and the
+        // open one remembers its slot and intent (audit: stale dialogs).
         void ShowConfirm(int slot, string message, Intent intent)
         {
             SlotRow row = rows[slot];
             if (row == null || row.confirmRoot == null) return;
+            CloseAllConfirms();
             pendingIntent = intent;
+            pendingSlot = slot;
             if (row.confirmText != null) row.confirmText.text = message;
             row.confirmRoot.SetActive(true);
+        }
+
+        // Close-only message on a slot row; either button just closes it.
+        void ShowNotice(int slot, string message)
+        {
+            if (slot < 0 || rows == null || slot >= rows.Length) return;
+            ShowConfirm(slot, message, Intent.Notice);
         }
 
         void CancelConfirm(int slot)
         {
             SlotRow row = rows[slot];
-            pendingIntent = Intent.None;
+            if (slot == pendingSlot) { pendingIntent = Intent.None; pendingSlot = -1; }
             if (row != null && row.confirmRoot != null) row.confirmRoot.SetActive(false);
         }
 
@@ -249,7 +274,13 @@ namespace LightShadow.UI
             SlotRow row = rows[slot];
             if (row != null && row.confirmRoot != null) row.confirmRoot.SetActive(false);
 
-            switch (pendingIntent)
+            // Only the dialog that is actually open may act, and None never
+            // means delete.
+            Intent intent = slot == pendingSlot ? pendingIntent : Intent.None;
+            pendingIntent = Intent.None;
+            pendingSlot = -1;
+
+            switch (intent)
             {
                 case Intent.NewGame:
                     SaveSystem.DeleteSlot(slot); // "New Game (choose slot -> clears)"
@@ -259,12 +290,13 @@ namespace LightShadow.UI
                 case Intent.Load:
                     LoadSlot(slot);
                     break;
-                default:
+                case Intent.Delete:
                     SaveSystem.DeleteSlot(slot);
                     Refresh();
                     break;
+                default:
+                    break; // Notice or a stale dialog: nothing happens
             }
-            pendingIntent = Intent.None;
         }
 
         void StartRun(Intent intent)
@@ -280,6 +312,7 @@ namespace LightShadow.UI
                 {
                     Debug.LogWarning("[LightShadow] Save slot " + SaveSystem.CurrentSlot + " could not be read; staying on the menu.");
                     Refresh();
+                    ShowNotice(SaveSystem.CurrentSlot, StoryStrings.Tr("That save could not be read. It was left untouched."));
                     return;
                 }
             }

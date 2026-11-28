@@ -69,6 +69,7 @@ namespace LightShadow.Story
             { "Saved {0}", "محفوظ في {0}" },
             { "Overwrite this slot?", "الكتابة فوق هذه الخانة؟" },
             { "Delete this save?", "حذف هذا الحفظ؟" },
+            { "That save could not be read. It was left untouched.", "تعذّرت قراءة هذا الحفظ. تُرك كما هو." }, // AI-drafted, not native-reviewed
             { "No saves yet. The night has not been written.", "لا حفظيات بعد. الليلة لم تُكتب بعد." },
             { "SAVES", "الحفظ" },
 
