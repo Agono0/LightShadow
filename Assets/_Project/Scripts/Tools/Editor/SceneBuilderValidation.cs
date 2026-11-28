@@ -23,6 +23,15 @@ namespace LightShadow.Tools
     // broken build fails loudly instead of at the showcase.
     public static partial class SceneBuilder
     {
+        static bool HasAncestorNamed(Transform t, string ancestorName)
+        {
+            for (Transform p = t.parent; p != null; p = p.parent)
+            {
+                if (p.name == ancestorName) return true;
+            }
+            return false;
+        }
+
         static string ValidateScenes()
         {
             var report = new StringBuilder();
@@ -51,7 +60,10 @@ namespace LightShadow.Tools
                         // Dawn exception: the DawnChase corridor lamps are the story's dawn.
                         // They start inactive and only come up (DawnRiser) after the gate is
                         // powered, so they are not part of the dark night the cap protects.
-                        bool dawnLamp = light.transform.parent != null && light.transform.parent.name == "DawnChase";
+                        // AddLamp nests the light as DawnChase/Lamp/Light, so look at
+                        // every ancestor (a direct-parent check never matched; the
+                        // first editor run failed on all four dawn lamps).
+                        bool dawnLamp = HasAncestorNamed(light.transform, "DawnChase");
                         if (!dawnLamp && light.intensity > 1.0f) problems.Add("School lamp too bright for a torch-first game: " + light.name + " intensity " + light.intensity.ToString("0.0") + " (max 1.0).");
                     }
                     if (light.name.Contains("Moon")) problems.Add("School scene still has a moon fill light: " + light.name);
@@ -187,7 +199,7 @@ namespace LightShadow.Tools
             int hideSpots = Object.FindObjectsByType<HideSpot>(FindObjectsInactive.Include).Length;
 
             report.AppendLine("Fuse boxes: " + fuses + " (need 3)");
-            report.AppendLine("Fragments: " + fragments + " (need 6)");
+            report.AppendLine("Fragments: " + fragments + " (need at least " + GameManager.FragmentTarget + ")");
             report.AppendLine("Batteries: " + batteries + " (need at least 5)");
             report.AppendLine("Quiz boards: " + boards + " (need at least 6)");
             report.AppendLine("Lit zones: " + zones + " (need " + ExpectedLitZones + ")");
@@ -195,7 +207,8 @@ namespace LightShadow.Tools
             report.AppendLine("Hide spots: " + hideSpots + " (need 6)");
 
             if (fuses != 3) problems.Add("School: expected 3 fuse boxes, found " + fuses + ".");
-            if (fragments != 6) problems.Add("School: expected 6 fragments, found " + fragments + ".");
+            // At least the target: the infirmary adds a seventh, spare fragment (#26).
+            if (fragments < GameManager.FragmentTarget) problems.Add("School: expected at least " + GameManager.FragmentTarget + " fragments, found " + fragments + ".");
             if (batteries < 5) problems.Add("School: expected at least 5 batteries, found " + batteries + ".");
             if (boards < 6) problems.Add("School: expected at least 6 quiz boards, found " + boards + ".");
 
