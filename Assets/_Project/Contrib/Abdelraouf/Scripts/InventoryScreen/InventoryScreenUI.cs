@@ -350,13 +350,18 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
             gridRoot.anchoredPosition = new Vector2(30f, -70f);
             gridRoot.sizeDelta = new Vector2(560f, 420f);
 
-            detailName = MakeText(window.transform, "DetailName", new Vector2(620f, 180f), new Vector2(270f, 36f), 24, TextAnchor.MiddleLeft);
-            detailDescription = MakeText(window.transform, "DetailDescription", new Vector2(620f, 40f), new Vector2(270f, 220f), 18, TextAnchor.UpperLeft);
+            // The detail column sits right of the grid: its left edge 620 from the
+            // window's left. MakeText/MakeButton anchor on the window centre
+            // (width 920, so centre-relative x = left - 460 + width / 2); the old
+            // left-edge numbers put the pane and buttons past the right edge
+            // (seen in the editor 2026-11-28, cut off at 16:9).
+            detailName = MakeText(window.transform, "DetailName", new Vector2(295f, 180f), new Vector2(270f, 36f), 24, TextAnchor.MiddleLeft);
+            detailDescription = MakeText(window.transform, "DetailDescription", new Vector2(295f, 40f), new Vector2(270f, 220f), 18, TextAnchor.UpperLeft);
             detailDescription.verticalOverflow = VerticalWrapMode.Overflow;
-            feedbackText = MakeText(window.transform, "Feedback", new Vector2(620f, -120f), new Vector2(270f, 30f), 16, TextAnchor.MiddleLeft);
+            feedbackText = MakeText(window.transform, "Feedback", new Vector2(295f, -120f), new Vector2(270f, 30f), 16, TextAnchor.MiddleLeft);
 
-            useButton = MakeButton(window.transform, "UseButton", new Vector2(620f, -180f), new Vector2(130f, 44f), UseSelected, out useButtonLabel);
-            MakeButton(window.transform, "CloseButton", new Vector2(760f, -180f), new Vector2(130f, 44f), Close, out closeButtonLabel);
+            useButton = MakeButton(window.transform, "UseButton", new Vector2(225f, -180f), new Vector2(130f, 44f), UseSelected, out useButtonLabel);
+            MakeButton(window.transform, "CloseButton", new Vector2(365f, -180f), new Vector2(130f, 44f), Close, out closeButtonLabel);
 
             controlsText = MakeText(window.transform, "Controls", new Vector2(0f, -252f), new Vector2(880f, 30f), 14, TextAnchor.MiddleCenter);
         }
