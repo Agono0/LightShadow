@@ -276,14 +276,18 @@ namespace LightShadow.UI
 
         void ConfirmYes(int slot)
         {
-            SlotRow row = rows[slot];
-            if (row != null && row.confirmRoot != null) row.confirmRoot.SetActive(false);
-
             // Only the dialog that is actually open may act, and None never
             // means delete.
             Intent intent = slot == pendingSlot ? pendingIntent : Intent.None;
             pendingIntent = Intent.None;
             pendingSlot = -1;
+
+            // Pending is cleared, so no dialog may stay open: a stale Yes must
+            // not leave another row's dialog on screen with nothing behind it.
+            for (int r = 0; r < rows.Length; r++)
+            {
+                if (rows[r] != null && rows[r].confirmRoot != null) rows[r].confirmRoot.SetActive(false);
+            }
 
             switch (intent)
             {

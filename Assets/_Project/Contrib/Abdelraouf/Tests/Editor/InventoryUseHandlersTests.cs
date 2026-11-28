@@ -88,7 +88,7 @@ namespace LightShadow.Contrib.Abdelraouf.Tests.Editor
         [Test]
         public void UseMedkit_NoPlayer_ReturnsFalse_KeepsItem()
         {
-            Assert.IsNull(PlayerHealth.Instance, "fixture leak: a PlayerHealth singleton exists before the test");
+            Assert.IsTrue(PlayerHealth.Instance == null, "fixture leak: a PlayerHealth singleton exists before the test");
             RegisterMethod.Invoke(null, null);
             Inventory.Add("medkit");
 

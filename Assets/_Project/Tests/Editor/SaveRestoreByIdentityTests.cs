@@ -153,8 +153,9 @@ namespace LightShadow.Tests.Editor
             FuseBox c = MakeBox("SRBIT_Fuse_C");
             gm.ApplyLoadedState(DataWith(BlobWith(new[] { "SRBIT_Gone", "SRBIT_Fuse_B" }, null), 2, 0));
             Assert.IsTrue(b.Restored, "matched identity restores");
-            Assert.IsTrue(a.Restored, "the unmatched identity falls back to count: one more of the remainder");
-            Assert.IsFalse(c.Restored, "the saved count is never exceeded");
+            // Scan order is unspecified, so which of A/C fills the remainder is too.
+            Assert.AreEqual(1, (a.Restored ? 1 : 0) + (c.Restored ? 1 : 0),
+                "the unmatched identity falls back to count: exactly one more of the remainder, never past the saved count");
         }
 
         [Test]
