@@ -51,7 +51,9 @@ namespace LightShadow.Tools
                         // Dawn exception: the DawnChase corridor lamps are the story's dawn.
                         // They start inactive and only come up (DawnRiser) after the gate is
                         // powered, so they are not part of the dark night the cap protects.
-                        bool dawnLamp = light.transform.parent != null && light.transform.parent.name == "DawnChase";
+                        bool dawnLamp = false;
+                        for (Transform up = light.transform.parent; up != null; up = up.parent)
+                            if (up.name == "DawnChase") { dawnLamp = true; break; }
                         if (!dawnLamp && light.intensity > 1.0f) problems.Add("School lamp too bright for a torch-first game: " + light.name + " intensity " + light.intensity.ToString("0.0") + " (max 1.0).");
                     }
                     if (light.name.Contains("Moon")) problems.Add("School scene still has a moon fill light: " + light.name);
