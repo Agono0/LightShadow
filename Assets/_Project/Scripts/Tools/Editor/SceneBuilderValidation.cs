@@ -177,7 +177,7 @@ namespace LightShadow.Tools
             report.AppendLine("Fragments: " + fragments + " (need 6)");
             report.AppendLine("Batteries: " + batteries + " (need at least 5)");
             report.AppendLine("Quiz boards: " + boards + " (need at least 6)");
-            report.AppendLine("Lit zones: " + zones + " (need 5)");
+            report.AppendLine("Lit zones: " + zones + " (need " + ExpectedLitZones + ")");
             report.AppendLine("Exit gates: " + gates + " (need 1)");
             report.AppendLine("Hide spots: " + hideSpots + " (need 6)");
 
@@ -185,7 +185,18 @@ namespace LightShadow.Tools
             if (fragments != 6) problems.Add("School: expected 6 fragments, found " + fragments + ".");
             if (batteries < 5) problems.Add("School: expected at least 5 batteries, found " + batteries + ".");
             if (boards < 6) problems.Add("School: expected at least 6 quiz boards, found " + boards + ".");
-            if (zones != 5) problems.Add("School: expected 5 lit zones, found " + zones + ".");
+
+            int puzzleCount = Object.FindObjectsByType<PuzzleBase>(FindObjectsInactive.Include).Length;
+            int medkitCount = Object.FindObjectsByType<MedkitPickup>(FindObjectsInactive.Include).Length;
+            bool classroomSpare = false, staffSpare = false;
+            foreach (ItemPickup pickup in Object.FindObjectsByType<ItemPickup>(FindObjectsInactive.Include))
+            {
+                if (pickup.itemId == "classroom_key") classroomSpare = true;
+                if (pickup.itemId == "staff_key") staffSpare = true;
+            }
+            report.AppendLine("Puzzles: " + puzzleCount + " (need " + ExpectedPuzzles + "), medkits: " + medkitCount
+                + ", spare keys: classroom " + classroomSpare + ", staff " + staffSpare);
+            problems.AddRange(ContentPresenceProblems(zones, puzzleCount, medkitCount, classroomSpare, staffSpare));
             if (gates != 1) problems.Add("School: expected 1 exit gate, found " + gates + ".");
             if (hideSpots < 6) problems.Add("School: expected at least 6 hide spots, found " + hideSpots + ".");
 
