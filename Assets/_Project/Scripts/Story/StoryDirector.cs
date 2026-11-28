@@ -106,7 +106,9 @@ namespace LightShadow.Story
         {
             if (Instance != null && Instance != this)
             {
-                Destroy(gameObject);
+                // Only this component: the host is the shared Systems object
+                // (GameManager, CheckpointManager...), which must not die with it.
+                Destroy(this);
                 return;
             }
 

@@ -329,6 +329,7 @@ namespace LightShadow.UI
                 LightShadow.Contrib.Abdelraouf.HintLog.HintLogRecord.Clear();
                 RunResults.Reset();
                 Inventory.ResetForNewRun();
+                LightShadow.Player.HidingSystem.ResetState();
                 LightShadow.Contrib.Abdelraouf.Journal.JournalProgress.ResetForNewRun();
             }
 

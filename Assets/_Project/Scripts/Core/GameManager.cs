@@ -274,6 +274,8 @@ namespace LightShadow.Core
             }
 
             GameEvents.RaisePlayerCaught();
+            // A PlayerCaught listener (Dawnless rule) may have started the escape.
+            if (escaped) return false;
 
             // P3 haptics: the strike lands with a heavy buzz (Android only).
             LightShadow.Platform.HapticsService.Heavy();
@@ -309,6 +311,7 @@ namespace LightShadow.Core
             if (respawning || escaped) return;
             respawning = true;
             GameEvents.RaisePlayerCaught();
+            if (escaped) { respawning = false; return; }
 
             // P3 haptics: the catch lands with a heavy buzz (Android only).
             LightShadow.Platform.HapticsService.Heavy();
@@ -418,10 +421,17 @@ namespace LightShadow.Core
 
                 // Same hop as the checkpoint wake: switch the capsule off for
                 // the teleport so it does not fight the direct move.
-                CharacterController controller = player.GetComponent<CharacterController>();
-                if (controller != null) controller.enabled = false;
-                player.SetPositionAndRotation(data.position, Quaternion.Euler(0f, data.yaw, 0f));
-                if (controller != null) controller.enabled = true;
+                if (SaveSystem.HasUsablePosition(data))
+                {
+                    CharacterController controller = player.GetComponent<CharacterController>();
+                    if (controller != null) controller.enabled = false;
+                    player.SetPositionAndRotation(data.position, Quaternion.Euler(0f, data.yaw, 0f));
+                    if (controller != null) controller.enabled = true;
+                }
+                else
+                {
+                    Debug.LogWarning("[LightShadow] Saved position is not usable; the player stays at the spawn.");
+                }
             }
 
             if (hud != null) hud.RefreshObjectives();
