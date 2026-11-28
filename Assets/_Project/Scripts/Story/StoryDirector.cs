@@ -169,6 +169,15 @@ namespace LightShadow.Story
 
         void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            // The director outlives scene loads but the dialogue panel belongs
+            // to the school scene: rebind to the live one, or the old
+            // (destroyed) reference makes every node play silently headless.
+            if (scene.name == SceneNames.School)
+            {
+                DialogueUIController live = FindFirstObjectByType<DialogueUIController>();
+                if (live != null) dialogueUI = live;
+            }
+
             // The act-start beat plays once per school visit on a fresh run.
             if (scene.name == SceneNames.School && config != null
                 && !string.IsNullOrEmpty(config.actStartNodeId)
@@ -341,6 +350,7 @@ namespace LightShadow.Story
             }
 
             if (dialogueUI == null) dialogueUI = GetComponentInChildren<DialogueUIController>();
+            if (dialogueUI == null) dialogueUI = FindFirstObjectByType<DialogueUIController>();
             if (dialogueUI == null)
             {
                 // Headless fail-safe: walk the graph silently so nothing locks.

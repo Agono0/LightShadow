@@ -520,13 +520,23 @@ namespace LightShadow.Tools
         {
             OpenScene(SchoolPath);
 
-            // Story director + adaptive music live on the Systems object next to
-            // GameManager / CheckpointManager / AudioManager.
+            // Adaptive music hooks live on the Systems object next to
+            // GameManager / CheckpointManager / AudioManager; the story director has its own root.
             GameObject systems = GameObject.Find("Systems");
             if (systems == null) systems = new GameObject("Systems");
 
-            StoryDirector director = systems.GetComponent<StoryDirector>();
-            if (director == null) director = systems.AddComponent<StoryDirector>();
+            // The director is DontDestroyOnLoad and destroys duplicates, so it
+            // gets its OWN root: sharing the Systems root would persist (or
+            // destroy) GameManager and the other managers with it. A director
+            // left on Systems by an older build is removed.
+            StoryDirector onSystems = systems.GetComponent<StoryDirector>();
+            if (onSystems != null) UnityEngine.Object.DestroyImmediate(onSystems);
+            StoryDirector director = UnityEngine.Object.FindFirstObjectByType<StoryDirector>();
+            if (director == null)
+            {
+                GameObject directorRoot = new GameObject("StoryDirector");
+                director = directorRoot.AddComponent<StoryDirector>();
+            }
             director.config = config;
 
             // User decision (2026-11-27): no background music. AdaptiveMusic is

@@ -52,6 +52,7 @@ namespace LightShadow.UI
         Action onSolved;
         Action onWrongAttempt;
         bool busy;
+        bool solving; // the winning beat only: leaving is allowed while the sequence plays
         bool cursorWasLocked;
         InputLockToken lockToken;
 
@@ -102,6 +103,7 @@ namespace LightShadow.UI
             }
 
             inputIndex = 0;
+            solving = false;
             busy = true; // until the first playback finishes
 
             SetLocalized(feedbackText,
@@ -212,6 +214,7 @@ namespace LightShadow.UI
                 if (inputIndex >= sequence.Length)
                 {
                     busy = true;
+                    solving = true;
                     if (closeButton != null) closeButton.interactable = false;
                     SetLocalized(feedbackText,
                         "The whole rig blooms - somewhere a hatch rattles open.",
@@ -269,7 +272,7 @@ namespace LightShadow.UI
             // P2: an unsolved dismiss (close button, Esc, overlay dismiss
             // callback) must not discard the overlay while it is busy; the
             // success beat closes itself with Close(true).
-            if (!solved && !CanDiscard(busy)) return;
+            if (!solved && !CanDiscard(solving)) return;
             if (panel != null) panel.SetActive(false);
             ReleaseLock();
 

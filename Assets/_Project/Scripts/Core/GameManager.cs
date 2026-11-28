@@ -434,6 +434,15 @@ namespace LightShadow.Core
                 }
             }
 
+            // F5: a save made inside the open exit zone must still finish the
+            // run; the trigger will not refire for a player placed inside it.
+            if (GatePowered)
+            {
+                Physics.SyncTransforms();
+                ExitGate exitGate = FindFirstObjectByType<ExitGate>();
+                if (exitGate != null && exitGate.Powered && exitGate.PlayerInsideEscapeZone()) Escape();
+            }
+
             if (hud != null) hud.RefreshObjectives();
         }
     }

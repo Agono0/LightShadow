@@ -111,11 +111,7 @@ namespace LightShadow.Gameplay
         //   - abs(lossyScale) per axis, so a mirrored gate (negative scale)
         //     still measures the box correctly;
         //   - returns false when no player collider is among the hits;
-        //   - SATURATION: at most 16 colliders are inspected. If more than 16
-        //     overlap the zone, colliders past the first 16 are invisible to
-        //     the query and a player among them is missed (false negative).
-        //     Acceptable for a one-shot restore check: the gate zone holds
-        //     the player capsule plus a handful of set dressing, never 16+;
+        //   - every overlapping collider is inspected (no fixed buffer);
         //   - the query spans every layer and includes trigger colliders, so
         //     the escapeZone layer setup cannot exclude the player capsule.
         public bool PlayerInsideEscapeZone()
@@ -127,11 +123,12 @@ namespace LightShadow.Gameplay
                 Mathf.Abs(scale.x) * escapeZone.size.x * 0.5f,
                 Mathf.Abs(scale.y) * escapeZone.size.y * 0.5f,
                 Mathf.Abs(scale.z) * escapeZone.size.z * 0.5f);
-            int hitCount = Physics.OverlapBoxNonAlloc(
+            // Allocating query on purpose: this runs once per restore, and a
+            // fixed buffer could miss the player behind set dressing.
+            Collider[] hits = Physics.OverlapBox(
                 escapeZone.transform.TransformPoint(escapeZone.center), half,
-                overlapBuffer, escapeZone.transform.rotation, ~0,
-                QueryTriggerInteraction.Collide);
-            return ContainsPlayer(overlapBuffer, hitCount);
+                escapeZone.transform.rotation, ~0, QueryTriggerInteraction.Collide);
+            return ContainsPlayer(hits, hits.Length);
         }
 
         // Pure scan seam for tests: true when any of the first count entries
@@ -149,6 +146,5 @@ namespace LightShadow.Gameplay
             return false;
         }
 
-        static readonly Collider[] overlapBuffer = new Collider[16];
     }
 }
