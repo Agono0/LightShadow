@@ -31,6 +31,9 @@ namespace LightShadow.Core
             if (FindFirstObjectByType<CursorGuard>() != null) return;
             GameObject host = new GameObject("CursorGuard");
             host.AddComponent<CursorGuard>();
+            // Scenes load in single mode (Bootstrap, menu, school): without this the
+            // guard died with the first scene and never ran in gameplay.
+            DontDestroyOnLoad(host);
         }
 
         void Update()

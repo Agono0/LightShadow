@@ -84,6 +84,19 @@ namespace LightShadow.Gameplay
         // Shadow out of lit rooms without complex navigation tricks.
         public static Vector3 ClampPoint(Vector3 point, float margin = 0.6f)
         {
+            // Stepping out of one zone can land inside a zone already visited, so
+            // repeat (bounded) until a pass moves nothing.
+            for (int pass = 0; pass < 4; pass++)
+            {
+                Vector3 next = ClampPointOnce(point, margin);
+                if ((next - point).sqrMagnitude < 1e-8f) return next;
+                point = next;
+            }
+            return point;
+        }
+
+        static Vector3 ClampPointOnce(Vector3 point, float margin)
+        {
             for (int i = 0; i < All.Count; i++)
             {
                 Bounds bounds = All[i].Bounds;
