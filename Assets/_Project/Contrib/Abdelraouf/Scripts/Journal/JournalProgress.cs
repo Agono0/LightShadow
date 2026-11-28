@@ -40,6 +40,13 @@ namespace LightShadow.Contrib.Abdelraouf.Journal
             return !string.IsNullOrEmpty(id) && found.Contains(id);
         }
 
+        // New run: no notes carried over from the previous run (audit F2).
+        public static void ResetForNewRun()
+        {
+            found.Clear();
+            RaiseChanged();
+        }
+
         // Returns true when the note was new.
         public static bool Add(string id)
         {

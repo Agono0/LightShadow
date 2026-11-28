@@ -78,6 +78,17 @@ namespace LightShadow.Core
             if (added != null) added(id);
         }
 
+        // New run: nothing carried over from the previous run (audit F2).
+        public static void ResetForNewRun()
+        {
+            if (items.Count == 0) return;
+            var gone = new List<string>(items);
+            items.Clear();
+            Action<string> removed = ItemRemoved;
+            if (removed == null) return;
+            for (int i = 0; i < gone.Count; i++) removed(gone[i]);
+        }
+
         public static void Remove(string id)
         {
             if (string.IsNullOrEmpty(id) || !items.Remove(id)) return;

@@ -30,7 +30,7 @@ namespace LightShadow.Core
         {
             if (data == null) return;
             var blob = new Blob();
-            foreach (FuseBox box in UnityEngine.Object.FindObjectsByType<FuseBox>(FindObjectsSortMode.None))
+            foreach (FuseBox box in UnityEngine.Object.FindObjectsByType<FuseBox>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 if (box != null && box.Restored) blob.fuses.Add(box.name);
             }
@@ -60,6 +60,43 @@ namespace LightShadow.Core
             {
                 return null;
             }
+        }
+
+        // Which of the scene's objects to restore. names[i] is object i's
+        // identity. Rules (audit F3/F4):
+        //  - identity null (old save): the first `count` objects.
+        //  - each saved identity restores ONE object, the first match; later
+        //    objects with the same name are skipped (dup count is logged).
+        //  - saved identities that match nothing (renamed or removed objects)
+        //    fall back to the count: the remainder is filled with the first
+        //    objects that were not matched, so the count and the world agree.
+        public static bool[] SelectRestores(IList<string> names, List<string> saved, int count)
+        {
+            int n = names == null ? 0 : names.Count;
+            bool[] pick = new bool[n];
+            if (saved == null)
+            {
+                for (int i = 0; i < n && i < count; i++) pick[i] = true;
+                return pick;
+            }
+            var used = new HashSet<string>();
+            int matched = 0;
+            for (int i = 0; i < n; i++)
+            {
+                string id = names[i];
+                if (!Contains(saved, id)) continue;
+                if (!used.Add(id)) { Debug.LogWarning("[LightShadow] Duplicate save identity '" + id + "', restored once."); continue; }
+                pick[i] = true;
+                matched++;
+            }
+            int missing = Mathf.Max(0, Mathf.Min(count, saved.Count) - matched);
+            for (int i = 0; i < n && missing > 0; i++)
+            {
+                if (pick[i] || Contains(saved, names[i])) continue;
+                pick[i] = true;
+                missing--;
+            }
+            return pick;
         }
 
         public static bool Contains(List<string> ids, string id)

@@ -269,6 +269,21 @@ namespace LightShadow.UI
 
         void StartRun(Intent intent)
         {
+            SaveSystem.SaveData loaded = null;
+            if (intent == Intent.Load)
+            {
+                // Read the slot BEFORE leaving the menu: a corrupt or unreadable
+                // slot must not silently become a new game that inherits the
+                // previous run (audit F1).
+                loaded = SaveSystem.LoadFromSlot(SaveSystem.CurrentSlot);
+                if (loaded == null)
+                {
+                    Debug.LogWarning("[LightShadow] Save slot " + SaveSystem.CurrentSlot + " could not be read; staying on the menu.");
+                    Refresh();
+                    return;
+                }
+            }
+
             Hide();
 
             if (intent == Intent.NewGame)
@@ -280,6 +295,8 @@ namespace LightShadow.UI
                 // Stale hints must not leak into the new run (overlay review).
                 LightShadow.Contrib.Abdelraouf.HintLog.HintLogRecord.Clear();
                 RunResults.Reset();
+                Inventory.ResetForNewRun();
+                LightShadow.Contrib.Abdelraouf.Journal.JournalProgress.ResetForNewRun();
             }
 
             LoadingScreen.Transition(SceneNames.School);
@@ -288,7 +305,7 @@ namespace LightShadow.UI
             {
                 // Restore is deferred by SaveSystem until the school scene is
                 // live (it subscribes to sceneLoaded itself).
-                SaveSystem.Restore(SaveSystem.LoadFromSlot(SaveSystem.CurrentSlot));
+                SaveSystem.Restore(loaded);
             }
         }
     }

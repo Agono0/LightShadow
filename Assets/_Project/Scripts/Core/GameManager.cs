@@ -181,7 +181,7 @@ namespace LightShadow.Core
 
         public void OnFuseRestored(string memoryFlash)
         {
-            FusesRestored++;
+            FusesRestored = Mathf.Min(FusesRestored + 1, FuseTarget);
             if (!string.IsNullOrEmpty(memoryFlash))
             {
                 ShowMessage(memoryFlash, 4f);
@@ -194,7 +194,7 @@ namespace LightShadow.Core
 
         public void OnFragmentCollected()
         {
-            FragmentsCollected++;
+            FragmentsCollected = Mathf.Min(FragmentsCollected + 1, FragmentTarget);
             if (FragmentsCollected == FragmentTarget)
             {
                 ShowMessage("Every fragment is found. The memory box is full of her voice.", 5f);
@@ -389,23 +389,17 @@ namespace LightShadow.Core
             // saves fall back to "the first N found".
             SaveIdentity.Blob identity = SaveIdentity.Read(data);
 
-            FuseBox[] boxes = FindObjectsByType<FuseBox>(FindObjectsSortMode.None);
-            for (int i = 0; i < boxes.Length; i++)
-            {
-                bool restore = identity != null
-                    ? SaveIdentity.Contains(identity.fuses, boxes[i].name)
-                    : i < FusesRestored;
-                if (restore) boxes[i].RestoreFromSave();
-            }
+            FuseBox[] boxes = FindObjectsByType<FuseBox>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            string[] boxNames = new string[boxes.Length];
+            for (int i = 0; i < boxes.Length; i++) boxNames[i] = boxes[i].name;
+            bool[] boxPick = SaveIdentity.SelectRestores(boxNames, identity != null ? identity.fuses : null, FusesRestored);
+            for (int i = 0; i < boxes.Length; i++) if (boxPick[i]) boxes[i].RestoreFromSave();
 
-            KnowledgeFragment[] fragments = FindObjectsByType<KnowledgeFragment>(FindObjectsSortMode.None);
-            for (int i = 0; i < fragments.Length; i++)
-            {
-                bool restore = identity != null
-                    ? SaveIdentity.Contains(identity.fragments, fragments[i].SaveId)
-                    : i < FragmentsCollected;
-                if (restore) fragments[i].RestoreFromSave();
-            }
+            KnowledgeFragment[] fragments = FindObjectsByType<KnowledgeFragment>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            string[] fragNames = new string[fragments.Length];
+            for (int i = 0; i < fragments.Length; i++) fragNames[i] = fragments[i].SaveId;
+            bool[] fragPick = SaveIdentity.SelectRestores(fragNames, identity != null ? identity.fragments : null, FragmentsCollected);
+            for (int i = 0; i < fragments.Length; i++) if (fragPick[i]) fragments[i].RestoreFromSave();
 
             if (GatePowered)
             {
