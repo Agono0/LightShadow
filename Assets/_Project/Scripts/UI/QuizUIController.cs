@@ -171,6 +171,8 @@ namespace LightShadow.UI
             opening = true;
             if (panel != null) panel.SetActive(true);
             opening = false;
+            // Fade the card in instead of popping it (owner brief 2026-11-28).
+            if (panel != null) StartCoroutine(FadeIn(config != null ? config.questionFadeSeconds : 0.35f));
 
             // Free the cursor on desktop while the question is up. Gameplay on
             // desktop always has the cursor locked, so a view that just closed
@@ -181,6 +183,23 @@ namespace LightShadow.UI
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
+        }
+
+        IEnumerator FadeIn(float seconds)
+        {
+            CanvasGroup group = panel.GetComponent<CanvasGroup>();
+            if (group == null) group = panel.AddComponent<CanvasGroup>();
+            if (seconds <= 0f) { group.alpha = 1f; yield break; }
+            float t = 0f;
+            while (t < seconds)
+            {
+                t += Time.unscaledDeltaTime;
+                // Ease-out: quick to legible, soft at the end.
+                float k = Mathf.Clamp01(t / seconds);
+                group.alpha = 1f - (1f - k) * (1f - k);
+                yield return null;
+            }
+            group.alpha = 1f;
         }
 
         void ReleaseCallback()
