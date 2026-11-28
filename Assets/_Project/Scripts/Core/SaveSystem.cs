@@ -36,6 +36,7 @@ namespace LightShadow.Core
         public class SaveData
         {
             public int version = 1;
+            public int layoutVersion;          // 0 = saved before layout versioning (treated as compatible)
             public string sceneName;
             public Vector3 position;
             public float yaw;
@@ -152,9 +153,14 @@ namespace LightShadow.Core
         // S7: a damaged or hand-edited file must not teleport the player to NaN
         // or the far side of the world. The old scene-layout check (NavMesh) is
         // not done: it needs a device to judge.
+        // Bump LayoutVersion whenever the school's walls or rooms move, so an
+        // old save's position is not restored inside new geometry.
+        public const int LayoutVersion = 1;
+
         public static bool HasUsablePosition(SaveData data)
         {
             if (data == null) return false;
+            if (data.layoutVersion > 0 && data.layoutVersion != LayoutVersion) return false;
             Vector3 p = data.position;
             const float Limit = 100000f;
             return Finite(p.x) && Finite(p.y) && Finite(p.z)
@@ -250,6 +256,7 @@ namespace LightShadow.Core
             SaveData data = new SaveData
             {
                 version = 1,
+                layoutVersion = LayoutVersion,
                 sceneName = SceneManager.GetActiveScene().name,
                 position = game.player.position,
                 yaw = game.player.eulerAngles.y,

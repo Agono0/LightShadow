@@ -196,6 +196,11 @@ namespace LightShadow.DebugTools
             // Same hop as the checkpoint wake: switch the capsule off for the move.
             CharacterController controller = game.player.GetComponent<CharacterController>();
             if (controller != null) controller.enabled = false;
+            // 6.7: the anchor table is a hand copy and can rot. Snap to the
+            // NavMesh when it is near, and say so when it is not.
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(position, out hit, 3f, NavMesh.AllAreas)) position = hit.position;
+            else Log("warning: anchor '" + roomName + "' is off the navmesh (table out of date?)");
             game.player.SetPositionAndRotation(position, Quaternion.identity);
             if (controller != null) controller.enabled = true;
             Log("teleported: " + roomName);
