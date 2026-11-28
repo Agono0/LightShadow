@@ -49,7 +49,7 @@ namespace LightShadow.Tests.Editor
         }
 
         [Test]
-        public void HandsAreOnTheirOwnSides()
+        public void HandGripsMirrorEachOtherAtTheHandleAxis()
         {
             GameObject handL = Load("SM_Player_Hand_L");
             GameObject handR = Load("SM_Player_Hand_R");
@@ -57,9 +57,13 @@ namespace LightShadow.Tests.Editor
             Transform gl = Find(handL, "Grip");
             Transform gr = Find(handR, "Grip");
             if (gl == null || gr == null) return;
-            // After Unity's X mirror the character's left is on -X.
-            Assert.Less(gl.localPosition.x, 0f, "left hand grip should be on -X");
-            Assert.Greater(gr.localPosition.x, 0f, "right hand grip should be on +X");
+            // Each hand's handle axis sits toward the body midline, so the two
+            // grips have opposite X. The sign depends on Unity's OBJ X mirror,
+            // which the loader does not rely on (it aligns on the marker).
+            Assert.AreEqual(0.034f, Mathf.Abs(gl.localPosition.x), 0.004f);
+            Assert.AreEqual(0.034f, Mathf.Abs(gr.localPosition.x), 0.004f);
+            Assert.Less(gl.localPosition.x * gr.localPosition.x, 0f, "hand grips must be on opposite sides");
+            Assert.AreEqual(0.05f, gl.localPosition.z, 0.01f);
         }
 
         [Test]
@@ -69,7 +73,7 @@ namespace LightShadow.Tests.Editor
             if (torch == null) return;
             foreach (MeshFilter filter in torch.GetComponentsInChildren<MeshFilter>(true))
             {
-                if (filter.sharedMesh == null || filter.name == "Grip" || filter.name == "Muzzle") continue;
+                if (filter.sharedMesh == null || (filter.name != "Handle" && filter.name != "Body")) continue; // cylinders only; discs have no radial normals
                 Mesh mesh = filter.sharedMesh;
                 Vector3 centre = mesh.bounds.center;
                 Vector3[] v = mesh.vertices;
