@@ -38,10 +38,57 @@ namespace LightShadow.Tools
             EditorApplication.Exit(0);
         }
 
+        // Asks the editor for the real platform id of a build target (internal API,
+        // reached by reflection) so no GUID has to be guessed. The hard-coded Android
+        // id turned out to be the Web platform in the editor UI (Unity pass 2026-11-28).
+        // Returns the fallback when the editor does not expose it.
+        internal static string ResolvePlatformId(BuildTarget target, int subtarget, string fallback)
+        {
+            try
+            {
+                System.Type util = typeof(UnityEditor.Build.Profile.BuildProfile).Assembly
+                    .GetType("UnityEditor.Build.Profile.BuildProfileModuleUtil");
+                if (util == null) return fallback;
+                foreach (var method in util.GetMethods(System.Reflection.BindingFlags.Static
+                    | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic))
+                {
+                    if (method.Name != "GetPlatformId") continue;
+                    var parameters = method.GetParameters();
+                    if (parameters.Length != 2 || parameters[0].ParameterType != typeof(BuildTarget)) continue;
+                    object sub = System.Enum.ToObject(parameters[1].ParameterType, subtarget);
+                    object result = method.Invoke(null, new object[] { target, sub });
+                    string text = result != null ? result.ToString() : null;
+                    if (!string.IsNullOrEmpty(text) && text.Length == 32) return text;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.Log("[LightShadow] Could not resolve the platform id for " + target + ": " + e.Message);
+            }
+            return fallback;
+        }
+
+        // Rewrites m_PlatformId on an existing profile when it does not match the editor's id.
+        private static void RepairPlatformId(UnityEditor.Build.Profile.BuildProfile profile, string platformId)
+        {
+            if (profile == null) return;
+            var so = new SerializedObject(profile);
+            var id = so.FindProperty("m_PlatformId");
+            if (id == null || id.stringValue == platformId) return;
+            Debug.Log("[LightShadow] Repairing build profile platform id " + id.stringValue + " -> " + platformId);
+            id.stringValue = platformId;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(profile);
+        }
+
         private static void EnsureAll()
         {
-            var windows = Ensure(WindowsProfilePath, BuildTarget.StandaloneWindows64, WindowsPlatformId, 2);
-            var android = Ensure(AndroidProfilePath, BuildTarget.Android, AndroidPlatformId, 0);
+            string windowsId = ResolvePlatformId(BuildTarget.StandaloneWindows64, 2, WindowsPlatformId);
+            string androidId = ResolvePlatformId(BuildTarget.Android, 0, AndroidPlatformId);
+            var windows = Ensure(WindowsProfilePath, BuildTarget.StandaloneWindows64, windowsId, 2);
+            var android = Ensure(AndroidProfilePath, BuildTarget.Android, androidId, 0);
+            RepairPlatformId(windows, windowsId);
+            RepairPlatformId(android, androidId);
             if (windows != null)
                 TryMakeActive(windows);
             AssetDatabase.SaveAssets();

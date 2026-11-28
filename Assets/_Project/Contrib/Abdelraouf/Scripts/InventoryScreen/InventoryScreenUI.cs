@@ -339,7 +339,9 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
             RectTransform windowRect = (RectTransform)window.transform;
             windowRect.anchorMin = windowRect.anchorMax = new Vector2(0.5f, 0.5f);
             windowRect.sizeDelta = new Vector2(920f, 560f);
-            window.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.11f, 0.97f);
+            Image windowImage = window.GetComponent<Image>();
+            windowImage.color = new Color(0.08f, 0.08f, 0.11f, 0.97f);
+            GlassSkin.ApplyPanel(windowImage, 0.97f); // horror glass kit when present
 
             titleText = MakeText(window.transform, "Title", new Vector2(0f, 248f), new Vector2(860f, 40f), 30, TextAnchor.MiddleCenter);
 
@@ -398,7 +400,9 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = position;
             rect.sizeDelta = size;
-            go.GetComponent<Image>().color = new Color(0.2f, 0.19f, 0.24f, 0.98f);
+            Image buttonImage = go.GetComponent<Image>();
+            buttonImage.color = new Color(0.2f, 0.19f, 0.24f, 0.98f);
+            GlassSkin.ApplyButton(buttonImage);
 
             var labelGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
             labelGo.transform.SetParent(go.transform, false);
