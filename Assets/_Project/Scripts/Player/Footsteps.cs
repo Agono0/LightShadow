@@ -12,7 +12,6 @@ namespace LightShadow.Player
     /// absent the component stays silent rather than synthesising noise.
     /// Registered in the SFX volume category by the source's name.
     /// </summary>
-    [RequireComponent(typeof(AudioSource))]
     public class Footsteps : MonoBehaviour
     {
         [Header("Wiring")]
@@ -34,10 +33,29 @@ namespace LightShadow.Player
 
         void Awake()
         {
-            source = GetComponent<AudioSource>();
-            source.playOnAwake = false;
-            source.spatialBlend = 0f; // the player IS the listener
-            source.loop = false;
+            source = CreateDedicatedSource(gameObject);
+            // Explicit SFX category: without it the name scan would file this
+            // source (it sits on the player root next to the drone) under
+            // Ambience. It is registered as SFX, not Ambience.
+            LightShadow.Audio.VolumeCategories.Register(source, LightShadow.Audio.VolumeCategories.Category.Sfx, 1f);
+        }
+
+        // Root cause of the silent footsteps (audit, from source; not heard on
+        // a device): this component used GetComponent<AudioSource>(), which
+        // returns the FIRST source on the player root. AmbientDrone does the
+        // same, so both shared one source and the drone rewrote its volume
+        // every frame (0 to 0.14 times the ambience mix). PlayOneShot is
+        // scaled by that volume, so every step came out near zero. The steps
+        // now own a separate source that nothing else touches.
+        public static AudioSource CreateDedicatedSource(GameObject host)
+        {
+            AudioSource created = host.AddComponent<AudioSource>();
+            created.playOnAwake = false;
+            created.loop = false;
+            created.spatialBlend = 0f; // the player IS the listener
+            created.volume = 1f;
+            created.pitch = 1f;
+            return created;
         }
 
         void Update()

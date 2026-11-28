@@ -104,6 +104,20 @@ namespace LightShadow.UI
 
         [Header("Timing")]
         public float minSecondsPerLine = 2.5f;
+        // A voice line holds its shot for clip length + tail, capped (audit:
+        // long EN/AR clips were cut by the next line's PlayVoice).
+        public float voiceTailSeconds = 0.6f;
+        public float maxSecondsPerLine = 14f;
+
+        // Pure: hold time for one line. Never shorter than the authored
+        // budget; a real clip extends it to clip + tail, capped at max (but
+        // the cap never cuts below the budget). No clip (0) = the budget.
+        public static float LineSeconds(float budget, float clipSeconds, float tail, float max)
+        {
+            if (clipSeconds <= 0f || float.IsNaN(clipSeconds) || float.IsInfinity(clipSeconds)) return budget;
+            float wanted = clipSeconds + Mathf.Max(0f, tail);
+            return Mathf.Max(budget, Mathf.Min(wanted, max));
+        }
         [Tooltip("Short pause between shots so cuts can breathe.")]
         public float beatBetweenShots = 0.4f;
 
@@ -169,10 +183,11 @@ namespace LightShadow.UI
                                 ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft;
                         }
                         VoiceoverPlayer.Play(line.clipId); // false on missing clip: subtitle only
+                        float hold = LineSeconds(perLine, VoiceoverPlayer.LastPlayedSeconds, voiceTailSeconds, maxSecondsPerLine);
 
                         float t0 = (float)li / lineCount;
                         float t1 = (float)(li + 1) / lineCount;
-                        yield return RunShotSegment(cam, shot, t0, t1, perLine);
+                        yield return RunShotSegment(cam, shot, t0, t1, hold);
                     }
                 }
                 skipped = skipRequested;

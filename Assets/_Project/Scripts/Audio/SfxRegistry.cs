@@ -24,11 +24,14 @@ namespace LightShadow.Audio
         public static void RegisterMany(string id, AudioClip[] array)
         {
             if (array == null || array.Length == 0) return;
+            // Store at the compacted index so id_0..id_{count-1} are all
+            // present: a sparse array used to leave holes that ClipVariant
+            // could pick.
             int registered = 0;
             for (int i = 0; i < array.Length; i++)
             {
                 if (array[i] == null) continue;
-                clips[id + "_" + i] = array[i];
+                clips[id + "_" + registered] = array[i];
                 registered++;
             }
             familyCounts[id] = registered;

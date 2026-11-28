@@ -55,6 +55,11 @@ namespace LightShadow.UI
             SetFadeAlpha(0f);
 
             Localization.LanguageChanged += ApplyLanguageUI;
+            // The objective chain depends on the master key and on puzzle
+            // solves, which the HUD otherwise never hears about (review R1).
+            Inventory.ItemAdded += OnObjectiveInputChanged;
+            Inventory.ItemRemoved += OnObjectiveInputChanged;
+            GameEvents.PuzzleSolved += OnObjectiveInputChanged;
             ApplyLanguageUI();
         }
 
@@ -96,11 +101,15 @@ namespace LightShadow.UI
             }
 
             RefreshObjectives();
+            PeekObjectives(9f); // first start: show the way out for a few seconds
         }
 
         void OnDestroy()
         {
             Localization.LanguageChanged -= ApplyLanguageUI;
+            Inventory.ItemAdded -= OnObjectiveInputChanged;
+            Inventory.ItemRemoved -= OnObjectiveInputChanged;
+            GameEvents.PuzzleSolved -= OnObjectiveInputChanged;
 
             if (Instance == this) Instance = null;
 
@@ -287,6 +296,35 @@ namespace LightShadow.UI
             if (objectivesShown) RefreshObjectives();
         }
 
+        // Pure objective chain (Ziad audit C1). Returns the four source-text
+        // keys in display order: fuse boxes, fragments (optional), the gate
+        // step that is actually next, and the escape. The first two carry
+        // {0}/{1} placeholders, the rest are plain. A carried master key and
+        // a solved Puzzle_MapLocker count the same (hasKey).
+        public static string[] ObjectiveLines(int fuses, int fuseTarget, int frags, int fragTarget,
+            bool hasKey, bool wiringSolved, bool gatePowered)
+        {
+            bool fusesDone = fuses >= fuseTarget;
+            bool fragmentsDone = frags >= fragTarget;
+
+            string gateLine;
+            if (gatePowered) gateLine = "Power the main gate  (done)";
+            else if (!fusesDone) gateLine = "Power the main gate  (three fuse boxes first)";
+            else if (!wiringSolved && !hasKey) gateLine = "Find the master key (staff room locker)";
+            else if (!wiringSolved) gateLine = "Wire the gate console";
+            else gateLine = "Power the main gate  (the crank is live)";
+
+            return new[]
+            {
+                fusesDone ? "Restore fuse boxes: {0}/{1}  (done)" : "Restore fuse boxes: {0}/{1}",
+                fragmentsDone ? "Collect Knowledge Fragments: {0}/{1}  (done)" : "Collect Knowledge Fragments: {0}/{1}  (optional)",
+                gateLine,
+                gatePowered ? "Escape through the main gate  (go now)" : "Escape through the main gate",
+            };
+        }
+
+        void OnObjectiveInputChanged(string id) { RefreshObjectives(); }
+
         public void RefreshObjectives()
         {
             if (objectivesText == null) return;
@@ -294,27 +332,43 @@ namespace LightShadow.UI
             GameManager gm = GameManager.Instance;
             if (gm == null) return;
 
-            bool fusesDone = gm.FusesRestored >= GameManager.FuseTarget;
-            bool fragmentsDone = gm.FragmentsCollected >= GameManager.FragmentTarget;
+            bool hasKey = Inventory.Has("master_key")
+                || (LightShadow.Gameplay.PuzzleManager.Instance != null
+                    && LightShadow.Gameplay.PuzzleManager.Instance.IsSolved("Puzzle_MapLocker"));
+            LightShadow.Gameplay.ExitGate gate = FindFirstObjectByType<LightShadow.Gameplay.ExitGate>();
+            bool wiringSolved = gate != null && gate.circuitPuzzle != null && gate.circuitPuzzle.Solved;
+
+            string[] lines = ObjectiveLines(gm.FusesRestored, GameManager.FuseTarget,
+                gm.FragmentsCollected, GameManager.FragmentTarget, hasKey, wiringSolved, gm.GatePowered);
 
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine(Localization.Format(fusesDone
-                ? "Restore fuse boxes: {0}/{1}  (done)"
-                : "Restore fuse boxes: {0}/{1}", gm.FusesRestored, GameManager.FuseTarget));
-
-            builder.AppendLine(Localization.Format(fragmentsDone
-                ? "Collect Knowledge Fragments: {0}/{1}  (done)"
-                : "Collect Knowledge Fragments: {0}/{1}", gm.FragmentsCollected, GameManager.FragmentTarget));
-
-            builder.AppendLine(Localization.Format(gm.CanPowerGate
-                ? "Power the main gate  (the crank is live)"
-                : "Power the main gate  (three fuse boxes first)"));
-
-            builder.Append(gm.GatePowered
-                ? Localization.TrPresent("Escape at dawn  (go now)")
-                : Localization.TrPresent("Escape at dawn"));
+            builder.AppendLine(Localization.Format(lines[0], gm.FusesRestored, GameManager.FuseTarget));
+            builder.AppendLine(Localization.Format(lines[1], gm.FragmentsCollected, GameManager.FragmentTarget));
+            builder.AppendLine(Localization.TrPresent(lines[2]));
+            builder.Append(Localization.TrPresent(lines[3]));
 
             objectivesText.text = builder.ToString();
+        }
+
+        // Shows the objectives panel for a few seconds without touching the
+        // player's own Tab/TASKS toggle (C3): at first start and after each
+        // fuse, so the way out is on screen without being asked for.
+        public void PeekObjectives(float seconds)
+        {
+            if (objectivesPanel == null) return;
+            RefreshObjectives();
+            if (peekRoutine != null) StopCoroutine(peekRoutine);
+            peekRoutine = StartCoroutine(PeekRoutine(seconds));
+        }
+
+        Coroutine peekRoutine;
+
+        IEnumerator PeekRoutine(float seconds)
+        {
+            objectivesPanel.SetActive(true);
+            yield return new WaitForSecondsRealtime(Mathf.Max(0.5f, seconds));
+            if (!objectivesShown) objectivesPanel.SetActive(false);
+            peekRoutine = null;
         }
 
         // ---- Fade ----------------------------------------------------------------

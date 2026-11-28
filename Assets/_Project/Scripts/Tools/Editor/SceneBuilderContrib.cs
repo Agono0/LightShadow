@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -36,6 +37,8 @@ namespace LightShadow.Tools
 
         // Parent for walls/floors/static props. Layer is LevelLayer so the
         // NavMesh bake sees it. Created by the hook, name "Contrib_Static".
+        // The NavMesh is rebaked after all contributions when this root holds
+        // bake-visible colliders (see SceneBuilder.NeedsNavMeshRebake).
         public Transform StaticRoot;
 
         // Parent for anything that moves, opens or is picked up. Layer 0
@@ -99,7 +102,57 @@ namespace LightShadow.Tools
                 }
             }
 
+            // The school NavMesh was baked before the contributions ran, so
+            // geometry added under Contrib_Static is not in it yet. Rebake only
+            // when something there would actually be collected; with no such
+            // content (today's modules) nothing changes and nothing is rebaked.
+            if (NeedsNavMeshRebake(staticRoot.transform, 1 << LevelLayer))
+            {
+                NavMeshSurface surface = UnityEngine.Object.FindAnyObjectByType<NavMeshSurface>();
+                if (surface != null)
+                {
+                    Debug.Log("[LightShadow] Contrib_Static holds NavMesh-visible colliders; rebaking the school NavMesh.");
+                    BakeNavMesh(surface);
+                }
+                else
+                {
+                    Debug.LogWarning("[LightShadow] Contrib_Static holds NavMesh-visible colliders but the scene has no NavMeshSurface; not rebaked.");
+                }
+            }
+
             SaveScene(scene, SchoolPath);
+        }
+
+        // Gate evidence (checked against Unity docs, not the installed package
+        // source, which is not available offline):
+        //  - verified: Collect Objects = All uses only ACTIVE objects, and
+        //    Include Layers filters them (AI Navigation 2.0 NavMeshSurface manual);
+        //  - verified: trigger colliders are not baked (Unity issue UUM-54608,
+        //    "As Designed");
+        //  - NOT verified: that a DISABLED collider on an active object is
+        //    skipped. The gate treats it as skipped; a wrong guess only means
+        //    one missed rebake for content that has no effect today;
+        //  - NavMeshModifier "Remove Object" is not modelled: the gate may
+        //    request a rebake that collects nothing, which is harmless.
+        // True when any descendant of root is an enabled, non-trigger Collider
+        // on an active object whose layer is in layerMask. Mirrors what the
+        // school surface collects (PhysicsColliders, layerMask, All objects):
+        // triggers are excluded by the NavMesh builder (Unity "As Designed"
+        // UUM-54608); inactive objects and disabled colliders are assumed not
+        // collected. Pure: reads only the transform tree, no bake, no assets.
+        internal static bool NeedsNavMeshRebake(Transform root, int layerMask)
+        {
+            if (root == null) return false;
+            Collider[] colliders = root.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                Collider c = colliders[i];
+                if (c == null || !c.enabled || c.isTrigger) continue;
+                if (!c.gameObject.activeInHierarchy) continue;
+                if ((layerMask & (1 << c.gameObject.layer)) == 0) continue;
+                return true;
+            }
+            return false;
         }
     }
 }

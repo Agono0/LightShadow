@@ -11,6 +11,8 @@ namespace LightShadow.Gameplay
     {
         [Header("Wiring")]
         public Transform gateLeaf;
+        [Tooltip("Second leaf of the double gate. It hinges on the opposite pillar and swings the other way.")]
+        public Transform gateLeafRight;
         public BoxCollider escapeZone;
         public GameObject dawnChaseRoot;
         public AudioClip powerClip;
@@ -62,7 +64,8 @@ namespace LightShadow.Gameplay
             LightShadow.Audio.Sfx.Play("SFX_GateCrank", powerClip);
             if (dawnChaseRoot != null) dawnChaseRoot.SetActive(true);
             if (escapeZone != null) escapeZone.enabled = true;
-            if (gateLeaf != null) StartCoroutine(TurnCrank());
+            if (gateLeaf != null) StartCoroutine(TurnCrank(gateLeaf, 90f));
+            if (gateLeafRight != null) StartCoroutine(TurnCrank(gateLeafRight, -90f));
 
             if (GameManager.Instance != null) GameManager.Instance.OnGatePowered();
         }
@@ -78,22 +81,19 @@ namespace LightShadow.Gameplay
 
             if (dawnChaseRoot != null) dawnChaseRoot.SetActive(true);
             if (escapeZone != null) escapeZone.enabled = true;
-            if (gateLeaf != null)
-            {
-                Quaternion start = gateLeaf.localRotation;
-                gateLeaf.localRotation = start * Quaternion.Euler(0f, 90f, 0f);
-            }
+            if (gateLeaf != null) gateLeaf.localRotation = gateLeaf.localRotation * Quaternion.Euler(0f, 90f, 0f);
+            if (gateLeafRight != null) gateLeafRight.localRotation = gateLeafRight.localRotation * Quaternion.Euler(0f, -90f, 0f);
         }
 
-        System.Collections.IEnumerator TurnCrank()
+        System.Collections.IEnumerator TurnCrank(Transform leaf, float degrees)
         {
-            Quaternion start = gateLeaf.localRotation;
-            Quaternion end = start * Quaternion.Euler(0f, 90f, 0f);
+            Quaternion start = leaf.localRotation;
+            Quaternion end = start * Quaternion.Euler(0f, degrees, 0f);
             float t = 0f;
             while (t < 1f)
             {
                 t += Time.deltaTime / 1.5f;
-                gateLeaf.localRotation = Quaternion.Slerp(start, end, t);
+                leaf.localRotation = Quaternion.Slerp(start, end, Mathf.Clamp01(t));
                 yield return null;
             }
         }

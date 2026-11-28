@@ -178,10 +178,20 @@ namespace LightShadow.Systems
 
         // ------------------------------------------------------- framerate --
 
+        // Pure policy (audit V1): this manager sets the frame cadence only
+        // while the player's vSync is off; with vSync on the driver owns it.
+        public static bool OwnsFrameCadence(bool vSyncOn) { return !vSyncOn; }
+
         // Called by GameSettings.ApplyFramePolicy when vSync is off (D8).
         public static void ApplyFrameRatePolicy()
         {
-            if (Application.isMobilePlatform)
+            if (!OwnsFrameCadence(Core.GameSettings.VSync))
+            {
+                // vSync is on (audit V1): GameSettings already cleared the
+                // engine target and set vSyncCount 1. Leave both alone; only
+                // the tier bookkeeping below still runs.
+            }
+            else if (Application.isMobilePlatform)
             {
                 // Request the display refresh, clamped 60-120; fall back to 60
                 // when the panel does not report a usable rate.

@@ -74,6 +74,9 @@ namespace LightShadow.Tools
 
             try
             {
+                // Regenerate scenes first, like the batch entry points (audit
+                // B2): the committed .unity files can be stale.
+                BuildAll();
                 string result = BuildWindowsPlayer();
                 EditorUtility.DisplayDialog("LightShadow - Windows Build", result, "OK");
             }
@@ -213,7 +216,7 @@ namespace LightShadow.Tools
             {
                 string report = ValidateScenes();
                 Debug.Log("[LightShadow] VALIDATION\n" + report);
-                EditorApplication.Exit(0);
+                EditorApplication.Exit(ValidationExitCode(report)); // audit B1: FAIL is non-zero
             }
             catch (Exception exception)
             {

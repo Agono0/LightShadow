@@ -14,6 +14,9 @@ namespace LightShadow.Core
         AudioSource source;
         float elapsed;
 
+        // The one source this drone drives (the first on its object).
+        public AudioSource Source => source != null ? source : GetComponent<AudioSource>();
+
         void Awake()
         {
             source = GetComponent<AudioSource>();

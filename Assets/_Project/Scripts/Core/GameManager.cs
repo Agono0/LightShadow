@@ -188,7 +188,7 @@ namespace LightShadow.Core
                 int beat = Mathf.Clamp(FusesRestored - 1, 0, FuseBeats.Length - 1);
                 if (hud != null) hud.QueueMessage(FuseBeats[beat], 4.5f);
             }
-            if (hud != null) hud.RefreshObjectives();
+            if (hud != null) { hud.RefreshObjectives(); hud.PeekObjectives(8f); } // show the next step
             GameEvents.RaiseFuseRestored(FusesRestored, FuseTarget);
         }
 
@@ -406,6 +406,13 @@ namespace LightShadow.Core
             for (int i = 0; i < fragments.Length; i++) fragNames[i] = fragments[i].SaveId;
             bool[] fragPick = SaveIdentity.SelectRestores(fragNames, identity != null ? identity.fragments : null, FragmentsCollected);
             for (int i = 0; i < fragments.Length; i++) if (fragPick[i]) fragments[i].RestoreFromSave();
+
+            MedkitPickup[] kits = FindObjectsByType<MedkitPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            string[] kitNames = new string[kits.Length];
+            for (int i = 0; i < kits.Length; i++) kitNames[i] = kits[i].SaveId;
+            bool oldCarried = !string.IsNullOrEmpty(data.inventoryJson) && data.inventoryJson.Contains("\"" + MedkitPickup.ItemId + "\"");
+            bool[] kitPick = SaveIdentity.SelectMedkitRestores(kitNames, identity, oldCarried);
+            for (int i = 0; i < kits.Length; i++) if (kitPick[i]) kits[i].RestoreFromSave();
 
             if (GatePowered)
             {

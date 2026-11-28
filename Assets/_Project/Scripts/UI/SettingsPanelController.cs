@@ -52,11 +52,22 @@ namespace LightShadow.UI
         public const int CaptionsRow = 23;     // sound captions on/off
         public const int HintsRow = 24;        // progressive hints on/off
 
+        // Compact layout so the card fits a 900 px tall phone canvas at full
+        // scale (a shrunk card made text and arrows too small): 52 px row
+        // pitch, arrows 56x48 (touch targets >= 48 px), card 840 tall.
+        public const float RowTop = 100f;
+        public const float RowPitch = 52f;
+        public const float ArrowWidth = 56f;
+        public const float ArrowHeight = 48f;
+        public const float ArrowDrop = 6f;
+        public const float CardHeight = 840f;
         public const int PageARows = 12;
         public const int VolumeVoiceRow = 25;  // appended: existing row indices never move
         public const int VolumeShadowRow = 26;
 
-        public const int TotalRows = 27;
+        public const int HapticsRow = 27;      // vibration on/off (mobile only, audit 7.2)
+
+        public const int TotalRows = 28;
 
         [Header("Wiring")]
         public GameObject panel;
@@ -91,6 +102,7 @@ namespace LightShadow.UI
             "Touch control size",
             "Sound captions", "Hints",
             "Voice volume", "Shadow volume",
+            "Haptics",
         };
 
         // Rows that only make sense where a picked resolution exists (audit
@@ -103,7 +115,14 @@ namespace LightShadow.UI
         // The touch control size row only means something on a touch device.
         static bool HiddenOnDesktop(int row)
         {
-            return !Application.isMobilePlatform && row == ControlSizeRow;
+            return !Application.isMobilePlatform && IsMobileOnlyRow(row);
+        }
+
+        // Pure: rows that only exist on touch devices (touch control size,
+        // haptics - Handheld.Vibrate has no desktop meaning).
+        public static bool IsMobileOnlyRow(int row)
+        {
+            return row == ControlSizeRow || row == HapticsRow;
         }
 
         // The builder lays page A rows out at y = -120 - i * 64 (prev/next sit
@@ -114,7 +133,7 @@ namespace LightShadow.UI
             for (int i = 0; i < PageARows; i++)
             {
                 if (HiddenOnMobile(i)) continue;
-                float y = -120f - visible * 64f;
+                float y = -RowTop - visible * RowPitch;
                 if (rowLabels != null && i < rowLabels.Length && rowLabels[i] != null)
                 {
                     rowLabels[i].rectTransform.anchoredPosition = new Vector2(rowLabels[i].rectTransform.anchoredPosition.x, y);
@@ -126,12 +145,12 @@ namespace LightShadow.UI
                 if (prevButtons != null && i < prevButtons.Length && prevButtons[i] != null)
                 {
                     prevButtons[i].GetComponent<RectTransform>().anchoredPosition =
-                        new Vector2(prevButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + 3f);
+                        new Vector2(prevButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + ArrowDrop);
                 }
                 if (nextButtons != null && i < nextButtons.Length && nextButtons[i] != null)
                 {
                     nextButtons[i].GetComponent<RectTransform>().anchoredPosition =
-                        new Vector2(nextButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + 3f);
+                        new Vector2(nextButtons[i].GetComponent<RectTransform>().anchoredPosition.x, y + ArrowDrop);
                 }
                 visible++;
             }
@@ -276,6 +295,7 @@ namespace LightShadow.UI
                 case ControlSizeRow: GameSettings.SetControlSize(GameSettings.ControlSizeIndex - 1); break;
                 case CaptionsRow: ToggleCaptions(); break;
                 case HintsRow: ToggleHints(); break;
+                case HapticsRow: ToggleHaptics(); break;
             }
         }
 
@@ -312,12 +332,19 @@ namespace LightShadow.UI
                 case ControlSizeRow: GameSettings.SetControlSize(GameSettings.ControlSizeIndex + 1); break;
                 case CaptionsRow: ToggleCaptions(); break;
                 case HintsRow: ToggleHints(); break;
+                case HapticsRow: ToggleHaptics(); break;
             }
         }
 
         void ToggleCaptions()
         {
             Contrib.Abdelraouf.Captions.CaptionService.Enabled = !Contrib.Abdelraouf.Captions.CaptionService.Enabled;
+            Refresh();
+        }
+
+        void ToggleHaptics()
+        {
+            LightShadow.Platform.HapticsService.Enabled = !LightShadow.Platform.HapticsService.Enabled;
             Refresh();
         }
 
@@ -442,6 +469,8 @@ namespace LightShadow.UI
                     return Contrib.Abdelraouf.Captions.CaptionService.Enabled ? Localization.TrPresent("On") : Localization.TrPresent("Off");
                 case HintsRow:
                     return Contrib.Abdelraouf.Hints.HintService.Enabled ? Localization.TrPresent("On") : Localization.TrPresent("Off");
+                case HapticsRow:
+                    return LightShadow.Platform.HapticsService.Enabled ? Localization.TrPresent("On") : Localization.TrPresent("Off");
                 default: return "";
             }
         }

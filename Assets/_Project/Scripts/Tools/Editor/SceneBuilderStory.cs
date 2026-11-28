@@ -624,6 +624,7 @@ namespace LightShadow.Tools
             RectTransform card = MakeStoryPanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 1020f), StoryPanelDark, false)
                 .rectTransform;
+            card.gameObject.AddComponent<LightShadow.UI.CardFit>();
 
             slots.titleText = MakeStoryText(card, "Title", "SAVE SLOTS", 40, StoryWarm,
                 TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
@@ -871,6 +872,7 @@ namespace LightShadow.Tools
                 "Touch control size",
                 "Sound captions", "Hints",
                 "Voice volume", "Shadow volume",
+                "Haptics",
             };
 
             for (int i = 0; i < pageBKeys.Length; i++)
@@ -880,13 +882,14 @@ namespace LightShadow.Tools
                 // touch control size (user brief 2026-11-27) makes it a 6 + 5 grid.
                 // Sound captions (i == 11) sits at the end of the right column,
                 // Hints (i == 12) at the end of the left column (row 6).
-                bool leftColumn = i < 6 || i == 12;
-                int columnRow = i < 6 ? i : (i == 12 ? 6 : (i >= 13 ? i - 7 : i - 6));
+                // Haptics (i == 15) sits under Hints at the end of the left column (row 7).
+                bool leftColumn = i < 6 || i == 12 || i == 15;
+                int columnRow = i < 6 ? i : (i == 12 ? 6 : (i == 15 ? 7 : (i >= 13 ? i - 7 : i - 6)));
                 float x = leftColumn ? 48f : 580f;
                 float valueX = leftColumn ? 285f : 817f;
                 float prevX = leftColumn ? 412f : 944f;
-                float nextX = leftColumn ? 460f : 992f;
-                float y = -120f - columnRow * 64f;
+                float nextX = leftColumn ? 472f : 1004f;
+                float y = -SettingsPanelController.RowTop - columnRow * SettingsPanelController.RowPitch;
 
                 controller.rowLabels[rowIndex] = MakeStoryText(card, "RowLabel" + rowIndex, pageBKeys[i], 22,
                     StoryPaper, TextAnchor.MiddleLeft,
@@ -902,12 +905,12 @@ namespace LightShadow.Tools
                 Text prevLabel;
                 controller.prevButtons[rowIndex] = MakeStoryButton(card, "Prev" + rowIndex, "<",
                     new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-                    new Vector2(prevX, y + 3f), new Vector2(44f, 40f), StoryButtonDark, 22, out prevLabel);
+                    new Vector2(prevX, y + SettingsPanelController.ArrowDrop), new Vector2(SettingsPanelController.ArrowWidth, SettingsPanelController.ArrowHeight), StoryButtonDark, 22, out prevLabel);
 
                 Text nextLabel;
                 controller.nextButtons[rowIndex] = MakeStoryButton(card, "Next" + rowIndex, ">",
                     new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-                    new Vector2(nextX, y + 3f), new Vector2(44f, 40f), StoryButtonDark, 22, out nextLabel);
+                    new Vector2(nextX, y + SettingsPanelController.ArrowDrop), new Vector2(SettingsPanelController.ArrowWidth, SettingsPanelController.ArrowHeight), StoryButtonDark, 22, out nextLabel);
             }
 
             // Page toggle at the bottom centre of the card.
@@ -916,7 +919,7 @@ namespace LightShadow.Tools
                 Text moreLabel;
                 controller.moreButton = MakeStoryButton(card, "MoreButton", "MORE OPTIONS",
                     new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0.5f),
-                    new Vector2(0f, 48f), new Vector2(330f, 58f), StoryButtonDark, 19, out moreLabel);
+                    new Vector2(0f, 69f), new Vector2(330f, 58f), StoryButtonDark, 19, out moreLabel);
                 controller.moreLabel = moreLabel;
             }
 

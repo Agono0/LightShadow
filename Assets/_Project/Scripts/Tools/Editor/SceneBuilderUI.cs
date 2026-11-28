@@ -264,7 +264,7 @@ namespace LightShadow.Tools
             stripRoot.gameObject.SetActive(false);
 
             // ---- prompt, message, crosshair ---------------------------------
-            Text prompt = MakeText(root, "PromptText", "", 23, Paper, TextAnchor.MiddleCenter,
+            Text prompt = MakeText(root, "PromptText", "", 28, Paper, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
                 new Vector2(0f, 64f), new Vector2(1100f, 44f));
 
@@ -276,7 +276,7 @@ namespace LightShadow.Tools
             FpsCounter fpsCounter = root.gameObject.AddComponent<FpsCounter>();
             fpsCounter.label = fpsLabel;
 
-            Text message = MakeText(root, "MessageText", "", 28, Warm, TextAnchor.MiddleCenter,
+            Text message = MakeText(root, "MessageText", "", 32, Warm, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 new Vector2(0f, 170f), new Vector2(1180f, 180f), FontStyle.Italic, true);
 
@@ -286,17 +286,17 @@ namespace LightShadow.Tools
 
             // ---- objectives panel -------------------------------------------
             RectTransform objectivesPanel = MakePanel(root, "ObjectivesPanel", new Vector2(0f, 0.5f),
-                new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(36f, 0f), new Vector2(580f, 340f),
+                new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(36f, 0f), new Vector2(640f, 400f),
                 PanelDark, false).rectTransform;
 
-            Text objectivesTitle = MakeText(objectivesPanel, "Title", "OBJECTIVES", 20, Warm, TextAnchor.UpperLeft,
+            Text objectivesTitle = MakeText(objectivesPanel, "Title", "OBJECTIVES", 24, Warm, TextAnchor.UpperLeft,
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
                 new Vector2(24f, -18f), new Vector2(500f, 28f));
             Localize(objectivesTitle);
 
-            Text objectivesText = MakeText(objectivesPanel, "List", "", 20, Paper, TextAnchor.UpperLeft,
+            Text objectivesText = MakeText(objectivesPanel, "List", "", 25, Paper, TextAnchor.UpperLeft,
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(24f, -58f), new Vector2(530f, 258f));
+                new Vector2(24f, -62f), new Vector2(592f, 318f));
 
             // ---- mobile controls --------------------------------------------
             GameObject mobileRoot = MakeRect(root, "MobileControls", Vector2.zero, Vector2.one,
@@ -322,31 +322,31 @@ namespace LightShadow.Tools
             // rescales every direct child from the Settings "Touch control
             // size" row, capturing these sizes as the 100% baseline.
             AddMobileButton(mobileRoot.transform, "InteractButton", "E", TouchButton.Kind.Interact,
-                new Vector2(-200f, 310f), 124f, 22);
+                new Vector2(-200f, 310f), 124f, 34);
             AddMobileButton(mobileRoot.transform, "FlashlightButton", "LIGHT", TouchButton.Kind.Flashlight,
-                new Vector2(-200f, 168f), 124f, 20);
+                new Vector2(-200f, 168f), 124f, 26);
             AddMobileButton(mobileRoot.transform, "SprintButton", "RUN", TouchButton.Kind.SprintHold,
-                new Vector2(-348f, 310f), 104f, 20);
+                new Vector2(-348f, 310f), 104f, 24);
             AddMobileButton(mobileRoot.transform, "CrouchButton", "CROUCH", TouchButton.Kind.CrouchToggle,
-                new Vector2(-348f, 168f), 104f, 16);
+                new Vector2(-348f, 168f), 104f, 19);
 
             // Utility row along the bottom edge: tasks, pause, and the P3
             // horror holds (crank: twirl a second finger in circles off the
             // UI; breath while hidden).
             AddMobileButton(mobileRoot.transform, "ObjectivesButton", "TASKS", TouchButton.Kind.Objectives,
-                new Vector2(-86f, 56f), 84f, 13);
+                new Vector2(-92f, 62f), 108f, 22);
             AddMobileButton(mobileRoot.transform, "PauseButton", "II", TouchButton.Kind.Pause,
-                new Vector2(-200f, 56f), 84f, 15);
+                new Vector2(-214f, 56f), 92f, 26);
             AddMobileButton(mobileRoot.transform, "CrankButton", "CRANK", TouchButton.Kind.CrankHold,
-                new Vector2(-314f, 56f), 84f, 13);
+                new Vector2(-322f, 56f), 92f, 17);
             AddMobileButton(mobileRoot.transform, "BreathButton", "BREATH", TouchButton.Kind.BreathHold,
-                new Vector2(-428f, 56f), 84f, 13);
+                new Vector2(-430f, 56f), 92f, 16);
             AddMobileButton(mobileRoot.transform, "MedkitButton", "MEDKIT", TouchButton.Kind.Medkit,
-                new Vector2(-542f, 56f), 84f, 12);
+                new Vector2(-538f, 56f), 92f, 16);
             AddMobileButton(mobileRoot.transform, "ThrowButton", "THROW", TouchButton.Kind.Throw,
-                new Vector2(-656f, 56f), 84f, 12);
+                new Vector2(-646f, 56f), 92f, 16);
             AddMobileButton(mobileRoot.transform, "BagButton", "BAG", TouchButton.Kind.Inventory,
-                new Vector2(-770f, 56f), 84f, 13);
+                new Vector2(-754f, 56f), 92f, 18);
 
             mobileRoot.AddComponent<TouchControlsScaler>();
 
@@ -397,21 +397,50 @@ namespace LightShadow.Tools
             };
         }
 
+        // Flat, near-opaque panel for text-heavy screens. The themed blue
+        // panel sprite carries a gradient and noise that made quiz text hard
+        // to read on phones (playtest), so reading surfaces are solid.
+        static Image MakeSolidPanel(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax,
+            Vector2 pivot, Vector2 position, Vector2 size, Color color)
+        {
+            RectTransform rect = MakeRect(parent, name, anchorMin, anchorMax, pivot, position, size);
+            Image image = rect.gameObject.AddComponent<Image>();
+            image.sprite = null;
+            image.color = color;
+            image.raycastTarget = false;
+            Outline outline = rect.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0.55f, 0.62f, 0.78f, 0.35f);
+            outline.effectDistance = new Vector2(2f, -2f);
+            return image;
+        }
+
+        // Long questions shrink to fit their box instead of running into the
+        // buttons below (best-fit between the two sizes).
+        static void FitText(Text text, int minSize, int maxSize)
+        {
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = minSize;
+            text.resizeTextMaxSize = maxSize;
+            text.verticalOverflow = VerticalWrapMode.Truncate;
+        }
+
         static QuizUIController BuildQuiz(Transform root)
         {
-            RectTransform dim = MakeFullScreen(root, "QuizPanel", new Color(0f, 0f, 0f, 0.82f), true);
+            RectTransform dim = MakeFullScreen(root, "QuizPanel", new Color(0f, 0f, 0f, 0.86f), true);
             QuizUIController quiz = dim.gameObject.AddComponent<QuizUIController>();
 
-            RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1040f, 800f), PanelDark, false).rectTransform;
+            // 1400 x 800: fits a 900 px tall mobile canvas and a 1080 px desktop one.
+            RectTransform card = MakeSolidPanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1400f, 800f),
+                new Color(0.035f, 0.04f, 0.055f, 0.99f)).rectTransform;
 
-            Text header = MakeText(card, "Header", "", 21, Warm, TextAnchor.MiddleLeft,
+            Text header = MakeText(card, "Header", "", 24, Warm, TextAnchor.MiddleLeft,
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(44f, -28f), new Vector2(760f, 30f));
+                new Vector2(44f, -24f), new Vector2(1000f, 34f));
 
-            Text timer = MakeText(card, "Timer", "", 24, Warm, TextAnchor.MiddleRight,
+            Text timer = MakeText(card, "Timer", "", 28, Warm, TextAnchor.MiddleRight,
                 new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(1f, 1f),
-                new Vector2(-44f, -28f), new Vector2(160f, 32f));
+                new Vector2(-44f, -24f), new Vector2(200f, 36f));
 
             // Real timer bar (was text only): drains left-to-right each
             // question; turns hot as time runs out.
@@ -429,9 +458,11 @@ namespace LightShadow.Tools
             timerFill.rectTransform.offsetMin = new Vector2(3f, 3f);
             timerFill.rectTransform.offsetMax = new Vector2(-3f, -3f);
 
-            Text question = MakeText(card, "Question", "", 31, Paper, TextAnchor.UpperLeft,
+            Text question = MakeText(card, "Question", "", 38, new Color(0.96f, 0.97f, 1f), TextAnchor.UpperLeft,
                 new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(44f, -80f), new Vector2(952f, 140f));
+                new Vector2(44f, -80f), new Vector2(1312f, 130f), FontStyle.Normal, true);
+
+            FitText(question, 24, 38);
 
             Button[] buttons = new Button[4];
             Text[] labels = new Text[4];
@@ -441,22 +472,26 @@ namespace LightShadow.Tools
                 Text label;
                 buttons[i] = MakeButton(card, "Option" + (i + 1), (i + 1) + ". Option " + (i + 1),
                     new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
-                    new Vector2(44f, -236f - i * 82f), new Vector2(952f, 68f), ButtonDark, 23, out label);
+                    new Vector2(44f, -216f - i * 86f), new Vector2(1312f, 76f), ButtonDark, 30, out label);
                 labels[i] = label;
                 label.alignment = TextAnchor.MiddleLeft;
+                label.color = new Color(0.96f, 0.97f, 1f);
+                FitText(label, 20, 30);
             }
 
-            RectTransform feedbackPanel = MakePanel(card, "Feedback", new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(0f, 1f), new Vector2(44f, -572f), new Vector2(952f, 158f),
-                new Color(0.10f, 0.11f, 0.10f, 0.98f), false).rectTransform;
+            RectTransform feedbackPanel = MakeSolidPanel(card, "Feedback", new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(0f, 1f), new Vector2(44f, -566f), new Vector2(1312f, 170f),
+                new Color(0.10f, 0.11f, 0.10f, 1f)).rectTransform;
 
-            Text feedback = MakeText(feedbackPanel, "FeedbackText", "", 21, Paper, TextAnchor.UpperLeft,
+            Text feedback = MakeText(feedbackPanel, "FeedbackText", "", 27, new Color(0.96f, 0.97f, 1f), TextAnchor.UpperLeft,
                 new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -16f), new Vector2(-36f, 126f));
+                new Vector2(0f, -14f), new Vector2(-40f, 142f));
 
-            MakeText(card, "Footer", "1-4 or click to answer   ·   the world does not pause", 16, Dim,
+            FitText(feedback, 20, 27);
+
+            MakeText(card, "Footer", "1-4 or click to answer   ·   the world does not pause", 20, Dim,
                 TextAnchor.MiddleCenter, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f),
-                new Vector2(0f, 16f), new Vector2(-80f, 26f));
+                new Vector2(0f, 14f), new Vector2(-80f, 30f));
             Localize(card.Find("Footer").GetComponent<Text>());
 
             quiz.panel = dim.gameObject;
@@ -573,11 +608,12 @@ namespace LightShadow.Tools
             controller.nextButtons = new Button[SettingsPanelController.TotalRows];
 
             RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1120f, 1080f), PanelDark, false).rectTransform;
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1120f, SettingsPanelController.CardHeight), PanelDark, false).rectTransform;
+            card.gameObject.AddComponent<LightShadow.UI.CardFit>();
 
             controller.title = MakeText(card, "Title", "SETTINGS", 44, Warm, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -42f), new Vector2(900f, 58f), FontStyle.Bold, true);
+                new Vector2(0f, -36f), new Vector2(900f, 58f), FontStyle.Bold, true);
 
             string[] rowKeys =
             {
@@ -588,7 +624,7 @@ namespace LightShadow.Tools
 
             for (int i = 0; i < rowKeys.Length; i++)
             {
-                float y = -120f - i * 64f;
+                float y = -SettingsPanelController.RowTop - i * SettingsPanelController.RowPitch;
 
                 controller.rowLabels[i] = MakeText(card, "RowLabel" + i, rowKeys[i], 22, Paper,
                     TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
@@ -600,24 +636,24 @@ namespace LightShadow.Tools
 
                 Text prevLabel;
                 controller.prevButtons[i] = MakeButton(card, "Prev" + i, "<", new Vector2(0f, 1f),
-                    new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(846f, y + 3f), new Vector2(44f, 40f),
+                    new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(846f, y + SettingsPanelController.ArrowDrop), new Vector2(SettingsPanelController.ArrowWidth, SettingsPanelController.ArrowHeight),
                     ButtonDark, 22, out prevLabel);
 
                 Text nextLabel;
                 controller.nextButtons[i] = MakeButton(card, "Next" + i, ">", new Vector2(0f, 1f),
-                    new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(1006f, y + 3f), new Vector2(44f, 40f),
+                    new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(1006f, y + SettingsPanelController.ArrowDrop), new Vector2(SettingsPanelController.ArrowWidth, SettingsPanelController.ArrowHeight),
                     ButtonDark, 22, out nextLabel);
             }
 
             Text resetLabel;
             controller.resetButton = MakeButton(card, "Reset", "Reset defaults", new Vector2(0f, 0f),
-                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(64f, 48f), new Vector2(330f, 58f),
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(64f, 40f), new Vector2(330f, 58f),
                 ButtonDark, 19, out resetLabel);
             controller.resetLabel = resetLabel;
 
             Text closeLabel;
             controller.closeButton = MakeButton(card, "Close", "Close", new Vector2(1f, 0f),
-                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-64f, 48f), new Vector2(300f, 58f),
+                new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-64f, 40f), new Vector2(300f, 58f),
                 ButtonWarm, 20, out closeLabel);
             controller.closeLabel = closeLabel;
 
@@ -738,7 +774,8 @@ namespace LightShadow.Tools
         {
             RectTransform dim = MakeFullScreen(root, "HowToPanel", new Color(0f, 0f, 0f, 0.86f), true);
             RectTransform card = MakePanel(dim, "Card", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1000f, 700f), PanelDark, false).rectTransform;
+                new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1200f, 840f), PanelDark, false).rectTransform;
+            card.gameObject.AddComponent<LightShadow.UI.CardFit>();
 
             Text title = MakeText(card, "Title", "HOW TO PLAY", 42, Warm, TextAnchor.MiddleCenter,
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
@@ -755,8 +792,8 @@ namespace LightShadow.Tools
                 "and keeps the dark away. Hold the focused beam on the Shadow long enough and it recoils and backs off: hold right mouse, hold Y on a gamepad, or long-press the flashlight button on touch. Focus only works while the beam is on, and it drains the battery faster. Wrong answers and timeouts dim the beam.\n\n" +
                 "Lit rooms are safe until the gate is powered: the Shadow cannot enter them, and every lit room is a checkpoint. The battery is " +
                 "fuel and runs out; batteries are scattered through the school.\n\n" +
-                "Restore <b>three fuse boxes</b>, collect <b>six Knowledge Fragments</b>, power the gate, and walk out. " +
-                "You cannot die - being caught only costs light and sends you back to the last checkpoint.";
+                "Restore <b>three fuse boxes</b>, find the master key in the staff room locker, wire the gate console, turn the crank and walk out through the main gate. " +
+                "Knowledge Fragments are optional. You have two hits of health: medkits heal, and waking at a checkpoint refills it. Being caught costs light and sends you back to the last checkpoint.";
 
             string arabicBody =
                 "أنت نور. المدرسة مظلمة، وفريق الهدم يأتي عند الفجر، والظل يطارد في العتمة.\n\n" +
@@ -766,11 +803,16 @@ namespace LightShadow.Tools
                 "الإجابة: 1 2 3 4          المهام: Tab      الإيقاف: Esc\n\n" +
                 "أجب عن أسئلة السبورة لشحن مؤشر الفكرة المضيئة. الشعاع الأقوى يصل أبعد ويبقي العتمة بعيدة. أبقِ الشعاع المركّز على الظل مدة كافية فيرتدّ ويبتعد: اضغط مطولًا على زر الفأرة الأيمن، أو Y في يد التحكم، أو اضغط مطولًا على زر المصباح في اللمس. التركيز يعمل فقط والشعاع مضاء، ويستهلك البطارية أسرع. الإجابات الخاطئة وانتهاء الوقت تخفت الشعاع.\n\n" +
                 "الغرف المضاءة آمنة حتى تشغيل البوابة: لا يستطيع الظل دخولها، وكل غرفة مضاءة نقطة حفظ. البطارية وقود وتنفد؛ البطاريات موزعة في المدرسة.\n\n" +
-                "أعد تشغيل ثلاثة صناديق مصاهر، واجمع ست شذرات معرفة، وشغّل البوابة، واخرج. لا يمكنك الموت — الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ.";
+                "أعد تشغيل ثلاثة صناديق مصاهر، ثم جد المفتاح الرئيسي في خزانة غرفة المعلمين، ووصّل لوحة القواطع، وأدر المقبض، واخرج من البوابة الرئيسية. شذرات المعرفة اختيارية. لديك ضربتان من الصحة: الإسعافات تعالجك، والاستيقاظ عند نقطة حفظ يعيدها. الإمساك بك يكلفك ضوءًا ويعيدك إلى آخر نقطة حفظ.";
 
             Text bodyText = MakeText(card, "Body", body, 21, Paper, TextAnchor.UpperLeft,
                 new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f),
-                new Vector2(0f, -118f), new Vector2(-96f, 480f));
+                new Vector2(0f, -108f), new Vector2(-96f, 640f));
+            // Best fit is the safety net for long or Arabic text; the
+            // estimate in CardFit.EstimateTextHeight keeps 21 px the norm.
+            bodyText.resizeTextForBestFit = true;
+            bodyText.resizeTextMinSize = 17;
+            bodyText.resizeTextMaxSize = 21;
             Localize(bodyText, arabicBody, true);
 
             Text closeLabel;
@@ -892,6 +934,7 @@ namespace LightShadow.Tools
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 0.5f;
+            go.AddComponent<LightShadow.UI.MobileUiScale>(); // phones: 1.2x lift
 
             RectTransform rect = go.GetComponent<RectTransform>();
             Stretch(rect);

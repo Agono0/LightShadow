@@ -7,8 +7,9 @@ namespace LightShadow.Core
     // live under Resources/VO/<locale>/<lineId> where lineId is the line
     // sheet's canonical VO_<nodeId>[_Cn] id and locale follows the current
     // language. A missing clip (a line with no recording, or clips not
-    // shipped) returns false so the caller can fall back to StoryTeller's
-    // SAPI narration; the narrator toggle gates both paths.
+    // shipped) returns false. Story nodes then fall back to StoryTeller's
+    // SAPI narration; the ending cinematic only shows its subtitle (no
+    // speech). The narrator toggle gates the voice and the SAPI path.
     public static class VoiceoverPlayer
     {
         static readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
@@ -28,8 +29,14 @@ namespace LightShadow.Core
             Resources.UnloadUnusedAssets();
         }
 
+        // Length in seconds of the clip the last Play() started; 0 when no clip
+        // played (missing clip, narrator off, empty id). Lets timed sequences
+        // wait for the voice instead of cutting it (audit: ending VO overruns).
+        public static float LastPlayedSeconds { get; private set; }
+
         public static bool Play(string lineId)
         {
+            LastPlayedSeconds = 0f;
             if (string.IsNullOrEmpty(lineId)) return false;
             if (!GameSettings.NarratorEnabled) return true; // narrator off: no VO, no SAPI fallback
             EnsureLocale();
@@ -46,11 +53,17 @@ namespace LightShadow.Core
                 // Cache misses too: a line without a clip should not rescan
                 // the dictionary every time it shows.
                 missing.Add(lineId);
+                Debug.LogWarning("[LightShadow] No voice clip for " + lineId + " (" + loadedLocale + ", Resources/VO/" + loadedLocale + "). Caller decides: story nodes may use SAPI, the ending shows subtitles only.");
                 return false;
             }
 
-            if (AudioManager.Instance == null) return false;
+            if (AudioManager.Instance == null)
+            {
+                Debug.LogWarning("[LightShadow] Voice clip " + lineId + " loaded but there is no AudioManager to play it.");
+                return false;
+            }
             AudioManager.Instance.PlayVoice(clip);
+            LastPlayedSeconds = clip.length;
             return true;
         }
 

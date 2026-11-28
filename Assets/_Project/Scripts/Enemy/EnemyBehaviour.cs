@@ -251,6 +251,7 @@ namespace LightShadow.Enemy
             // and a hidden Nour - the Shadow cannot grab through the spot wall;
             // Search still FINDS a witnessed hider through sight (UpdateSearch).
             if (state != State.Repelled && state != State.ForcedCooldown && catchCooldownTimer <= 0f
+                && CatchAllowedDuringGrace(state, aggressive, MenaceDirector.ChaseBlocked)
                 && distance <= CatchDistance && !LitZoneProtects(aggressive, LitZone.PlayerInLitZone)
                 && !HidingSystem.IsHidden)
             {
@@ -429,6 +430,57 @@ namespace LightShadow.Enemy
         // rooms stay safe (destinations clamped, no catch inside).
         public static bool ClampsToLitZones(bool dawnChase) { return !dawnChase; }
         public static bool LitZoneProtects(bool dawnChase, bool playerInLitZone) { return playerInLitZone && !dawnChase; }
+
+        // Post-chase grace (MenaceDirector.ChaseBlocked) is meant to be a
+        // breather: it already stops the wraith entering Chase, but an
+        // Investigate or Search walk-in could still grab a lit player. In the
+        // grace those two states do not catch. Stalk, Chase and Ambush keep
+        // their catch (a stalker next to her is still a threat) and the dawn
+        // chase is never softened.
+        public static bool CatchAllowedDuringGrace(State s, bool dawnChase, bool chaseBlocked)
+        {
+            if (dawnChase || !chaseBlocked) return true;
+            return s != State.Investigate && s != State.Search;
+        }
+
+        // A survived strike in the dawn chase: forced cool-down is refused
+        // there (it would park the wraith for 45 to 60 s and kill the finale),
+        // so the wraith recoils away and holds still for a short window.
+        // Catch-exempt while repelled. The 6 s catch re-arm runs at the same
+        // time (about 1 s of extra cover after the 5 s window), so the player
+        // gets a real gap without the chase going
+        // away: one hit is already spent.
+        public const float DawnEscapeSeconds = 5f;
+
+        public enum RetreatRoute { ForceCooldown, DawnEscape }
+
+        // Pure seams so tests do not need an agent or a NavMesh.
+        public static RetreatRoute RetreatRouteFor(bool dawnChase)
+        {
+            return CanForceCooldown(dawnChase) ? RetreatRoute.ForceCooldown : RetreatRoute.DawnEscape;
+        }
+
+        public static float NextCatchCooldown(float current, float planned)
+        {
+            return Mathf.Max(current, planned);
+        }
+
+        void EnterDawnEscapeWindow()
+        {
+            EnterState(State.Repelled);
+            repelCooldownTimer = DawnEscapeSeconds;
+            banishHoldTimer = 0f;
+            if (player == null || agent == null) return;
+            Vector3 away = transform.position - player.position;
+            away.y = 0f;
+            away = away.sqrMagnitude > 0.01f ? away.normalized : -transform.forward;
+            if (NavMesh.SamplePosition(transform.position + away * DawnEscapeRecoil, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+            {
+                agent.Warp(hit.position);
+            }
+        }
+
+        public const float DawnEscapeRecoil = 6f;
 
         // N1: in the dawn chase the menace gauge climbs fast, and parking the
         // Shadow for 45-60s right after the gate powers would kill the finale.
@@ -768,10 +820,11 @@ namespace LightShadow.Enemy
         {
             catchingSeconds = 0f;
             if (plan.ClearCatching) catching = false;
-            catchCooldownTimer = Mathf.Max(catchCooldownTimer, plan.CatchCooldownSeconds);
+            catchCooldownTimer = NextCatchCooldown(catchCooldownTimer, plan.CatchCooldownSeconds);
             if (plan.Retreat)
             {
-                ForceCooldown(plan.RetreatSeconds);
+                if (RetreatRouteFor(aggressive) == RetreatRoute.ForceCooldown) ForceCooldown(plan.RetreatSeconds);
+                else EnterDawnEscapeWindow();
             }
             else if (plan.ResetToPatrol && !catching)
             {
