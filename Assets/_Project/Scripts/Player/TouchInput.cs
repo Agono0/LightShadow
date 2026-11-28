@@ -57,8 +57,18 @@ namespace LightShadow.Player
             lookFingerId = LookFingerAfterLock(locked, lookFingerId);
             if (!CanLook(locked)) return;
 
-            foreach (Touch touch in Input.touches)
+            // touchCount + GetTouch: Input.touches allocates an array every frame.
+            // A finger the OS dropped without Ended/Canceled (app backgrounded
+            // mid-drag) must not keep the look area dead.
+            if (lookFingerId != -1)
             {
+                bool still = false;
+                for (int k = 0; k < Input.touchCount; k++) if (Input.GetTouch(k).fingerId == lookFingerId) { still = true; break; }
+                if (!still) lookFingerId = -1;
+            }
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                Touch touch = Input.GetTouch(i);
                 switch (touch.phase)
                 {
                     case TouchPhase.Began:

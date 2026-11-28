@@ -113,6 +113,34 @@ namespace LightShadow.Player
         // checkpoint itself. Without this a catch interrupted mid-hide leaves
         // IsHidden stuck on: the Shadow goes permanently blind (EnemySight)
         // and the next E teleport hops her back into the old spot.
+        // Every scene load starts with no hide: the spot object of the old scene is
+        // gone, and a stale IsHidden would leave the player unable to act (mobile
+        // Interact only exits a hide) and the Shadow blind. Hiding is never saved,
+        // and a restore runs after sceneLoaded, so nothing legitimate is erased.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        static void HookSceneReset()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoadedReset;
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoadedReset;
+        }
+
+        static void OnSceneLoadedReset(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            ResetState();
+        }
+
+        // While hidden the player stands at the hide point; a save must store where
+        // she goes back to (the entry spot), since hiding itself is not saved.
+        public static bool TryGetSavePose(out Vector3 position, out float yaw)
+        {
+            position = Vector3.zero;
+            yaw = 0f;
+            if (!IsHidden || instance == null) return false;
+            position = instance.entryPosition;
+            yaw = instance.entryRotation.eulerAngles.y;
+            return true;
+        }
+
         public static void ResetState()
         {
             IsHidden = false;

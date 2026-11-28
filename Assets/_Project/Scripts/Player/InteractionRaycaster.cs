@@ -52,15 +52,27 @@ namespace LightShadow.Player
             // handles it), never a fresh interaction through the held prop.
             if (ThrowableProp.Carried == null && !PlayerController.ExternalInputLocked && Input.GetKeyDown(KeyCode.E)) PressInteract();
 
-            // Show or hide the on-screen interaction hint.
+            // Show or hide the on-screen interaction hint. Only when the target or
+            // its state changes: the old code rebuilt the "[E] ..." string and ran
+            // the localiser (Arabic shaping included) every frame while aiming at
+            // something.
             if (hud != null)
             {
-                if (current != null && current.CanInteract)
-                    hud.SetPrompt(Application.isMobilePlatform ? current.Prompt : "[E] " + current.Prompt);
-                else
-                    hud.SetPrompt(current != null ? current.Prompt : "");
+                bool can = current != null && current.CanInteract;
+                string prompt = current != null ? current.Prompt : "";
+                if (!ReferenceEquals(current, shownTarget) || can != shownCan || prompt != shownPrompt)
+                {
+                    shownTarget = current;
+                    shownCan = can;
+                    shownPrompt = prompt;
+                    hud.SetPrompt(can && !Application.isMobilePlatform ? "[E] " + prompt : prompt);
+                }
             }
         }
+
+        IInteractable shownTarget;
+        bool shownCan;
+        string shownPrompt = "";
 
         void UpdateTarget()
         {

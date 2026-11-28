@@ -122,6 +122,10 @@ namespace LightShadow.Player
             keyboardMove = Vector2.zero;
             touchMove = Vector2.zero;
             verticalVelocity = 0f;
+            // A catch mid-sprint must not wake her sliding or winded.
+            planarVelocity = Vector3.zero;
+            stamina01 = 1f;
+            exhausted = false;
             // Respawn clears every overlay: visible ones close themselves first.
             OverlayStack.ResetAll(true);
 

@@ -223,7 +223,7 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
                 var labelGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
                 labelGo.transform.SetParent(slot.transform, false);
                 Text label = labelGo.GetComponent<Text>();
-                label.text = Inventory.DisplayName(id);
+                label.text = Localization.Present(Inventory.DisplayName(id));
                 label.font = font;
                 label.alignment = TextAnchor.MiddleCenter;
                 label.color = new Color(0.92f, 0.9f, 0.86f);
@@ -273,14 +273,14 @@ namespace LightShadow.Contrib.Abdelraouf.InventoryScreen
                 return;
             }
 
-            detailName.text = Inventory.DisplayName(id);
-            detailDescription.text = InventoryItemCatalog.Description(id);
+            detailName.text = Localization.Present(Inventory.DisplayName(id));
+            detailDescription.text = Localization.Present(InventoryItemCatalog.Description(id));
             useButton.interactable = InventoryItemCatalog.HasUseHandler(id);
         }
 
         static string L(string english, string arabic)
         {
-            return Localization.Current == GameLanguage.Arabic ? arabic : english;
+            return Localization.Current == GameLanguage.Arabic ? Localization.Present(arabic) : english;
         }
 
         void ApplyLanguage()

@@ -26,6 +26,14 @@ namespace LightShadow.Enemy
 
         public float Gauge { get; private set; }
 
+        // Restored from a save; below the forced-cooldown threshold so a load
+        // never parks the wraith the instant it lands.
+        public void RestoreGauge(float value)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value)) return;
+            Gauge = Mathf.Clamp(value, 0f, MenaceMax * 0.9f);
+        }
+
         // True while the post-chase grace window is running: the FSM may not
         // enter Chase. Stalking stays allowed - the Shadow is calm, not blind.
         public static bool ChaseBlocked => Instance != null && Instance.chaseGraceTimer > 0f;

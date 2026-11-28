@@ -44,7 +44,7 @@ namespace LightShadow.Gameplay
             if (pickupClip != null && AudioManager.Instance != null) AudioManager.Instance.PlaySfx(pickupClip);
             else LightShadow.Audio.Sfx.Play("SFX_Pickup", ProceduralSfx.Pickup);
 
-            if (gm != null) gm.ShowMessage("Medkit packed. Press M when she needs it.", 4f);
+            if (gm != null) gm.ShowMessage("Medkit packed. I opens the bag, M uses it.", 4f);
 
             gameObject.SetActive(false);
         }

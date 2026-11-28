@@ -59,8 +59,17 @@ namespace LightShadow.Gameplay
             // plays; the quiz waits until the player closes it.
             UI.InspectViewController.ShowFrom(this);
 
-            yield return new WaitForSeconds(memorySeconds);
-            while (UI.InspectViewController.IsOpen) yield return null;
+            // With the close-up open, its own close (button, Esc or auto) ends
+            // the wait and the question follows at once. Without it, the memory
+            // line plays for memorySeconds first.
+            if (UI.InspectViewController.IsOpen)
+            {
+                while (UI.InspectViewController.IsOpen) yield return null;
+            }
+            else
+            {
+                yield return new WaitForSeconds(memorySeconds);
+            }
 
             // The themed question. Answering or not, the fragment is recovered.
             if (gm != null && gm.quizUI != null && gm.database != null)
@@ -68,6 +77,10 @@ namespace LightShadow.Gameplay
                 QuestionData question = gm.database.GetNextQuestion(category);
                 if (question != null)
                 {
+                    // The memory is over once the close-up closes: cut its narration and
+                    // HUD line so they do not talk over the question.
+                    StoryTeller.Stop();
+                    if (gm.hud != null) gm.hud.ClearMessage();
                     // Never stack on another open question (it would displace it).
                     while (gm.quizUI.IsOpen) yield return null;
                     bool answered = false;

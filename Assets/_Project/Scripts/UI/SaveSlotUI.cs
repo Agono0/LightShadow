@@ -347,6 +347,10 @@ namespace LightShadow.UI
 
             Hide();
 
+            // Before any inventory reset: clearing the bag fires ItemRemoved, which would
+            // hand out an owed medkit. A load restores the owed state from the save.
+            LightShadow.Gameplay.PuzzleKeyRewards.ResetPending();
+
             if (intent == Intent.NewGame)
             {
                 // A deferred restore from an earlier Load attempt must not
@@ -361,6 +365,8 @@ namespace LightShadow.UI
                 LightShadow.Contrib.Abdelraouf.Journal.JournalProgress.ResetForNewRun();
             }
 
+            // Load and new game both start with no hide (Pause > Menu > Load used to keep it).
+            LightShadow.Player.HidingSystem.ResetState();
             LoadingScreen.Transition(SceneNames.School);
 
             if (intent == Intent.Load)

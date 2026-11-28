@@ -15,6 +15,10 @@ namespace LightShadow.Core
         static readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
         static readonly HashSet<string> missing = new HashSet<string>();
         static string loadedLocale = "";
+        static readonly HashSet<string> loggedPlays = new HashSet<string>();
+
+        // What the last Play() did, for the dev console and bug reports.
+        public static string LastStatus { get; private set; } = "";
 
         static string Locale => Localization.Current == GameLanguage.Arabic ? "AR" : "EN";
 
@@ -62,8 +66,13 @@ namespace LightShadow.Core
                 Debug.LogWarning("[LightShadow] Voice clip " + lineId + " loaded but there is no AudioManager to play it.");
                 return false;
             }
+            // Clips import with preloadAudioData off: ask for the data now so
+            // the first line of a scene does not start late or silent.
+            if (clip.loadState == AudioDataLoadState.Unloaded) clip.LoadAudioData();
             AudioManager.Instance.PlayVoice(clip);
             LastPlayedSeconds = clip.length;
+            LastStatus = lineId + " " + loadedLocale + " " + clip.length.ToString("0.0") + "s load=" + clip.loadState;
+            if (loggedPlays.Add(lineId)) Debug.Log("[LightShadow] VO play " + LastStatus);
             return true;
         }
 

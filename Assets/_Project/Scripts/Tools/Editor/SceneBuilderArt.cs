@@ -363,7 +363,11 @@ namespace LightShadow.Tools
             }
             if (name.StartsWith("Door_"))
             {
-                SwapDoorWithHeroModel(transform);
+                // Working doors (DoorController: hinge, collider, key lock)
+                // keep their swinging wooden panel. The grille swap was written
+                // for the old collider-free decor boxes; on a real door it parked
+                // a static, non-swinging model on the root. Only decor doors swap.
+                if (transform.GetComponent<DoorController>() == null) SwapDoorWithHeroModel(transform);
                 return;
             }
             if (name.StartsWith("Planter_"))
@@ -767,7 +771,8 @@ namespace LightShadow.Tools
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 string fileName = path.Substring(path.LastIndexOf('/') + 1);
-                if (!fileName.Equals(modelName + ".fbx", StringComparison.OrdinalIgnoreCase)) continue;
+                if (!fileName.Equals(modelName + ".fbx", StringComparison.OrdinalIgnoreCase)
+                    && !fileName.Equals(modelName + ".obj", StringComparison.OrdinalIgnoreCase)) continue;
                 GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 if (asset != null)
                 {

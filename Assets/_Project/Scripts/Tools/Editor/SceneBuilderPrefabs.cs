@@ -71,6 +71,7 @@ namespace LightShadow.Tools
             controller.stepOffset = 0.35f;
             controller.skinWidth = 0.02f;
             controller.minMoveDistance = 0f;
+            PlayerRigFit.ConfigureBody(root, controller.height, controller.radius);
 
             var pivot = new GameObject("CameraPivot");
             pivot.transform.SetParent(root.transform, false);
@@ -103,8 +104,8 @@ namespace LightShadow.Tools
             Light spot = flashlightGo.AddComponent<Light>();
             spot.type = LightType.Spot;
             spot.color = new Color(1f, 0.94f, 0.82f);
-            spot.intensity = 2.6f;
-            spot.range = 11f;   // moderate, per the user's tuning brief
+            spot.intensity = 3.0f;
+            spot.range = 12f;   // moderate, per the user's tuning brief
             spot.spotAngle = 62f;
             // Smooth-edged cone (user brief 2026-11-27): the inner hotspot
             // nearly meets the outer rim, so the falloff is a gradient, not
@@ -261,6 +262,8 @@ namespace LightShadow.Tools
             flashlightGo.transform.SetParent(handRootGo.transform, false);
             flashlightGo.transform.localPosition = new Vector3(0.01f, 0.035f, 0.13f);
             flashlightGo.transform.localRotation = Quaternion.Inverse(handRootGo.transform.localRotation);
+
+            ApplyPlayerRigModels(root, handRootGo, flashlightGo, torch, palette);
 
             FirstPersonHands hands = handRootGo.AddComponent<FirstPersonHands>();
             hands.handRoot = handRootGo.transform;
@@ -501,7 +504,7 @@ namespace LightShadow.Tools
                 palette.metal, false, InteractableLayer);
 
             CreatePointLight(visual.transform, "Glow", new Vector3(0f, 0.55f, 0f),
-                new Color(1f, 0.72f, 0.28f), 0.8f, 3f);
+                new Color(1f, 0.72f, 0.28f), 0.45f, 2.2f);
 
             PickupMotion motion = root.AddComponent<PickupMotion>();
             motion.visual = visual.transform;
@@ -603,7 +606,7 @@ namespace LightShadow.Tools
             glow.GetComponent<Renderer>().sharedMaterial = palette.lamp;
 
             CreatePointLight(visual.transform, "GlowLight", new Vector3(0f, 0.55f, 0f),
-                new Color(1f, 0.85f, 0.6f), 1.1f, 3.2f);
+                new Color(1f, 0.85f, 0.6f), 0.6f, 2.4f);
 
             PickupMotion motion = root.AddComponent<PickupMotion>();
             motion.visual = visual.transform;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using LightShadow.Enemy;
 using LightShadow.Gameplay;
@@ -65,6 +66,10 @@ namespace LightShadow.Core
         void Awake()
         {
             Instance = this;
+            SaveSystem.SaveCaptured += CaptureEnemyState;
+            SaveSystem.SaveApplied += ApplyEnemyState;
+            SaveSystem.SaveCaptured += CaptureAnswers;
+            SaveSystem.SaveApplied += ApplyAnswers;
             if (config == null)
             {
                 // So the game still runs if the asset was never assigned.
@@ -75,7 +80,74 @@ namespace LightShadow.Core
 
         void OnDestroy()
         {
+            SaveSystem.SaveCaptured -= CaptureEnemyState;
+            SaveSystem.SaveApplied -= ApplyEnemyState;
+            SaveSystem.SaveCaptured -= CaptureAnswers;
+            SaveSystem.SaveApplied -= ApplyAnswers;
             if (Instance == this) Instance = null;
+        }
+
+        // Enemy state in saves: where the wraith was and how full the menace
+        // gauge was. It comes back as a patrolling wraith at that spot, and
+        // only when that spot is not on top of the player.
+        void CaptureEnemyState(SaveSystem.SaveData data)
+        {
+            if (enemy == null) return;
+            MenaceDirector menace = MenaceDirector.Instance;
+            SaveSystem.SetContrib(data, EnemySaveState.Key, EnemySaveState.ToJson(
+                enemy.transform.position, menace != null ? menace.Gauge : 0f, enemy.IsAggressive));
+        }
+
+        // Study recap and question history in saves: without them a loaded run
+        // repeated questions and the recap lost everything answered before the save.
+        [Serializable]
+        class AnswerSave { public string q; public int chosen; public bool correct; }
+        [Serializable]
+        class AnswersBlob { public List<AnswerSave> answers = new List<AnswerSave>(); }
+        const string AnswersKey = "answers";
+
+        void CaptureAnswers(SaveSystem.SaveData data)
+        {
+            AnswersBlob blob = new AnswersBlob();
+            for (int i = 0; i < answers.Count; i++)
+            {
+                if (answers[i].question == null) continue;
+                blob.answers.Add(new AnswerSave { q = answers[i].question.name, chosen = answers[i].chosenIndex, correct = answers[i].correct });
+            }
+            SaveSystem.SetContrib(data, AnswersKey, JsonUtility.ToJson(blob));
+        }
+
+        void ApplyAnswers(SaveSystem.SaveData data)
+        {
+            string json = SaveSystem.GetContrib(data, AnswersKey);
+            if (string.IsNullOrEmpty(json) || database == null) return;
+            AnswersBlob blob = null;
+            try { blob = JsonUtility.FromJson<AnswersBlob>(json); } catch (Exception) { blob = null; }
+            if (blob == null || blob.answers == null) return;
+            answers.Clear();
+            for (int i = 0; i < blob.answers.Count; i++)
+            {
+                QuestionData question = database.FindByName(blob.answers[i].q);
+                if (question == null) continue;
+                database.MarkAsked(question.name);
+                answers.Add(new AnswerRecord { question = question, chosenIndex = blob.answers[i].chosen, correct = blob.answers[i].correct });
+            }
+        }
+
+        void ApplyEnemyState(SaveSystem.SaveData data)
+        {
+            EnemySaveState.Blob blob;
+            if (enemy == null || player == null) return;
+            if (!EnemySaveState.TryParse(SaveSystem.GetContrib(data, EnemySaveState.Key), out blob))
+            {
+                // Old save with no enemy blob: the scene spawn must still not sit on her.
+                enemy.EnsureAwayFrom(player.position, EnemySaveState.MinPlayerDistance);
+                return;
+            }
+            if (EnemySaveState.ShouldPlace(blob.Position, player.position)) enemy.PlaceFromSave(blob.Position);
+            else enemy.EnsureAwayFrom(player.position, EnemySaveState.MinPlayerDistance); // refused spot: do not keep a spawn inside 10 m
+            MenaceDirector menace = MenaceDirector.Instance;
+            if (menace != null) menace.RestoreGauge(blob.gauge);
         }
 
         void Start()
@@ -89,19 +161,25 @@ namespace LightShadow.Core
             if (AudioManager.Instance != null) AudioManager.Instance.StopMusic();
             // A previous run may have been paused or slowed when the scene ended.
             Time.timeScale = 1f;
-            if (database != null) database.ResetBag();
+            // A restore applies before Start: keep the questions it marked as asked.
+            bool restoring = SaveSystem.RestorePending | SaveSystem.ConsumeRestoredFlag();
+            if (database != null && !restoring) database.ResetBag();
             if (hud != null) hud.RefreshObjectives();
             Debug.Log("[LightShadow] The night begins: Nour entered the school.");
 
             // Opening story beat: the stakes on the HUD while the narrator sets
-            // the tone over the speakers.
-            ShowMessage("The demolition crew comes at dawn. Restore the light. Carry her memories home.", 6f);
+            // the tone over the speakers. Only on a new night: loading a
+            // save must not replay the intro.
+            if (!restoring)
+            {
+                ShowMessage("The demolition crew comes at dawn. Restore the light. Carry her memories home.", 6f);
 
-            // The narrator (Windows SAPI voice) opens the night once. Audio is
-            // quiet enough not to hide the Shadow's cues; the option is offable
-            // in Settings.
-            StoryTeller.Speak(Localization.Tr(
-                "The school remembers her mother. Nour must carry what is precious out before dawn."), true);
+                // The narrator (Windows SAPI voice) opens the night once. Audio is
+                // quiet enough not to hide the Shadow's cues; the option is offable
+                // in Settings.
+                StoryTeller.Speak(Localization.Tr(
+                    "The school remembers her mother. Nour must carry what is precious out before dawn."), true);
+            }
         }
 
         // ---- Small services other scripts call --------------------------------
@@ -306,6 +384,10 @@ namespace LightShadow.Core
             return false;
         }
 
+        // True during the catch fade and the checkpoint wake. Autosave skips it so a
+        // save never stores the death position with one hit.
+        public bool IsRespawning { get { return respawning; } }
+
         public void CaughtPlayer()
         {
             if (respawning || escaped) return;
@@ -435,7 +517,10 @@ namespace LightShadow.Core
                 {
                     CharacterController controller = player.GetComponent<CharacterController>();
                     if (controller != null) controller.enabled = false;
-                    player.SetPositionAndRotation(data.position, Quaternion.Euler(0f, data.yaw, 0f));
+                    Vector3 target = data.position;
+                    Vector3 projected;
+                    if (SaveSystem.TryProjectToNavMesh(target, 1.5f, out projected)) target = projected;
+                    player.SetPositionAndRotation(target, Quaternion.Euler(0f, data.yaw, 0f));
                     if (controller != null) controller.enabled = true;
                 }
                 else

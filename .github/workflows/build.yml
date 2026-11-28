@@ -93,6 +93,10 @@ jobs:
 
       - if: needs.changes.outputs.code == 'true'
         uses: actions/checkout@v4
+        with:
+          # The OBJ models are LFS files: without this the importer sees pointer text
+          # and the import tests run against empty models.
+          lfs: true
 
       # Library cache policy (all jobs): PRs only RESTORE (they can read the
       # caches main saved); main pushes SAVE a fresh entry after a green run.

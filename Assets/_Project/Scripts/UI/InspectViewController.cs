@@ -185,7 +185,13 @@ namespace LightShadow.UI
 
         void Update()
         {
-            if (!IsOpen) return;
+            if (!IsOpen)
+            {
+                // A lock left over from a view that is already closed would
+                // freeze the player with the cursor showing. Never keep one.
+                if (lockToken != null && lockToken.IsActive) Hide();
+                return;
+            }
 
             autoCloseClock -= Time.unscaledDeltaTime;
             if (autoCloseClock <= 0f || Input.GetKeyDown(KeyCode.Escape))

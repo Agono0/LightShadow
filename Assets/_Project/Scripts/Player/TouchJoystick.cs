@@ -108,6 +108,9 @@ namespace LightShadow.Player
 
         void Update()
         {
+            // The rig can be rebuilt (respawn, scene reload): re-resolve a lost player
+            // so the stick never keeps steering a destroyed controller.
+            if (player == null) ResolvePlayer();
             // Visual only: the handle eases to the thumb, the move vector does not wait for it.
             // A held thumb keeps steering even when no drag event arrives (still thumb,
             // or the dialogue lock cleared the vector and then released).

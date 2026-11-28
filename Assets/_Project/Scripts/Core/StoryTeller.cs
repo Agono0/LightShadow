@@ -237,7 +237,7 @@ namespace LightShadow.Core
                     }
                     else
                     {
-                        SpeakViaPowerShell(text);
+                        if (!PowerShellSpeaker.Speak(text, isArabic)) SpeakViaPowerShell(text);
                     }
                 }
                 catch (Exception)
@@ -341,6 +341,7 @@ namespace LightShadow.Core
 
         static void KillActiveSpeech()
         {
+            PowerShellSpeaker.Interrupt();
             lock (processLock)
             {
                 try

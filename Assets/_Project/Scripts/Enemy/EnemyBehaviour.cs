@@ -69,6 +69,9 @@ namespace LightShadow.Enemy
         Vector3 forcedCooldownTarget;
         float forcedCooldownTimer;
         float forcedCooldownSeconds;
+        float forcedCooldownTravel;
+        float offMeshRetry;
+        const float ForcedCooldownTravelAllowance = 40f;
 
         // Search (P3 hiding): after a lost chase or a fruitless investigate the
         // Shadow checks a few random hide spots around the last known point.
@@ -206,7 +209,20 @@ namespace LightShadow.Enemy
 
         void Update()
         {
-            if (player == null || agent == null || !agent.isOnNavMesh) return;
+            if (player == null || agent == null) return;
+            if (!agent.isOnNavMesh)
+            {
+                // Off the mesh (rebuild, bad warp): retry the snap once a second
+                // instead of freezing the whole state machine for good.
+                offMeshRetry -= Time.deltaTime;
+                if (offMeshRetry <= 0f)
+                {
+                    offMeshRetry = 1f;
+                    NavMeshHit snap;
+                    if (NavMesh.SamplePosition(transform.position, out snap, 8f, NavMesh.AllAreas)) agent.Warp(snap.position);
+                }
+                return;
+            }
             if (catching)
             {
                 // Watchdog: the catch must always hand back. If the sequence or
@@ -323,7 +339,7 @@ namespace LightShadow.Enemy
         void UpdatePatrol(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
         {
             agent.isStopped = false;
-            if (!agent.hasPath || agent.remainingDistance <= 0.7f) AdvanceWaypoint();
+            if (NoPathOrArrived(0.7f)) AdvanceWaypoint();
 
             bool playerIsDark = light < StalkLightThreshold;
             if (distance <= EngageRadius && (playerIsDark || aggressive)) EnterState(State.Stalk);
@@ -345,7 +361,7 @@ namespace LightShadow.Enemy
         // nearby reads exactly like any other patrol stalk engagement.
         void UpdateInvestigate(float dt, Vector3 playerPosition, float distance, float light, bool sighted)
         {
-            if (!agent.hasPath || agent.remainingDistance <= InvestigateArriveDistance)
+            if (NoPathOrArrived(InvestigateArriveDistance))
             {
                 // Arrived: stand still and sweep the gaze across the noise spot.
                 agent.isStopped = true;
@@ -531,7 +547,7 @@ namespace LightShadow.Enemy
             }
 
             Vector3 target = searchPath[searchStageIndex];
-            if (!agent.hasPath || agent.remainingDistance <= InvestigateArriveDistance)
+            if (NoPathOrArrived(InvestigateArriveDistance))
             {
                 // Dwell at the stop and look it over, then move to the next.
                 agent.isStopped = true;
@@ -566,6 +582,16 @@ namespace LightShadow.Enemy
         // stalking and the beam repel - the Shadow is leaving, full stop.
         void UpdateForcedCooldown(float dt)
         {
+            // The cool-down only counts down once the wraith has arrived, so an
+            // unreachable or off-mesh target used to park it here for the rest of
+            // the run (no catches, no chases). Bound the walk independently.
+            forcedCooldownTravel += dt;
+            if (forcedCooldownTravel >= forcedCooldownSeconds + ForcedCooldownTravelAllowance)
+            {
+                EnterState(State.Patrol);
+                return;
+            }
+            if (agent.pathPending) return; // let the request finish; re-asking every frame starves it
             if (!agent.hasPath || agent.remainingDistance > InvestigateArriveDistance)
             {
                 agent.isStopped = false;
@@ -719,7 +745,7 @@ namespace LightShadow.Enemy
                     // while the timer runs.
                     agent.speed = PatrolSpeed;
                     agent.isStopped = false;
-                    forcedCooldownTimer = 0f;
+                    forcedCooldownTimer = 0f; forcedCooldownTravel = 0f;
                     PickFarWaypoint();
                     break;
                 case State.Search:
@@ -757,6 +783,49 @@ namespace LightShadow.Enemy
             if (burstSource != null && whisperClip != null) burstSource.PlayOneShot(whisperClip);
         }
 
+        // Restored from a save: stand at the saved spot (snapped to the
+        // NavMesh) and go back to patrol. Never resumes a chase.
+        public void PlaceFromSave(Vector3 position)
+        {
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(position, out hit, 2f, NavMesh.AllAreas))
+            {
+                if (agent != null && agent.isOnNavMesh) agent.Warp(hit.position);
+                else transform.position = hit.position;
+            }
+            // A restore can run before Start, while the prefab's agent is still
+            // disabled: touching it then logs errors. Start enters Patrol itself.
+            if (agent == null || !agent.enabled || !agent.isOnNavMesh) return;
+            ResetToPatrol();
+        }
+
+        // Save restore fallback: when the saved spot was refused and the wraith's
+        // scene spawn is still closer than minDistance to the restored player,
+        // move it to the patrol waypoint farthest from her that is on the NavMesh.
+        // Waypoints are authored on the mesh, so this cannot no-op the way a
+        // computed "away from the player" point can. Returns true if it moved.
+        public bool EnsureAwayFrom(Vector3 playerPosition, float minDistance)
+        {
+            if (Vector3.Distance(transform.position, playerPosition) >= minDistance) return false;
+            if (route == null) return false;
+            Vector3 best = Vector3.zero;
+            float bestDistance = -1f;
+            for (int i = 0; i < route.Count; i++)
+            {
+                Transform waypoint = route.Get(i);
+                if (waypoint == null) continue;
+                NavMeshHit hit;
+                if (!NavMesh.SamplePosition(waypoint.position, out hit, 2f, NavMesh.AllAreas)) continue;
+                float d = Vector3.Distance(hit.position, playerPosition);
+                if (d > bestDistance) { bestDistance = d; best = hit.position; }
+            }
+            if (bestDistance <= Vector3.Distance(transform.position, playerPosition)) return false;
+            if (agent != null && agent.isOnNavMesh) agent.Warp(best);
+            else transform.position = best;
+            ResetToPatrol();
+            return true;
+        }
+
         // Called by the GameManager after a catch, and used internally on exit.
         public void ResetToPatrol()
         {
@@ -765,7 +834,7 @@ namespace LightShadow.Enemy
             catchCooldownTimer = 1.5f;
             sightLostTimer = 0f;
             investigateTimer = 0f;
-            forcedCooldownTimer = 0f;
+            forcedCooldownTimer = 0f; forcedCooldownTravel = 0f;
             banishHoldTimer = 0f;
             searchStageIndex = 0;
             searchPath.Clear();
@@ -781,7 +850,7 @@ namespace LightShadow.Enemy
             catchingSeconds = 0f;
             sightLostTimer = 0f;
             investigateTimer = 0f;
-            forcedCooldownTimer = 0f;
+            forcedCooldownTimer = 0f; forcedCooldownTravel = 0f;
             searchStageIndex = 0;
             searchPath.Clear();
 
@@ -866,6 +935,17 @@ namespace LightShadow.Enemy
         // wraith has not visited lately, so its wandering reads as intent,
         // not a patrol loop. Falls back to the next waypoint when the route
         // is tiny.
+        // A destination that was just set reports hasPath == false and an infinite
+        // remaining distance until the async path request finishes. Treating that
+        // as "no path / arrived" re-rolled the patrol waypoint every frame (the
+        // wraith never committed to a route) and made Investigate and Search
+        // dwell at the wrong spot at once. Wait for the request instead.
+        bool NoPathOrArrived(float arriveDistance)
+        {
+            if (agent.pathPending) return false;
+            return !agent.hasPath || agent.remainingDistance <= arriveDistance;
+        }
+
         void AdvanceWaypoint()
         {
             if (route == null || route.Count == 0) return;
@@ -899,7 +979,15 @@ namespace LightShadow.Enemy
         // genuinely cannot enter lit rooms, not merely "avoids" them).
         void SetDestination(Vector3 position)
         {
-            agent.SetDestination(ClampsToLitZones(aggressive) ? LitZone.ClampPoint(position, 0.8f) : position);
+            Vector3 target = position;
+            if (ClampsToLitZones(aggressive))
+            {
+                target = LitZone.ClampPoint(position, 0.8f);
+                // The clamp is geometry only: keep the target walkable.
+                NavMeshHit onMesh;
+                if (NavMesh.SamplePosition(target, out onMesh, 2f, NavMesh.AllAreas)) target = onMesh.position;
+            }
+            agent.SetDestination(target);
         }
 
         void FaceTowards(Vector3 position)
