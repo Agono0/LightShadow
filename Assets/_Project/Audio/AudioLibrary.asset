@@ -26,17 +26,92 @@ MonoBehaviour:
   footstepWood:
   - {fileID: 8300000, guid: 3c53b476b73db2a4580ad0f6d2620df2, type: 3}
   - {fileID: 8300000, guid: 999f67523d500b74380fb2ccb4adfa07, type: 3}
+  footstepCarpet:
+  - {fileID: 8300000, guid: 88ace1a632b14782b3d28b1c1800fa74, type: 3}
+  - {fileID: 8300000, guid: e14adb2f4cf5483183c0b33e4dde4915, type: 3}
+  - {fileID: 8300000, guid: 53ed4c9221734e85b40e1e1aef90728e, type: 3}
+  - {fileID: 8300000, guid: 04463df1ea8a45d5961f14a13a5574e6, type: 3}
+  - {fileID: 8300000, guid: 79977afcdfeb4f11baabe90391638d87, type: 3}
+  footstepGrass:
+  - {fileID: 8300000, guid: 155653eaaa0d4238a03c086d43f03349, type: 3}
+  - {fileID: 8300000, guid: 27faf4381101414c8ca759096cfc81b4, type: 3}
+  - {fileID: 8300000, guid: 5452da0558d24355b503e13be3055b58, type: 3}
+  - {fileID: 8300000, guid: 8c51bb6eb32a4e25ab3c0ff413ace5be, type: 3}
+  - {fileID: 8300000, guid: 8806e351489d44d5a7aa744526807622, type: 3}
+  footstepGravel:
+  - {fileID: 8300000, guid: 0d94d474171d4535880730b1b0523d57, type: 3}
+  footstepLeaves:
+  - {fileID: 8300000, guid: b2b00b3ce378495aa5eede29b8d9ec18, type: 3}
+  - {fileID: 8300000, guid: d983e1a644fe4123913992e88b9ba132, type: 3}
+  footstepMud:
+  - {fileID: 8300000, guid: c7c37dedf776474eace48ce552f6c840, type: 3}
+  breathTired: {fileID: 8300000, guid: b4d3cead9b884cad926fc00441f99b8a, type: 3}
+  doorOpen: []
+  doorClose: []
+  paperRustle: []
+  clothRustle: []
+  glassShuffle: []
+  doorSteelBang: {fileID: 0}
+  gateSlam: {fileID: 0}
+  lockerOpen: {fileID: 0}
+  lockerClose: {fileID: 0}
+  fuseClunk: {fileID: 0}
+  lockClick: {fileID: 0}
+  puzzleSuccess: {fileID: 0}
+  puzzleFail: {fileID: 0}
+  pageFlutter: {fileID: 0}
+  flashlightClick: {fileID: 0}
+  chargeChime: {fileID: 0}
+  chairFold: {fileID: 0}
+  glassCrack: {fileID: 0}
+  schoolBell: {fileID: 0}
   shadowMoans:
   - {fileID: 8300000, guid: 68fc87a56ed499a43800208c73f593d7, type: 3}
   - {fileID: 8300000, guid: e304a78cf95f111489ea268d1818ea1a, type: 3}
   - {fileID: 8300000, guid: d0ff1a73fbf92134fa9d39d2bb65f79a, type: 3}
   ambienceNight: {fileID: 8300000, guid: caff98630f5057c46834208cc4510255, type: 3}
-  musicBedLongNoteOne: {fileID: 8300000, guid: 07f7169932f70cb46b30b1bd9f753b6d, type: 3}
-  endingHopeGold: {fileID: 8300000, guid: 83b7e58a71a37784d9198e61b364fe8f, type: 3}
-  endingDawnlessGrey: {fileID: 8300000, guid: 4736c5766d1d14f4e8fd4be492d71b3f, type: 3}
+  keyPickup:
+  - {fileID: 8300000, guid: 8919bffb9aad4656afe08f56869c17bd, type: 3}
+  doorUnlock:
+  - {fileID: 8300000, guid: ea1c21a9fa164a0cbd2b84af42dd7f5f, type: 3}
+  doorLockedRattle:
+  - {fileID: 8300000, guid: b33372340a234cba8a317e95b35d2325, type: 3}
+  medkitUse: []
+  hurtHit:
+  - {fileID: 8300000, guid: ffe546fa90d247fa981ecfbd1d7f466e, type: 3}
+  hurtHeavy:
+  - {fileID: 8300000, guid: 6a9e885433394dda98d5df9f793e2719, type: 3}
+  respawn: []
+  throwWhoosh:
+  - {fileID: 8300000, guid: 67f9357e3cc9449b856c1e10d32a8c71, type: 3}
+  throwImpactSoft:
+  - {fileID: 8300000, guid: a14815216d8346cfb8f87e771f421ba6, type: 3}
+  throwImpactHard:
+  - {fileID: 8300000, guid: 7e073a41d840462fa80ec668cf7f7afa, type: 3}
+  crateScrape:
+  - {fileID: 8300000, guid: 78591fe06fc74d449c07777dd94998d8, type: 3}
+  wraithRoam:
+  - {fileID: 8300000, guid: 334caf5b6e0449b592333365ab0f3231, type: 3}
+  wraithAmbushStinger:
+  - {fileID: 8300000, guid: c47b2d4d94c44199ad214c520222fe55, type: 3}
+  wraithBreathNear:
+  - {fileID: 8300000, guid: 9a6c5bae4a544963bc0e8fbcbd1d4e6b, type: 3}
+  chalkWrite: []
+  crank: []
+  flashlightBuzz: []
+  gateCrank: []
+  glassShard: []
+  mirrorTurn: []
+  powerSurge: []
+  shadowHiss: []
+  uiPaperTap: []
+  ambienceYard: {fileID: 0}
   memoryTheme: {fileID: 8300000, guid: 812a9122b0528bc698e191e42daba143, type: 3}
   chasePulse: {fileID: 8300000, guid: d3510527750dbe2dc27c4a2295091ebb, type: 3}
   endingHopeAlt: {fileID: 8300000, guid: 310c49f27b44b125fb48fd7d7af50ffe, type: 3}
   dawnBirds: {fileID: 8300000, guid: 05caaa6408dfd20be160ee481f3f1a52, type: 3}
   schoolDreadA: {fileID: 8300000, guid: 18a51787231703b4622b3315aa2a5d5e, type: 3}
   schoolDreadB: {fileID: 8300000, guid: 5e05079615f7634e4924244c6f8f0334, type: 3}
+  musicBedLongNoteOne: {fileID: 8300000, guid: 07f7169932f70cb46b30b1bd9f753b6d, type: 3}
+  endingHopeGold: {fileID: 8300000, guid: 83b7e58a71a37784d9198e61b364fe8f, type: 3}
+  endingDawnlessGrey: {fileID: 8300000, guid: 4736c5766d1d14f4e8fd4be492d71b3f, type: 3}
